@@ -1,0 +1,8 @@
+[package]
+name = "r-jvm"
+version = "0.1.0"
+authors = ["rchaser53 <tayoshizawa29@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+lazy_static = "1.4.0"
