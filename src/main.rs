@@ -3,28 +3,28 @@ use std::fmt;
 use std::ops::Fn;
 
 #[derive(Debug)]
-enum OperandStackItem {
+pub enum OperandStackItem {
     I32(i32),
 }
 
 #[derive(Debug)]
-struct OperandStack {
-    stack: Vec<OperandStackItem>,
+pub struct OperandStack {
+    pub stack: Vec<OperandStackItem>,
 }
 
 impl OperandStack {
-    fn new() -> Self {
+    pub fn new() -> Self {
         OperandStack { stack: vec![] }
     }
 
-    fn iadd(&mut self) -> i32 {
+    pub fn iadd(&mut self) -> i32 {
         match (self.stack.pop(), self.stack.pop()) {
             (Some(left), Some(right)) => OperandStack::add_two_item(left, right),
             _ => panic!("shortage item in OperandStack"),
         }
     }
 
-    fn add_two_item(left: OperandStackItem, right: OperandStackItem) -> i32 {
+    pub fn add_two_item(left: OperandStackItem, right: OperandStackItem) -> i32 {
         match (&left, &right) {
             (OperandStackItem::I32(left), OperandStackItem::I32(right)) => left + right,
             _ => panic!(
@@ -34,39 +34,39 @@ impl OperandStack {
         }
     }
 
-    fn bipush(&mut self, item: OperandStackItem) {
+    pub fn bipush(&mut self, item: OperandStackItem) {
         self.stack.push(item);
     }
 
-    fn iconst(&mut self, item: OperandStackItem) {
+    pub fn iconst(&mut self, item: OperandStackItem) {
         self.stack.push(item);
     }
 }
 
-fn convert_operand_stackframe(operand_stack_item: OperandStackItem) -> StarckframeItem {
+pub fn convert_operand_stackframe(operand_stack_item: OperandStackItem) -> StarckframeItem {
     match operand_stack_item {
         OperandStackItem::I32(value) => StarckframeItem::I32(value),
     }
 }
 
 #[derive(Debug)]
-enum StarckframeItem {
+pub enum StarckframeItem {
     I32(i32),
 }
 
 #[derive(Debug)]
-struct Stackframe {
-    local_variables: Vec<StarckframeItem>,
+pub struct Stackframe {
+    pub local_variables: Vec<StarckframeItem>,
 }
 
 impl Stackframe {
-    fn new(variables_number: usize) -> Self {
+    pub fn new(variables_number: usize) -> Self {
         Stackframe {
             local_variables: Vec::with_capacity(variables_number),
         }
     }
 
-    fn istore(&mut self, operand_stack: &mut OperandStack, index: usize) {
+    pub fn istore(&mut self, operand_stack: &mut OperandStack, index: usize) {
         if let Some(val) = operand_stack.stack.pop() {
             self.local_variables
                 .insert(index, convert_operand_stackframe(val));
@@ -74,14 +74,58 @@ impl Stackframe {
     }
 }
 
+pub struct ProgramContext {
+    pub orders: Vec<Order>,
+}
+
+pub struct Order {
+    pub opecode: Opecode,
+    pub operand: OperandStackItem,
+}
+impl Order {
+    pub fn new(opecode: Opecode, operand: OperandStackItem) -> Order {
+        Order { opecode, operand }
+    }
+}
+
+pub enum Opecode {
+    Iadd,
+    Iconst,
+}
+
+pub fn execute(order: Order, operand_stack: &mut OperandStack, stackframe: &mut Stackframe) {
+    if let Order { opecode, operand } = order {
+        match opecode {
+            Opecode::Iadd => {
+                let a = operand_stack.iadd();
+                dbg!(&a);
+            }
+            Opecode::Iconst => {
+                operand_stack.iconst(operand);
+            }
+        }
+    }
+}
+
 fn main() {
+    let program_context = ProgramContext {
+        orders: vec![
+            Order::new(Opecode::Iconst, OperandStackItem::I32(1)),
+            Order::new(Opecode::Iconst, OperandStackItem::I32(2)),
+            Order::new(Opecode::Iadd, OperandStackItem::I32(2)),
+        ],
+    };
     let mut operand_stack = OperandStack::new();
     let mut stackframe = Stackframe::new(1);
 
-    operand_stack.iconst(OperandStackItem::I32(1));
-    stackframe.istore(&mut operand_stack, 0);
+    for order in program_context.orders {
+        execute(order, &mut operand_stack, &mut stackframe);
+    }
 
-    dbg!(&stackframe);
+    // operand_stack.iconst(OperandStackItem::I32(1));
+    // stackframe.istore(&mut operand_stack, 0);
+
+    // dbg!(&stackframe);
 
     // operand_stack.bipush(OperandStackItem::I32(1));
     // operand_stack.bipush(OperandStackItem::I32(2));
