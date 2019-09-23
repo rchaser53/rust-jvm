@@ -97,8 +97,8 @@ pub fn execute(order: Order, operand_stack: &mut OperandStack, stackframe: &mut 
     if let Order { opecode, operand } = order {
         match opecode {
             Opecode::Iadd => {
-                let a = operand_stack.iadd();
-                dbg!(&a);
+                let val = operand_stack.iadd();
+                operand_stack.stack.push(OperandStackItem::I32(val));
             }
             Opecode::Iconst => {
                 operand_stack.iconst(operand);
