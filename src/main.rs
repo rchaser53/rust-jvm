@@ -91,9 +91,10 @@ impl Order {
 pub enum Opecode {
     Iadd,
     Iconst,
+    Ireturn,
 }
 
-pub fn execute(order: Order, operand_stack: &mut OperandStack, stackframe: &mut Stackframe) {
+pub fn execute(order: Order, operand_stack: &mut OperandStack) {
     if let Order { opecode, operand } = order {
         match opecode {
             Opecode::Iadd => {
@@ -103,7 +104,11 @@ pub fn execute(order: Order, operand_stack: &mut OperandStack, stackframe: &mut 
             Opecode::Iconst => {
                 operand_stack.iconst(operand);
             }
-        }
+            Opecode::Ireturn => {
+                // TODO: how should I handle this value?
+                let _ = operand_stack.stack.pop();
+            }
+        };
     }
 }
 
@@ -119,7 +124,7 @@ fn main() {
     let mut stackframe = Stackframe::new(1);
 
     for order in program_context.orders {
-        execute(order, &mut operand_stack, &mut stackframe);
+        execute(order, &mut operand_stack);
     }
 
     // operand_stack.iconst(OperandStackItem::I32(1));
