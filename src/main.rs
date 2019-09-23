@@ -74,10 +74,48 @@ impl Stackframe {
     }
 }
 
+#[derive(Debug)]
 pub struct ProgramContext {
     pub orders: Vec<Order>,
+    pub operand_stack: OperandStack,
+    pub stack_frames: Vec<Stackframe>,
+}
+impl ProgramContext {
+    pub fn new(orders: Vec<Order>) -> ProgramContext {
+        ProgramContext {
+            orders,
+            operand_stack: OperandStack::new(),
+            stack_frames: vec![],
+        }
+    }
+
+    pub fn executes_programs(&mut self) {
+        self.orders.reverse();
+        while let Some(order) = self.orders.pop() {
+            self.execute(order);
+        }
+    }
+
+    pub fn execute(&mut self, order: Order) {
+        if let Order { opecode, operand } = order {
+            match opecode {
+                Opecode::Iadd => {
+                    let val = self.operand_stack.iadd();
+                    self.operand_stack.stack.push(OperandStackItem::I32(val));
+                }
+                Opecode::Iconst => {
+                    self.operand_stack.iconst(operand);
+                }
+                Opecode::Ireturn => {
+                    // TODO: how should I handle this value?
+                    let _ = self.operand_stack.stack.pop();
+                }
+            };
+        }
+    }
 }
 
+#[derive(Debug)]
 pub struct Order {
     pub opecode: Opecode,
     pub operand: OperandStackItem,
@@ -88,44 +126,20 @@ impl Order {
     }
 }
 
+#[derive(Debug)]
 pub enum Opecode {
     Iadd,
     Iconst,
     Ireturn,
 }
 
-pub fn execute(order: Order, operand_stack: &mut OperandStack) {
-    if let Order { opecode, operand } = order {
-        match opecode {
-            Opecode::Iadd => {
-                let val = operand_stack.iadd();
-                operand_stack.stack.push(OperandStackItem::I32(val));
-            }
-            Opecode::Iconst => {
-                operand_stack.iconst(operand);
-            }
-            Opecode::Ireturn => {
-                // TODO: how should I handle this value?
-                let _ = operand_stack.stack.pop();
-            }
-        };
-    }
-}
-
 fn main() {
-    let program_context = ProgramContext {
-        orders: vec![
-            Order::new(Opecode::Iconst, OperandStackItem::I32(1)),
-            Order::new(Opecode::Iconst, OperandStackItem::I32(2)),
-            Order::new(Opecode::Iadd, OperandStackItem::I32(2)),
-        ],
-    };
-    let mut operand_stack = OperandStack::new();
-    let mut stackframe = Stackframe::new(1);
-
-    for order in program_context.orders {
-        execute(order, &mut operand_stack);
-    }
+    let mut program_context = ProgramContext::new(vec![
+        Order::new(Opecode::Iconst, OperandStackItem::I32(1)),
+        Order::new(Opecode::Iconst, OperandStackItem::I32(2)),
+        Order::new(Opecode::Iadd, OperandStackItem::I32(2)),
+    ]);
+    program_context.executes_programs();
 
     // operand_stack.iconst(OperandStackItem::I32(1));
     // stackframe.istore(&mut operand_stack, 0);
