@@ -4,6 +4,7 @@ use std::ops::Fn;
 
 #[derive(Debug)]
 pub enum OperandStackItem {
+    Null,
     I32(i32),
 }
 
@@ -46,11 +47,13 @@ impl OperandStack {
 pub fn convert_operand_stackframe(operand_stack_item: OperandStackItem) -> StarckframeItem {
     match operand_stack_item {
         OperandStackItem::I32(value) => StarckframeItem::I32(value),
+        OperandStackItem::Null => StarckframeItem::Null,
     }
 }
 
 #[derive(Debug)]
 pub enum StarckframeItem {
+    Null,
     I32(i32),
 }
 
@@ -71,6 +74,14 @@ impl Stackframe {
             self.local_variables
                 .insert(index, convert_operand_stackframe(val));
         }
+    }
+}
+
+#[derive(Debug)]
+pub struct ConstantPool(Vec<StarckframeItem>);
+impl ConstantPool {
+    pub fn new() -> ConstantPool {
+        ConstantPool(vec![StarckframeItem::Null])
     }
 }
 
@@ -143,8 +154,6 @@ fn main() {
 
     // operand_stack.iconst(OperandStackItem::I32(1));
     // stackframe.istore(&mut operand_stack, 0);
-
-    // dbg!(&stackframe);
 
     // operand_stack.bipush(OperandStackItem::I32(1));
     // operand_stack.bipush(OperandStackItem::I32(2));
