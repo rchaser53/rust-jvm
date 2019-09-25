@@ -16,8 +16,9 @@ struct Method;
 struct Attribute;
 
 struct ClassFile {
-    magic: u8,                  // u2
+    magic: u16,                 // u4
     minor_version: u8,          // u2
+    major_version: u8,          // u2
     constant_pool_count: u8,    // u2
     cp_info: ConstantPool,      // cp_info        constant_pool[constant_pool_count-1];
     access_flags: u8,           // u2
