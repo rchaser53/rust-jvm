@@ -16,4 +16,5 @@ pub enum Opecode {
     Iadd,
     Iconst,
     Ireturn,
+    IfIcmple,
 }

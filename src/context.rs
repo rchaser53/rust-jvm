@@ -10,6 +10,7 @@ pub struct ProgramContext {
     pub operand_stack: OperandStack,
     pub stack_frames: Vec<Stackframe>,
     pub constant_pool: ConstantPool,
+    pub program_count: usize,
 }
 impl ProgramContext {
     pub fn new(orders: Vec<Order>) -> ProgramContext {
@@ -18,29 +19,40 @@ impl ProgramContext {
             operand_stack: OperandStack::new(),
             stack_frames: vec![],
             constant_pool: ConstantPool::new(),
+            program_count: 0,
         }
     }
 
     pub fn executes_programs(&mut self) {
-        self.orders.reverse();
-        while let Some(order) = self.orders.pop() {
-            self.execute(order);
+        let order_item_number = self.orders.len() - 1;
+        while order_item_number > self.program_count {
+            self.execute();
+            self.program_count += 1;
         }
     }
 
-    pub fn execute(&mut self, order: Order) {
-        let Order { opecode, operand } = order;
-        match opecode {
+    pub fn execute(&mut self) {
+        let order = &self.orders[self.program_count];
+        match order.opecode {
             Opecode::Iadd => {
                 let val = self.operand_stack.iadd();
                 self.operand_stack.stack.push(OperandStackItem::I32(val));
             }
             Opecode::Iconst => {
-                self.operand_stack.iconst(operand);
+                self.operand_stack.iconst(order.operand);
             }
             Opecode::Ireturn => {
                 // TODO: how should I handle this value?
                 let _ = self.operand_stack.stack.pop();
+            }
+            Opecode::IfIcmple => {
+                let left = self.operand_stack.stack.pop();
+                let right = self.operand_stack.stack.pop();
+                if left > right {
+                    if let OperandStackItem::I32(val) = order.operand {
+                        self.program_count = val as usize;
+                    }
+                }
             }
         };
     }

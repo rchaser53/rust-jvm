@@ -1,7 +1,19 @@
-#[derive(Debug)]
+use std::cmp::{Ordering, PartialOrd};
+
+#[derive(PartialEq, Clone, Copy, Debug)]
 pub enum OperandStackItem {
     Null,
     I32(i32),
+}
+
+impl PartialOrd for OperandStackItem {
+    fn partial_cmp(&self, other: &OperandStackItem) -> Option<Ordering> {
+        match (self, other) {
+            (OperandStackItem::Null, OperandStackItem::Null) => Some(Ordering::Equal),
+            (OperandStackItem::I32(left), OperandStackItem::I32(right)) => Some(left.cmp(right)),
+            _ => None,
+        }
+    }
 }
 
 #[derive(Debug)]
