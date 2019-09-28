@@ -13,11 +13,16 @@ use crate::context::{ConstantPool, ProgramContext};
 mod utils;
 use crate::utils::read_file;
 
+#[derive(Debug)]
 struct Interface;
+#[derive(Debug)]
 struct Field;
+#[derive(Debug)]
 struct Method;
+#[derive(Debug)]
 struct Attribute;
 
+#[derive(Debug)]
 struct ClassFile {
     magic: u16,                 // u4
     minor_version: u8,          // u2
