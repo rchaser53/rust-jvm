@@ -42,6 +42,46 @@ struct ClassFile {
     attributes: Vec<Attribute>, // attribute_info attributes[attributes_count];
 }
 
+#[derive(Debug)]
+pub enum ConstPoolTag {
+    ConstantClass = 7,
+    ConstantFieldref = 9,
+    ConstantMethodref = 10,
+    ConstantInterfaceMethodref = 11,
+    ConstantString = 8,
+    ConstantInteger = 3,
+    ConstantFloat = 4,
+    ConstantLong = 5,
+    ConstantDouble = 6,
+    ConstantNameAndType = 12,
+    ConstantUtf8 = 1,
+    ConstantMethodHandle = 15,
+    ConstantMethodType = 16,
+    ConstantInvokeDynamic = 18,
+}
+
+impl From<u8> for ConstPoolTag {
+    fn from(num: u8) -> ConstPoolTag {
+        match num {
+            7 => ConstPoolTag::ConstantClass,
+            9 => ConstPoolTag::ConstantFieldref,
+            10 => ConstPoolTag::ConstantMethodref,
+            11 => ConstPoolTag::ConstantInterfaceMethodref,
+            8 => ConstPoolTag::ConstantString,
+            3 => ConstPoolTag::ConstantInteger,
+            4 => ConstPoolTag::ConstantFloat,
+            5 => ConstPoolTag::ConstantLong,
+            6 => ConstPoolTag::ConstantDouble,
+            12 => ConstPoolTag::ConstantNameAndType,
+            1 => ConstPoolTag::ConstantUtf8,
+            15 => ConstPoolTag::ConstantMethodHandle,
+            16 => ConstPoolTag::ConstantMethodType,
+            18 => ConstPoolTag::ConstantInvokeDynamic,
+            _ => panic!("failed to convert {} to ConstPoolTag", num),
+        }
+    }
+}
+
 fn main() {
     let mut program_context = ProgramContext::new(vec![
         Order::new(Opecode::Iconst, OperandStackItem::I32(1)),
