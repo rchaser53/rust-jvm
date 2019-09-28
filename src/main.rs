@@ -10,6 +10,9 @@ use order::{Opecode, Order};
 mod context;
 use crate::context::{ConstantPool, ProgramContext};
 
+mod utils;
+use crate::utils::read_file;
+
 struct Interface;
 struct Field;
 struct Method;
