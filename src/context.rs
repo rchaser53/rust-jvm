@@ -1,8 +1,8 @@
 use crate::operand::{OperandStack, OperandStackItem};
 
-use crate::stackframe::{Stackframe, StarckframeItem};
-
+use crate::stackframe::{Stackframe};
 use crate::order::{Opecode, Order};
+use crate::constant::ConstantPool;
 
 #[derive(Debug)]
 pub struct ProgramContext {
@@ -18,7 +18,8 @@ impl ProgramContext {
             orders,
             operand_stack: OperandStack::new(),
             stack_frames: vec![],
-            constant_pool: ConstantPool::new(),
+            // TBD
+            constant_pool: ConstantPool::new(&mut []),
             program_count: 0,
         }
     }
@@ -55,13 +56,5 @@ impl ProgramContext {
                 }
             }
         };
-    }
-}
-
-#[derive(Debug)]
-pub struct ConstantPool(Vec<StarckframeItem>);
-impl ConstantPool {
-    pub fn new() -> ConstantPool {
-        ConstantPool(vec![StarckframeItem::Null])
     }
 }
