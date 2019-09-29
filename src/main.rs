@@ -19,21 +19,21 @@ struct Attribute;
 
 #[derive(Debug)]
 struct ClassFile {
-    magic: u16,                 // u4
-    minor_version: u8,          // u2
-    major_version: u8,          // u2
-    constant_pool_count: u8,    // u2
+    magic: u32,                 // u4
+    minor_version: u16,         // u2
+    major_version: u16,         // u2
+    constant_pool_count: u16,   // u2
     cp_info: ConstantPool,      // cp_info        constant_pool[constant_pool_count-1];
-    access_flags: u8,           // u2
-    this_class: u8,             // u2
-    super_class: u8,            // u2
-    interfaces_count: u8,       // u2
+    access_flags: u16,          // u2
+    this_class: u16,            // u2
+    super_class: u16,           // u2
+    interfaces_count: u16,      // u2
     interfaces: Vec<Interface>, // u2             interfaces[interfaces_count];
-    fields_count: u8,           // u2
+    fields_count: u16,          // u2
     fields: Vec<Field>,         // field_info     fields[fields_count];
-    methods_count: u8,          // u2
+    methods_count: u16,         // u2
     methods: Vec<Method>,       // method_info    methods[methods_count];
-    attributes_count: u8,       // u2
+    attributes_count: u16,      // u2
     attributes: Vec<Attribute>, // attribute_info attributes[attributes_count];
 }
 
