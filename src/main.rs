@@ -37,6 +37,34 @@ struct ClassFile {
     attributes: Vec<Attribute>, // attribute_info attributes[attributes_count];
 }
 
+#[derive(Debug)]
+pub enum AccessFlag {
+    AccPublic,
+    AccFinal,
+    AccSuper,
+    AccInterface,
+    AccAbstract,
+    AccSynthetic,
+    AccAnnotation,
+    AccEnum,
+}
+
+impl From<u16> for AccessFlag {
+    fn from(num: u16) -> AccessFlag {
+        match num {
+            0x0001 => AccessFlag::AccPublic,
+            0x0010 => AccessFlag::AccFinal,
+            0x0020 => AccessFlag::AccSuper,
+            0x0200 => AccessFlag::AccInterface,
+            0x0400 => AccessFlag::AccAbstract,
+            0x1000 => AccessFlag::AccSynthetic,
+            0x2000 => AccessFlag::AccAnnotation,
+            0x4000 => AccessFlag::AccEnum,
+            _ => panic!("failed to convert {} to AccessFlag", num),
+        }
+    }
+}
+
 fn main() {
     if let Ok(buffer) = read_file("A.class", &mut vec![]) {
         dbg!(&buffer);
