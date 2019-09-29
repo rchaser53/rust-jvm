@@ -31,12 +31,23 @@ impl ConstantPool {
                     items.push(ConstPoolItem::ConstantMethodref(item));
                 }
                 ConstPoolTag::ConstantUtf8 => {
-
+                    let hi = byte_iter.next().unwrap() << 2 * 8;
+                    let lo = byte_iter.next().unwrap();
+                    let length = (hi + lo) as usize;
+                    let mut bytes = Vec::with_capacity(length);
+                    for _ in 0..length {
+                        bytes.push(*byte_iter.next().unwrap());
+                    }
+                    let item = ConstantUtf8 {
+                        tag: ConstPoolTag::ConstantUtf8,
+                        length,
+                        bytes
+                    };
+                    items.push(ConstPoolItem::ConstantUtf8(item));
                 }
                 _ => unimplemented!()
             }
         }
-
         ConstantPool(items)
     }
 }
