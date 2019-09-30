@@ -18,6 +18,20 @@ struct Method;
 struct Attribute;
 
 #[derive(Debug)]
+pub struct LineNumberTable {
+    pub attribute_name_index: u16,                      // u2
+    pub attribute_length: u32,                          // u4
+    pub line_number_table_length: u16,                  // u2
+    pub line_number_tables: Vec<LineNumberTableItem>
+}
+
+#[derive(Debug)]
+pub struct LineNumberTableItem {
+    pub start_pc: u16,          // u2
+    pub line_number: u16        // u2
+}
+
+#[derive(Debug)]
 struct ClassFile {
     magic: u32,                 // u4
     minor_version: u16,         // u2
