@@ -1,14 +1,35 @@
-use crate::stackframe::StarckframeItem;
-
 #[derive(Debug)]
 pub struct ConstantPool(Vec<ConstPoolItem>);
 impl ConstantPool {
-    pub fn new(mut inputs: &[u8]) -> ConstantPool {
+    pub fn new(inputs: &mut Vec<u8>, index: usize, length: usize) -> ConstantPool {
         let mut items = vec![ConstPoolItem::ConstantNull];
-        let mut byte_iter = inputs.into_iter();
-        while let Some(byte) = byte_iter.next() {
-            items.push(ConstPoolItem::new(*byte, &mut byte_iter));
+        for _ in 0..length {
+          let tag = inputs[index];
+          index += 1;
+
+          match ConstPoolTag::from(tag) {
+              ConstPoolTag::ConstantClass => {
+              },
+              ConstPoolTag::ConstantMethodref => {
+              },
+              ConstPoolTag::ConstantNameAndType => {
+              },
+              ConstPoolTag::ConstantUtf8 => {
+                let mut next_index = index + 1;
+                let utf8_length = (inputs[index] << 8 + inputs[next_index]) as usize;
+                next_index += 1;
+                let bytes = inputs[next_index..(next_index + utf8_length)].to_vec();
+
+                items.push(ConstPoolItem::ConstantUtf8(ConstantUtf8 {
+                    tag: ConstPoolTag::ConstantUtf8,
+                    length: utf8_length,
+                    bytes,
+                }));
+                index = next_index + utf8_length + 1;
+              },
+          }
         }
+
         ConstantPool(items)
     }
 }
