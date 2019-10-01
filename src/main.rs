@@ -17,11 +17,11 @@ struct Field;
 
 #[derive(Debug)]
 struct Method {
-    pub access_flags: u16,            // u2
-    pub name_index: u16,              // u2
-    pub descriptor_index: u16,        // u2
-    pub attributes_count: u16,        // u2
-    pub attribute_info: Vec<Attribute>
+    pub access_flags: u16,     // u2
+    pub name_index: u16,       // u2
+    pub descriptor_index: u16, // u2
+    pub attributes_count: u16, // u2
+    pub attribute_info: Vec<Attribute>,
 }
 
 #[derive(Debug)]
@@ -42,6 +42,30 @@ struct ClassFile {
     pub methods: Vec<Method>,       // method_info    methods[methods_count];
     pub attributes_count: u16,      // u2
     pub attributes: Vec<Attribute>, // attribute_info attributes[attributes_count];
+}
+
+impl ClassFile {
+    // pub fn new(input: Vec<u8>) -> ClassFile {
+    //     let mut index = 0;
+
+    //     let (_, mut index) = ClassFile::extract_magic(&mut input, index);
+    //     let (minor_version, mut index) = ClassFile::extract_u16(&mut input, index);
+    //     let (major_version, mut index) = ClassFile::extract_u16(&mut input, index);
+    //     let (constant_pool_count, mut index) = ClassFile::extract_u16(&mut input, index);
+
+    //     let constant_pool = ConstantPool::new(input, index);
+    // }
+    fn extract_magic(input: &mut Vec<u8>, index: usize) -> ([u8; 4], usize) {
+        let next_index = index + 3;
+        let [c, a, f, e] = input[index..next_index];
+        ([c, a, f, e], next_index)
+    }
+
+    fn extract_u16(input: &mut Vec<u8>, index: usize) -> (u16, usize) {
+        let next_index = index + 1;
+        let result = (input[index] << 8 + input[next_index]) as u16;
+        (result, next_index)
+    }
 }
 
 #[derive(Debug)]
