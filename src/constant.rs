@@ -4,30 +4,43 @@ impl ConstantPool {
     pub fn new(inputs: &mut Vec<u8>, index: usize, length: usize) -> ConstantPool {
         let mut items = vec![ConstPoolItem::ConstantNull];
         for _ in 0..length {
-          let tag = inputs[index];
-          index += 1;
+            let tag = inputs[index];
+            index += 1;
 
-          match ConstPoolTag::from(tag) {
-              ConstPoolTag::ConstantClass => {
-              },
-              ConstPoolTag::ConstantMethodref => {
-              },
-              ConstPoolTag::ConstantNameAndType => {
-              },
-              ConstPoolTag::ConstantUtf8 => {
-                let mut next_index = index + 1;
-                let utf8_length = (inputs[index] << 8 + inputs[next_index]) as usize;
-                next_index += 1;
-                let bytes = inputs[next_index..(next_index + utf8_length)].to_vec();
+            match ConstPoolTag::from(tag) {
+                ConstPoolTag::ConstantClass => {}
+                ConstPoolTag::ConstantMethodref => {
+                    let mut next_index = index + 1;
+                    let class_index = (inputs[index] << 8 + inputs[next_index]) as usize;
+                    next_index += 1;
 
-                items.push(ConstPoolItem::ConstantUtf8(ConstantUtf8 {
-                    tag: ConstPoolTag::ConstantUtf8,
-                    length: utf8_length,
-                    bytes,
-                }));
-                index = next_index + utf8_length + 1;
-              },
-          }
+                    let name_and_type_index = (inputs[index] << 8 + inputs[next_index]) as usize;
+                    next_index += 1;
+
+                    items.push(ConstPoolItem::ConstantMethodref(ConstantMethodref {
+                        tag: ConstPoolTag::ConstantMethodref,
+                        class_index,
+                        name_and_type_index,
+                    }));
+                    index = next_index + 1;
+                }
+                ConstPoolTag::ConstantNameAndType => {}
+                ConstPoolTag::ConstantUtf8 => {
+                    let mut next_index = index + 1;
+                    let utf8_length = (inputs[index] << 8 + inputs[next_index]) as usize;
+                    next_index += 1;
+
+                    let bytes = inputs[next_index..(next_index + utf8_length)].to_vec();
+                    index += utf8_length;
+
+                    items.push(ConstPoolItem::ConstantUtf8(ConstantUtf8 {
+                        tag: ConstPoolTag::ConstantUtf8,
+                        length: utf8_length,
+                        bytes,
+                    }));
+                    index = next_index + 1;
+                }
+            }
         }
 
         ConstantPool(items)
