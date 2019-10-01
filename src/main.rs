@@ -14,27 +14,34 @@ use crate::utils::read_file;
 struct Interface;
 #[derive(Debug)]
 struct Field;
+
 #[derive(Debug)]
-struct Method;
+struct Method {
+    pub access_flags: u16,            // u2
+    pub name_index: u16,              // u2
+    pub descriptor_index: u16,        // u2
+    pub attributes_count: u16,        // u2
+    pub attribute_info: Vec<Attribute>
+}
 
 #[derive(Debug)]
 struct ClassFile {
-    magic: u32,                 // u4
-    minor_version: u16,         // u2
-    major_version: u16,         // u2
-    constant_pool_count: u16,   // u2
-    cp_info: ConstantPool,      // cp_info        constant_pool[constant_pool_count-1];
-    access_flags: u16,          // u2
-    this_class: u16,            // u2
-    super_class: u16,           // u2
-    interfaces_count: u16,      // u2
-    interfaces: Vec<Interface>, // u2             interfaces[interfaces_count];
-    fields_count: u16,          // u2
-    fields: Vec<Field>,         // field_info     fields[fields_count];
-    methods_count: u16,         // u2
-    methods: Vec<Method>,       // method_info    methods[methods_count];
-    attributes_count: u16,      // u2
-    attributes: Vec<Attribute>, // attribute_info attributes[attributes_count];
+    pub magic: u32,                 // u4
+    pub minor_version: u16,         // u2
+    pub major_version: u16,         // u2
+    pub constant_pool_count: u16,   // u2
+    pub cp_info: ConstantPool,      // cp_info        constant_pool[constant_pool_count-1];
+    pub access_flags: u16,          // u2
+    pub this_class: u16,            // u2
+    pub super_class: u16,           // u2
+    pub interfaces_count: u16,      // u2
+    pub interfaces: Vec<Interface>, // u2             interfaces[interfaces_count];
+    pub fields_count: u16,          // u2
+    pub fields: Vec<Field>,         // field_info     fields[fields_count];
+    pub methods_count: u16,         // u2
+    pub methods: Vec<Method>,       // method_info    methods[methods_count];
+    pub attributes_count: u16,      // u2
+    pub attributes: Vec<Attribute>, // attribute_info attributes[attributes_count];
 }
 
 #[derive(Debug)]
