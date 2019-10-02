@@ -13,16 +13,16 @@ pub struct ProgramContext {
     pub program_count: usize,
 }
 impl ProgramContext {
-    pub fn new(orders: Vec<Order>) -> ProgramContext {
-        ProgramContext {
-            orders,
-            operand_stack: OperandStack::new(),
-            stack_frames: vec![],
-            // TBD
-            constant_pool: ConstantPool::new(&mut []),
-            program_count: 0,
-        }
-    }
+    // pub fn new(orders: Vec<Order>) -> ProgramContext {
+    //     ProgramContext {
+    //         orders,
+    //         operand_stack: OperandStack::new(),
+    //         stack_frames: vec![],
+    //         // TBD
+    //         constant_pool: ConstantPool::new(&mut []),
+    //         program_count: 0,
+    //     }
+    // }
 
     pub fn executes_programs(&mut self) {
         let order_item_number = self.orders.len() - 1;

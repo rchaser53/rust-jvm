@@ -1,46 +1,39 @@
+use crate::utils::*;
+
 #[derive(Debug)]
 pub struct ConstantPool(Vec<ConstPoolItem>);
 impl ConstantPool {
     pub fn new(inputs: &mut Vec<u8>, index: usize, length: usize) -> ConstantPool {
         let mut items = vec![ConstPoolItem::ConstantNull];
+        let mut index = index;
         for _ in 0..length {
             let tag = inputs[index];
             index += 1;
 
-            match ConstPoolTag::from(tag) {
-                ConstPoolTag::ConstantClass => {}
+            let (item, update_index) = match ConstPoolTag::from(tag) {
+                ConstPoolTag::ConstantClass => {
+                    let (item, update_index) =
+                        ConstantClass::create_and_update_index(inputs, index);
+                    (ConstPoolItem::ConstantClass(item), update_index)
+                }
                 ConstPoolTag::ConstantMethodref => {
-                    let mut next_index = index + 1;
-                    let class_index = (inputs[index] << 8 + inputs[next_index]) as usize;
-                    next_index += 1;
-
-                    let name_and_type_index = (inputs[index] << 8 + inputs[next_index]) as usize;
-                    next_index += 1;
-
-                    items.push(ConstPoolItem::ConstantMethodref(ConstantMethodref {
-                        tag: ConstPoolTag::ConstantMethodref,
-                        class_index,
-                        name_and_type_index,
-                    }));
-                    index = next_index + 1;
+                    let (item, update_index) =
+                        ConstantMethodref::create_and_update_index(inputs, index);
+                    (ConstPoolItem::ConstantMethodref(item), update_index)
                 }
-                ConstPoolTag::ConstantNameAndType => {}
+                ConstPoolTag::ConstantNameAndType => {
+                    let (item, update_index) =
+                        ConstantNameAndType::create_and_update_index(inputs, index);
+                    (ConstPoolItem::ConstantNameAndType(item), update_index)
+                }
                 ConstPoolTag::ConstantUtf8 => {
-                    let mut next_index = index + 1;
-                    let utf8_length = (inputs[index] << 8 + inputs[next_index]) as usize;
-                    next_index += 1;
-
-                    let bytes = inputs[next_index..(next_index + utf8_length)].to_vec();
-                    index += utf8_length;
-
-                    items.push(ConstPoolItem::ConstantUtf8(ConstantUtf8 {
-                        tag: ConstPoolTag::ConstantUtf8,
-                        length: utf8_length,
-                        bytes,
-                    }));
-                    index = next_index + 1;
+                    let (item, update_index) = ConstantUtf8::create_and_update_index(inputs, index);
+                    (ConstPoolItem::ConstantUtf8(item), update_index)
                 }
-            }
+                _ => unimplemented!(),
+            };
+            index = update_index;
+            items.push(item);
         }
 
         ConstantPool(items)
@@ -100,52 +93,41 @@ pub enum ConstPoolItem {
     ConstantFloat,
     ConstantLong,
     ConstantDouble,
-    ConstantNameAndType,
+    ConstantNameAndType(ConstantNameAndType),
     ConstantUtf8(ConstantUtf8),
     ConstantMethodHandle,
     ConstantMethodType,
     ConstantInvokeDynamic,
 }
 
-impl ConstPoolItem {
-    pub fn new(tag_byte: u8, byte_iter: &mut std::slice::Iter<'_, u8>) -> ConstPoolItem {
-        match ConstPoolTag::from(tag_byte) {
-            ConstPoolTag::ConstantClass => {
-                let hi = byte_iter.next().unwrap() << 2 * 8;
-                let lo = byte_iter.next().unwrap();
-                ConstPoolItem::ConstantClass(ConstantClass {
-                    tag: ConstPoolTag::ConstantClass,
-                    name_index: (hi + lo) as usize,
-                })
-            }
-            ConstPoolTag::ConstantMethodref => {
-                let hi_class = byte_iter.next().unwrap() << 2 * 8;
-                let lo_class = byte_iter.next().unwrap();
-                let hi_name_and_type = byte_iter.next().unwrap() << 2 * 8;
-                let lo_name_and_type = byte_iter.next().unwrap() << 2 * 8;
-                ConstPoolItem::ConstantMethodref(ConstantMethodref {
-                    tag: ConstPoolTag::ConstantMethodref,
-                    class_index: (hi_class + lo_class) as usize,
-                    name_and_type_index: (hi_name_and_type + lo_name_and_type) as usize,
-                })
-            }
-            ConstPoolTag::ConstantUtf8 => {
-                let hi = byte_iter.next().unwrap() << 2 * 8;
-                let lo = byte_iter.next().unwrap();
-                let length = (hi + lo) as usize;
-                let mut bytes = Vec::with_capacity(length);
-                for _ in 0..length {
-                    bytes.push(*byte_iter.next().unwrap());
-                }
+#[derive(Debug)]
+pub struct ConstantNameAndType {
+    pub tag: ConstPoolTag,
+    pub name_index: usize,       // u2
+    pub descriptor_index: usize, // u2
+}
 
-                ConstPoolItem::ConstantUtf8(ConstantUtf8 {
-                    tag: ConstPoolTag::ConstantUtf8,
-                    length,
-                    bytes,
-                })
-            }
-            _ => unimplemented!(),
-        }
+impl ConstantNameAndType {
+    pub fn create_and_update_index(
+        inputs: &mut Vec<u8>,
+        mut index: usize,
+    ) -> (ConstantNameAndType, usize) {
+        let output = extract_x_byte_as_usize(inputs, index, 2);
+        let name_index = output.0;
+        index = output.1;
+
+        let output = extract_x_byte_as_usize(inputs, index, 2);
+        let descriptor_index = output.0;
+        index = output.1;
+
+        (
+            ConstantNameAndType {
+                tag: ConstPoolTag::ConstantNameAndType,
+                name_index,
+                descriptor_index,
+            },
+            index,
+        )
     }
 }
 
@@ -155,6 +137,24 @@ pub struct ConstantClass {
     pub name_index: usize, // u2
 }
 
+impl ConstantClass {
+    pub fn create_and_update_index(
+        inputs: &mut Vec<u8>,
+        mut index: usize,
+    ) -> (ConstantClass, usize) {
+        let output = extract_x_byte_as_usize(inputs, index, 2);
+        let name_index = output.0;
+        index = output.1;
+        (
+            ConstantClass {
+                tag: ConstPoolTag::ConstantClass,
+                name_index,
+            },
+            index,
+        )
+    }
+}
+
 #[derive(Debug)]
 pub struct ConstantMethodref {
     pub tag: ConstPoolTag,
@@ -162,9 +162,57 @@ pub struct ConstantMethodref {
     pub name_and_type_index: usize, // u2
 }
 
+impl ConstantMethodref {
+    pub fn create_and_update_index(
+        inputs: &mut Vec<u8>,
+        mut index: usize,
+    ) -> (ConstantMethodref, usize) {
+        let output = extract_x_byte_as_usize(inputs, index, 2);
+        let class_index = output.0;
+        index = output.1;
+
+        let output = extract_x_byte_as_usize(inputs, index, 2);
+        let name_and_type_index = output.0;
+        index = output.1;
+
+        (
+            ConstantMethodref {
+                tag: ConstPoolTag::ConstantMethodref,
+                class_index,
+                name_and_type_index,
+            },
+            index,
+        )
+    }
+}
+
 #[derive(Debug)]
 pub struct ConstantUtf8 {
     pub tag: ConstPoolTag,
     pub length: usize, // u2
     pub bytes: Vec<u8>,
+}
+
+impl ConstantUtf8 {
+    pub fn create_and_update_index(
+        inputs: &mut Vec<u8>,
+        mut index: usize,
+    ) -> (ConstantUtf8, usize) {
+        let output = extract_x_byte_as_usize(inputs, index, 2);
+        let utf8_length = output.0;
+        index = output.1;
+
+        let output = extract_x_byte_as_vec(inputs, index, utf8_length);
+        let bytes = output.0;
+        index = output.1;
+
+        (
+            ConstantUtf8 {
+                tag: ConstPoolTag::ConstantUtf8,
+                length: utf8_length,
+                bytes,
+            },
+            index,
+        )
+    }
 }
