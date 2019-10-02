@@ -55,17 +55,6 @@ impl ClassFile {
 
     //     let constant_pool = ConstantPool::new(input, index);
     // }
-    fn extract_magic(input: &mut Vec<u8>, index: usize) -> ([u8; 4], usize) {
-        let next_index = index + 3;
-        let [c, a, f, e] = input[index..next_index];
-        ([c, a, f, e], next_index)
-    }
-
-    fn extract_u16(input: &mut Vec<u8>, index: usize) -> (u16, usize) {
-        let next_index = index + 1;
-        let result = (input[index] << 8 + input[next_index]) as u16;
-        (result, next_index)
-    }
 }
 
 #[derive(Debug)]
