@@ -39,7 +39,7 @@ pub enum FieldAccessFlag {
 impl From<u16> for FieldAccessFlag {
     fn from(num: u16) -> FieldAccessFlag {
         match num {
-            0x0000 => FieldAccessFlag::Unknown,       // custom
+            0x0000 => FieldAccessFlag::Unknown, // custom
             0x0001 => FieldAccessFlag::AccPublic,
             0x0002 => FieldAccessFlag::AccPrivate,
             0x0004 => FieldAccessFlag::AccProtected,

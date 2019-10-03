@@ -56,9 +56,15 @@ pub struct ExceptionTableItem {
 
 #[derive(Debug)]
 pub enum Instruction {
-    Aload(usize),
+    Aload(usize),           // 0x2a(0) - 0x2d(3)
+    Ificmple(usize, usize), // A4
     Invokespecial(u16, u16),
-    Return,
+    Getfield(u16, u16), // B4
+    Iadd,               // 0x60
+    Return,             // 0xac
+    IloadN(usize),      // 0x1a(0) - 0x1d(3)
+    IconstN(usize),     // 0x02(-1) - 0x08(5)
+    IstoreN(usize),     // 0x3b(0) - 0x3e(3)
 }
 
 #[derive(Debug)]
@@ -74,3 +80,14 @@ pub struct LineNumberTableItem {
     pub start_pc: u16,    // u2
     pub line_number: u16, // u2
 }
+
+//  0: iload_1
+//  1: iconst_2
+//  2: if_icmple     12
+//  5: aload_0
+//  6: getfield      #2                  // Field x:I
+//  9: iconst_2
+// 10: iadd
+// 11: istore_1
+// 12: iload_1
+// 13: ireturn
