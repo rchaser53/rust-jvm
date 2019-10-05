@@ -67,7 +67,7 @@ impl fmt::Display for ConstantPool {
                 }
                 ConstPoolItem::ConstantMethodref(item) => format!(
                     "#{} = Methodref    #{}.#{}",
-                    index, item.class_index, item.name_and_type_index
+                    index, item.class_index, item.name_and_type_index,
                 ),
                 ConstPoolItem::ConstantFieldref(item) => format!(
                     "#{} = Fieldref     #{}.#{}",
@@ -188,10 +188,7 @@ pub struct ConstantFieldref {
 }
 
 impl ConstantFieldref {
-    pub fn create_and_update_index(
-        inputs: &mut [u8],
-        index: usize,
-    ) -> (ConstantFieldref, usize) {
+    pub fn create_and_update_index(inputs: &mut [u8], index: usize) -> (ConstantFieldref, usize) {
         let (class_index, index) = extract_x_byte_as_usize(inputs, index, 2);
         let (name_and_type_index, index) = extract_x_byte_as_usize(inputs, index, 2);
         (
@@ -258,10 +255,7 @@ pub struct ConstantMethodref {
 }
 
 impl ConstantMethodref {
-    pub fn create_and_update_index(
-        inputs: &mut [u8],
-        index: usize,
-    ) -> (ConstantMethodref, usize) {
+    pub fn create_and_update_index(inputs: &mut [u8], index: usize) -> (ConstantMethodref, usize) {
         let (class_index, index) = extract_x_byte_as_usize(inputs, index, 2);
         let (name_and_type_index, index) = extract_x_byte_as_usize(inputs, index, 2);
 
@@ -309,7 +303,7 @@ mod test {
             0x00, 0x0a, // class_index
             0x00, 0x0b, // name_and_type_index
         ];
-        let result = ConstantPool::new(&mut inputs, 0, 1);
+        let result = ConstantPool::new(&mut inputs, 0, 2);
 
         assert_eq!(
             result,
@@ -333,7 +327,7 @@ mod test {
             0x07, // class
             0x00, 0x0b, // name_index
         ];
-        let result = ConstantPool::new(&mut inputs, 0, 1);
+        let result = ConstantPool::new(&mut inputs, 0, 2);
 
         assert_eq!(
             result,
@@ -352,12 +346,12 @@ mod test {
 
     #[test]
     fn constant_pool_utf8() {
-        let mut inputs = vec![
+        let mut inputs = [
             0x01, // utf8
             0x00, 0x0A, // length
             0x53, 0x6F, 0x75, 0x72, 0x63, 0x65, 0x46, 0x69, 0x6C, 0x65, // bytes(SourceFile)
         ];
-        let result = ConstantPool::new(&mut inputs, 0, 1);
+        let result = ConstantPool::new(&mut inputs, 0, 2);
 
         assert_eq!(
             result,
@@ -382,7 +376,7 @@ mod test {
             0x00, 0x0a, // name_index
             0x00, 0x0b, // descriptor_index
         ];
-        let result = ConstantPool::new(&mut inputs, 0, 1);
+        let result = ConstantPool::new(&mut inputs, 0, 2);
 
         assert_eq!(
             result,
@@ -407,12 +401,12 @@ mod test {
             0x00, 0x0a, // name_index
             0x00, 0x0b, // descriptor_index
         ];
-        let (constant_pool, _) = ConstantPool::new(&mut inputs, 0, 1);
+        let (constant_pool, _) = ConstantPool::new(&mut inputs, 0, 2);
 
         assert_eq!(
             format!("{}", constant_pool),
-            "r#Constant pool:
-#1 = NameAndType  #10:#11#"
+            "Constant pool:
+#1 = NameAndType  #10:#11"
         );
     }
 }
