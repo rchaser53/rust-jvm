@@ -41,18 +41,12 @@ impl Attribute {
             let val = String::from_utf8_lossy(item.bytes.as_slice());
             match AttributeTag::from(val.into_owned()) {
                 AttributeTag::SourceFile => {
-                    let (attribute_length, index) = extract_x_byte_as_usize(inputs, index, 4);
-                    let attribute_length = attribute_length as u32;
-
-                    let (sourcefile_index, index) = extract_x_byte_as_usize(inputs, index, 2);
-                    let sourcefile_index = sourcefile_index as u16;
-
-                    let source_file = SourceFile {
-                        attribute_name_index,
-                        attribute_length,
-                        sourcefile_index,
-                    };
-                    (Attribute::SourceFile(source_file), index)
+                    let (item, index) = SourceFile::new(inputs, index, attribute_name_index);
+                    (Attribute::SourceFile(item), index)
+                }
+                AttributeTag::LineNumberTable => {
+                    let (item, index) = LineNumberTable::new(inputs, index, attribute_name_index);
+                    (Attribute::LineNumberTable(item), index)
                 }
                 _ => unimplemented!(),
             }
@@ -130,23 +124,44 @@ impl From<String> for AttributeTag {
 
 #[derive(Debug)]
 pub struct SourceFile {
-    attribute_name_index: u16, // u2
-    attribute_length: u32,     // u4
-    sourcefile_index: u16,     // u2
+    pub attribute_name_index: u16, // u2
+    pub attribute_length: u32,     // u4
+    pub sourcefile_index: u16,     // u2
+}
+
+impl SourceFile {
+    pub fn new(
+        inputs: &mut Vec<u8>,
+        index: usize,
+        attribute_name_index: u16,
+    ) -> (SourceFile, usize) {
+        let (attribute_length, index) = extract_x_byte_as_usize(inputs, index, 4);
+        let attribute_length = attribute_length as u32;
+
+        let (sourcefile_index, index) = extract_x_byte_as_usize(inputs, index, 2);
+        let sourcefile_index = sourcefile_index as u16;
+
+        let source_file = SourceFile {
+            attribute_name_index,
+            attribute_length,
+            sourcefile_index,
+        };
+        (source_file, index)
+    }
 }
 
 #[derive(Debug)]
 pub struct Code {
-    attribute_name_index: u16, // u2
-    attribute_length: u32,     // u4
-    max_stack: u16,            // u2
-    max_locals: u16,           // u2
-    code_length: u32,          // u4
-    code: Vec<Instruction>,
-    exception_table_length: u16, // u2
-    exception_table: Vec<ExceptionTableItem>,
-    attributes_count: u16, // u2
-    attribute_info: Vec<Attribute>,
+    pub bute_name_index: u16,  // u2
+    pub attribute_length: u32, // u4
+    pub max_stack: u16,        // u2
+    pub max_locals: u16,       // u2
+    pub code_length: u32,      // u4
+    pub code: Vec<Instruction>,
+    pub exception_table_length: u16, // u2
+    pub exception_table: Vec<ExceptionTableItem>,
+    pub attributes_count: u16, // u2
+    pub attribute_info: Vec<Attribute>,
 }
 
 #[derive(Debug)]
@@ -176,6 +191,45 @@ pub struct LineNumberTable {
     pub attribute_length: u32,         // u4
     pub line_number_table_length: u16, // u2
     pub line_number_tables: Vec<LineNumberTableItem>,
+}
+
+impl LineNumberTable {
+    pub fn new(
+        inputs: &mut Vec<u8>,
+        index: usize,
+        attribute_name_index: u16,
+    ) -> (LineNumberTable, usize) {
+        let (attribute_length, index) = extract_x_byte_as_usize(inputs, index, 4);
+        let attribute_length = attribute_length as u32;
+
+        let (line_number_table_length, index) = extract_x_byte_as_usize(inputs, index, 2);
+        let line_number_table_length = line_number_table_length as u16;
+
+        let mut line_number_tables = Vec::with_capacity(line_number_table_length as usize);
+
+        for _ in 0..line_number_table_length {
+            let (start_pc, index) = extract_x_byte_as_usize(inputs, index, 2);
+            let start_pc = start_pc as u16;
+
+            let (line_number, index) = extract_x_byte_as_usize(inputs, index, 2);
+            let line_number = line_number as u16;
+
+            line_number_tables.push(LineNumberTableItem {
+                start_pc,
+                line_number,
+            });
+        }
+
+        (
+            LineNumberTable {
+                attribute_name_index,
+                attribute_length,
+                line_number_table_length,
+                line_number_tables,
+            },
+            index,
+        )
+    }
 }
 
 #[derive(Debug)]
