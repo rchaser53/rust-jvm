@@ -34,6 +34,11 @@ impl ConstantPool {
                         ConstantString::create_and_update_index(inputs, update_index);
                     (ConstPoolItem::ConstantString(item), update_index)
                 }
+                ConstPoolTag::ConstantFieldref => {
+                    let (item, update_index) =
+                        ConstantFieldref::create_and_update_index(inputs, update_index);
+                    (ConstPoolItem::ConstantFieldref(item), update_index)
+                }
                 _ => unimplemented!(),
             };
             index = update_index;
@@ -89,7 +94,7 @@ impl From<usize> for ConstPoolTag {
 pub enum ConstPoolItem {
     ConstantNull,
     ConstantClass(ConstantClass),
-    ConstantFieldref,
+    ConstantFieldref(ConstantFieldref),
     ConstantMethodref(ConstantMethodref),
     ConstantInterfaceMethodref,
     ConstantString(ConstantString),
@@ -117,6 +122,31 @@ impl ConstantString {
             ConstantString {
                 tag: ConstPoolTag::ConstantString,
                 string_index,
+            },
+            index,
+        )
+    }
+}
+
+#[derive(Debug, PartialEq)]
+pub struct ConstantFieldref {
+    pub tag: ConstPoolTag,
+    pub class_index: usize,         // u2
+    pub name_and_type_index: usize, // u2
+}
+
+impl ConstantFieldref {
+    pub fn create_and_update_index(
+        inputs: &mut Vec<u8>,
+        index: usize,
+    ) -> (ConstantFieldref, usize) {
+        let (class_index, index) = extract_x_byte_as_usize(inputs, index, 2);
+        let (name_and_type_index, index) = extract_x_byte_as_usize(inputs, index, 2);
+        (
+            ConstantFieldref {
+                tag: ConstPoolTag::ConstantFieldref,
+                class_index,
+                name_and_type_index,
             },
             index,
         )
