@@ -1,4 +1,5 @@
 use crate::attribute::Attribute;
+use crate::utils::{extract_x_byte_as_usize, extract_x_byte_as_vec};
 
 #[derive(Debug)]
 pub struct Field {
@@ -7,6 +8,31 @@ pub struct Field {
     pub descriptor_index: u16,         // u2
     pub attributes_count: u16,         // u2
     pub attribute_info: Vec<Attribute>,
+}
+
+impl Field {
+    pub fn new(inputs: &mut Vec<u8>, index: usize) -> (Field, usize) {
+        let (access_flags, index) = extract_x_byte_as_usize(inputs, index, 2);
+        let access_flags = FieldAccessFlag::from(access_flags);
+
+        let (name_index, index) = extract_x_byte_as_usize(inputs, index, 2);
+        let name_index = name_index as u16;
+        let (descriptor_index, index) = extract_x_byte_as_usize(inputs, index, 2);
+        let descriptor_index = descriptor_index as u16;
+        let (attributes_count, index) = extract_x_byte_as_usize(inputs, index, 2);
+        let attributes_count = attributes_count as u16;
+
+        (
+            Field {
+                access_flags,
+                name_index,
+                descriptor_index,
+                attributes_count,
+                attribute_info: vec![],
+            },
+            index,
+        )
+    }
 }
 
 #[derive(Debug)]
@@ -23,8 +49,8 @@ pub enum FieldAccessFlag {
     AccEnum,
 }
 
-impl From<u16> for FieldAccessFlag {
-    fn from(num: u16) -> FieldAccessFlag {
+impl From<usize> for FieldAccessFlag {
+    fn from(num: usize) -> FieldAccessFlag {
         match num {
             0x0000 => FieldAccessFlag::Unknown, // custom
             0x0001 => FieldAccessFlag::AccPublic,
