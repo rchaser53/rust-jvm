@@ -165,7 +165,12 @@ pub struct Code {
 }
 
 impl Code {
-    pub fn new(inputs: &mut Vec<u8>, index: usize, attribute_name_index: u16) -> (Code, usize) {
+    pub fn new(
+        constant_pool: &mut ConstantPool,
+        inputs: &mut Vec<u8>,
+        index: usize,
+        attribute_name_index: u16,
+    ) -> (Code, usize) {
         let (attribute_length, index) = extract_x_byte_as_usize(inputs, index, 4);
         let attribute_length = attribute_length as u32;
 
@@ -192,9 +197,14 @@ impl Code {
         let exception_table_length = exception_table_length as u16;
         let mut exception_table = Vec::with_capacity(exception_table_length as usize);
 
-        let (attributes_count, index) = extract_x_byte_as_usize(inputs, index, 4);
+        let (attributes_count, mut index) = extract_x_byte_as_usize(inputs, index, 4);
         let attributes_count = attributes_count as u16;
         let mut attribute_info = Vec::with_capacity(attributes_count as usize);
+        for _ in 0..attributes_count {
+            let (attribute, update_index) = Attribute::new(constant_pool, inputs, index);
+            index = update_index;
+            attribute_info.push(attribute);
+        }
 
         (
             Code {
