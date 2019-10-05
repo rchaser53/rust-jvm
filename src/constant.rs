@@ -6,7 +6,7 @@ pub struct ConstantPool(pub Vec<ConstPoolItem>);
 impl ConstantPool {
     pub fn new(inputs: &mut [u8], mut index: usize, length: usize) -> (ConstantPool, usize) {
         let mut items = vec![ConstPoolItem::ConstantNull];
-        for _ in 0..length {
+        for _ in 0..length - 1 {
             let (tag, update_index) = extract_x_byte_as_usize(inputs, index, 1);
 
             let (item, update_index) = match ConstPoolTag::from(tag) {

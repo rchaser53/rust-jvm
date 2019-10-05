@@ -134,11 +134,7 @@ pub struct SourceFile {
 }
 
 impl SourceFile {
-    pub fn new(
-        inputs: &mut [u8],
-        index: usize,
-        attribute_name_index: u16,
-    ) -> (SourceFile, usize) {
+    pub fn new(inputs: &mut [u8], index: usize, attribute_name_index: u16) -> (SourceFile, usize) {
         let (attribute_length, index) = extract_x_byte_as_usize(inputs, index, 4);
         let attribute_length = attribute_length as u32;
 
@@ -199,7 +195,7 @@ impl Code {
 
         let (exception_table_length, index) = extract_x_byte_as_usize(inputs, index, 4);
         let exception_table_length = exception_table_length as u16;
-        let mut exception_table = Vec::with_capacity(exception_table_length as usize);
+        let exception_table = Vec::with_capacity(exception_table_length as usize);
 
         let (attributes_count, mut index) = extract_x_byte_as_usize(inputs, index, 4);
         let attributes_count = attributes_count as u16;
