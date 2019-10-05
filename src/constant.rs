@@ -123,6 +123,7 @@ pub enum ConstPoolTag {
 impl From<usize> for ConstPoolTag {
     fn from(num: usize) -> ConstPoolTag {
         match num {
+            0 => ConstPoolTag::ConstantNull,
             7 => ConstPoolTag::ConstantClass,
             9 => ConstPoolTag::ConstantFieldref,
             10 => ConstPoolTag::ConstantMethodref,
