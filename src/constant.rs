@@ -1,7 +1,7 @@
 use crate::utils::*;
 
 #[derive(Debug)]
-pub struct ConstantPool(Vec<ConstPoolItem>);
+pub struct ConstantPool(pub Vec<ConstPoolItem>);
 impl ConstantPool {
     pub fn new(inputs: &mut Vec<u8>, index: usize, length: usize) -> ConstantPool {
         let mut items = vec![ConstPoolItem::ConstantNull];
