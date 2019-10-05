@@ -94,8 +94,8 @@ impl fmt::Display for ConstantPool {
         }
         write!(
             f,
-            "r#Constant pool:
-{}#",
+            "Constant pool:
+{}",
             result.join("\n")
         )
     }
