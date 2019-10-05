@@ -1,4 +1,5 @@
 use crate::utils::*;
+use std::fmt;
 
 #[derive(Debug, PartialEq)]
 pub struct ConstantPool(pub Vec<ConstPoolItem>);
@@ -46,6 +47,50 @@ impl ConstantPool {
         }
 
         (ConstantPool(items), index)
+    }
+}
+
+impl fmt::Display for ConstantPool {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let mut result = Vec::with_capacity(self.0.len());
+        for (index, item) in self.0.iter().enumerate() {
+            let rw = match item {
+                ConstPoolItem::ConstantNull => {
+                    continue;
+                }
+                ConstPoolItem::ConstantMethodref(item) => format!(
+                    "#{} = Methodref    #{}.#{}",
+                    index, item.class_index, item.name_and_type_index
+                ),
+                ConstPoolItem::ConstantFieldref(item) => format!(
+                    "#{} = Fieldref     #{}.#{}",
+                    index, item.class_index, item.name_and_type_index
+                ),
+                ConstPoolItem::ConstantString(item) => {
+                    format!("#{} = String       #{}", index, item.string_index)
+                }
+                ConstPoolItem::ConstantClass(item) => {
+                    format!("#{} = Class        #{}", index, item.name_index)
+                }
+                ConstPoolItem::ConstantUtf8(item) => format!(
+                    "#{} = Utf8         {}",
+                    index,
+                    String::from_utf8_lossy(item.bytes.as_slice())
+                ),
+                ConstPoolItem::ConstantNameAndType(item) => format!(
+                    "#{} = NameAndType  #{}:#{}",
+                    index, item.name_index, item.descriptor_index
+                ),
+                _ => unimplemented!(),
+            };
+            result.push(rw);
+        }
+        write!(
+            f,
+            "r#Constant pool:
+{}#",
+            result.join("\n")
+        )
     }
 }
 
@@ -345,6 +390,22 @@ mod test {
                 ]),
                 inputs.len()
             )
+        );
+    }
+
+    #[test]
+    fn constant_pool_name_and_type_print() {
+        let mut inputs = vec![
+            0x0c, // name_and_type
+            0x00, 0x0a, // name_index
+            0x00, 0x0b, // descriptor_index
+        ];
+        let (constant_pool, _) = ConstantPool::new(&mut inputs, 0, 1);
+
+        assert_eq!(
+            format!("{}", constant_pool),
+            "r#Constant pool:
+#1 = NameAndType  #10:#11#"
         );
     }
 }
