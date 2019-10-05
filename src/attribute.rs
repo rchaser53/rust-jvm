@@ -23,7 +23,7 @@ pub enum Attribute {
     LineNumberTable(LineNumberTable),
     LocalVariableTable,
     LocalVariableTypeTable,
-    StackMapTable,
+    StackMapTable(StackMapTable),
     RuntimeVisibleTypeAnnotations,
     RuntimeInvisibleTypeAnnotations,
 }
@@ -47,6 +47,10 @@ impl Attribute {
                 AttributeTag::LineNumberTable => {
                     let (item, index) = LineNumberTable::new(inputs, index, attribute_name_index);
                     (Attribute::LineNumberTable(item), index)
+                }
+                AttributeTag::StackMapTable => {
+                    let (item, index) = StackMapTable::new(inputs, index, attribute_name_index);
+                    (Attribute::StackMapTable(item), index)
                 }
                 _ => unimplemented!(),
             }
@@ -341,6 +345,65 @@ impl LineNumberTable {
 pub struct LineNumberTableItem {
     pub start_pc: u16,    // u2
     pub line_number: u16, // u2
+}
+
+#[derive(Debug)]
+pub struct StackMapTable {
+    attribute_name_index: u16, // u2
+    attribute_length: u32,     // u4
+    number_of_entries: u16,    // u2
+    stack_map_frame: Vec<StackMapFrame>,
+}
+
+impl StackMapTable {
+    pub fn new(
+        inputs: &mut Vec<u8>,
+        index: usize,
+        attribute_name_index: u16,
+    ) -> (StackMapTable, usize) {
+        let (attribute_length, index) = extract_x_byte_as_usize(inputs, index, 4);
+        let attribute_length = attribute_length as u32;
+
+        let (number_of_entries, mut index) = extract_x_byte_as_usize(inputs, index, 2);
+        let number_of_entries = number_of_entries as u16;
+        let mut stack_map_frame = Vec::with_capacity(number_of_entries as usize);
+
+        for _ in 0..number_of_entries {
+            let (frame, update_index) = StackMapFrame::new(inputs, index);
+            stack_map_frame.push(frame);
+            index = update_index;
+        }
+        (
+            StackMapTable {
+                attribute_name_index,
+                attribute_length,
+                number_of_entries,
+                stack_map_frame,
+            },
+            index,
+        )
+    }
+}
+
+#[derive(Debug)]
+pub enum StackMapFrame {
+    SameFrame(usize),
+    SameLocals1StackItemFrame,
+    SameLocals1StackItemFrameExtended,
+    ChopFrame,
+    SameFrameExtended,
+    AppendFrame,
+    FullFrame,
+}
+
+impl StackMapFrame {
+    pub fn new(inputs: &mut Vec<u8>, index: usize) -> (StackMapFrame, usize) {
+        let (tag, index) = extract_x_byte_as_usize(inputs, index, 1);
+        match tag {
+            0..63 => (StackMapFrame::SameFrame(tag), index),
+            _ => unimplemented!(),
+        }
+    }
 }
 
 //  0: iload_1
