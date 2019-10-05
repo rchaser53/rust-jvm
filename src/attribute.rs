@@ -165,19 +165,18 @@ pub struct Code {
 }
 
 impl Code {
-    pub fn new(inputs: &mut Vec<u8>, mut index: usize, attribute_name_index: u16) -> (Code, usize) {
-        let (attribute_length, update_index) = extract_x_byte_as_usize(inputs, index, 4);
+    pub fn new(inputs: &mut Vec<u8>, index: usize, attribute_name_index: u16) -> (Code, usize) {
+        let (attribute_length, index) = extract_x_byte_as_usize(inputs, index, 4);
         let attribute_length = attribute_length as u32;
 
-        let (max_stack, update_index) = extract_x_byte_as_usize(inputs, update_index, 2);
+        let (max_stack, index) = extract_x_byte_as_usize(inputs, index, 2);
         let max_stack = max_stack as u16;
 
-        let (max_locals, update_index) = extract_x_byte_as_usize(inputs, update_index, 2);
+        let (max_locals, index) = extract_x_byte_as_usize(inputs, index, 2);
         let max_locals = max_locals as u16;
 
-        let (code_length, update_index) = extract_x_byte_as_usize(inputs, update_index, 4);
+        let (code_length, mut index) = extract_x_byte_as_usize(inputs, index, 4);
         let code_length = code_length as u32;
-        index = update_index;
 
         let mut code = Vec::with_capacity(code_length as usize);
         for _ in 0..code_length {
@@ -189,11 +188,11 @@ impl Code {
             code.push(instruction);
         }
 
-        let (exception_table_length, update_index) = extract_x_byte_as_usize(inputs, index, 4);
+        let (exception_table_length, index) = extract_x_byte_as_usize(inputs, index, 4);
         let exception_table_length = exception_table_length as u16;
         let mut exception_table = Vec::with_capacity(exception_table_length as usize);
 
-        let (attributes_count, update_index) = extract_x_byte_as_usize(inputs, update_index, 4);
+        let (attributes_count, index) = extract_x_byte_as_usize(inputs, index, 4);
         let attributes_count = attributes_count as u16;
         let mut attribute_info = Vec::with_capacity(attributes_count as usize);
 
@@ -210,7 +209,7 @@ impl Code {
                 attributes_count,
                 attribute_info,
             },
-            update_index,
+            index,
         )
     }
 }
@@ -237,16 +236,14 @@ pub enum Instruction {
 }
 
 impl Instruction {
-    pub fn new(inputs: &mut Vec<u8>, mut index: usize, tag: usize) -> (Instruction, usize) {
-        let instruction = match tag {
+    pub fn new(inputs: &mut Vec<u8>, index: usize, tag: usize) -> (Instruction, usize) {
+        match tag {
             0x2a..0x2d => {
-                let (val, update_index) = extract_x_byte_as_usize(inputs, index, 1);
-                index = update_index;
-                Instruction::Aload(val)
+                let (val, index) = extract_x_byte_as_usize(inputs, index, 1);
+                (Instruction::Aload(val), index)
             }
             _ => unimplemented!(),
-        };
-        (instruction, index)
+        }
     }
 }
 
@@ -261,18 +258,16 @@ pub struct LineNumberTable {
 impl LineNumberTable {
     pub fn new(
         inputs: &mut Vec<u8>,
-        mut index: usize,
+        index: usize,
         attribute_name_index: u16,
     ) -> (LineNumberTable, usize) {
-        let (attribute_length, update_index) = extract_x_byte_as_usize(inputs, index, 4);
+        let (attribute_length, index) = extract_x_byte_as_usize(inputs, index, 4);
         let attribute_length = attribute_length as u32;
 
-        let (line_number_table_length, update_index) =
-            extract_x_byte_as_usize(inputs, update_index, 2);
+        let (line_number_table_length, mut index) = extract_x_byte_as_usize(inputs, index, 2);
         let line_number_table_length = line_number_table_length as u16;
 
         let mut line_number_tables = Vec::with_capacity(line_number_table_length as usize);
-        index = update_index;
 
         for _ in 0..line_number_table_length {
             let (start_pc, update_index) = extract_x_byte_as_usize(inputs, index, 2);
