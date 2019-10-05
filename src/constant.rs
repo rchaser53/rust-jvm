@@ -4,7 +4,7 @@ use std::fmt;
 #[derive(Debug, PartialEq)]
 pub struct ConstantPool(pub Vec<ConstPoolItem>);
 impl ConstantPool {
-    pub fn new(inputs: &mut Vec<u8>, mut index: usize, length: usize) -> (ConstantPool, usize) {
+    pub fn new(inputs: &mut [u8], mut index: usize, length: usize) -> (ConstantPool, usize) {
         let mut items = vec![ConstPoolItem::ConstantNull];
         for _ in 0..length {
             let (tag, update_index) = extract_x_byte_as_usize(inputs, index, 1);
@@ -161,7 +161,7 @@ pub struct ConstantString {
 }
 
 impl ConstantString {
-    pub fn create_and_update_index(inputs: &mut Vec<u8>, index: usize) -> (ConstantString, usize) {
+    pub fn create_and_update_index(inputs: &mut [u8], index: usize) -> (ConstantString, usize) {
         let (string_index, index) = extract_x_byte_as_usize(inputs, index, 2);
         (
             ConstantString {
@@ -182,7 +182,7 @@ pub struct ConstantFieldref {
 
 impl ConstantFieldref {
     pub fn create_and_update_index(
-        inputs: &mut Vec<u8>,
+        inputs: &mut [u8],
         index: usize,
     ) -> (ConstantFieldref, usize) {
         let (class_index, index) = extract_x_byte_as_usize(inputs, index, 2);
@@ -207,7 +207,7 @@ pub struct ConstantNameAndType {
 
 impl ConstantNameAndType {
     pub fn create_and_update_index(
-        inputs: &mut Vec<u8>,
+        inputs: &mut [u8],
         index: usize,
     ) -> (ConstantNameAndType, usize) {
         let (name_index, index) = extract_x_byte_as_usize(inputs, index, 2);
@@ -231,7 +231,7 @@ pub struct ConstantClass {
 }
 
 impl ConstantClass {
-    pub fn create_and_update_index(inputs: &mut Vec<u8>, index: usize) -> (ConstantClass, usize) {
+    pub fn create_and_update_index(inputs: &mut [u8], index: usize) -> (ConstantClass, usize) {
         let (name_index, index) = extract_x_byte_as_usize(inputs, index, 2);
         (
             ConstantClass {
@@ -252,7 +252,7 @@ pub struct ConstantMethodref {
 
 impl ConstantMethodref {
     pub fn create_and_update_index(
-        inputs: &mut Vec<u8>,
+        inputs: &mut [u8],
         index: usize,
     ) -> (ConstantMethodref, usize) {
         let (class_index, index) = extract_x_byte_as_usize(inputs, index, 2);
@@ -277,7 +277,7 @@ pub struct ConstantUtf8 {
 }
 
 impl ConstantUtf8 {
-    pub fn create_and_update_index(inputs: &mut Vec<u8>, index: usize) -> (ConstantUtf8, usize) {
+    pub fn create_and_update_index(inputs: &mut [u8], index: usize) -> (ConstantUtf8, usize) {
         let (utf8_length, index) = extract_x_byte_as_usize(inputs, index, 2);
         let (bytes, index) = extract_x_byte_as_vec(inputs, index, utf8_length);
 

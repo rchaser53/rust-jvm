@@ -2,13 +2,13 @@ use std::fs::File;
 use std::io::prelude::*;
 use std::io::Result;
 
-pub fn read_file<'a>(input: &'a str, buffer: &'a mut Vec<u8>) -> Result<&'a [u8]> {
+pub fn read_file<'a>(input: &'a str, buffer: &'a mut Vec<u8>) -> Result<&'a mut [u8]> {
     let mut f = File::open(input)?;
     f.read_to_end(buffer)?;
-    Ok(buffer.as_slice())
+    Ok(buffer.as_mut_slice())
 }
 
-pub fn extract_x_byte_as_vec(input: &mut Vec<u8>, index: usize, x: usize) -> (Vec<u8>, usize) {
+pub fn extract_x_byte_as_vec(input: &mut [u8], index: usize, x: usize) -> (Vec<u8>, usize) {
     let mut result = Vec::with_capacity(x);
     for i in 0..x {
         result.push(input[index + i]);
@@ -16,7 +16,7 @@ pub fn extract_x_byte_as_vec(input: &mut Vec<u8>, index: usize, x: usize) -> (Ve
     (result, index + x)
 }
 
-pub fn extract_x_byte_as_usize(input: &mut Vec<u8>, index: usize, x: usize) -> (usize, usize) {
+pub fn extract_x_byte_as_usize(input: &mut [u8], index: usize, x: usize) -> (usize, usize) {
     let mut result: usize = 0;
     for i in 0..x {
         result += (input[index + i] as usize) << (x - i - 1) * 8;

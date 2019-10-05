@@ -13,7 +13,7 @@ mod utils;
 use crate::attribute::Attribute;
 use crate::constant::ConstantPool;
 use crate::field::Field;
-use crate::utils::read_file;
+use crate::utils::{extract_x_byte_as_usize, read_file};
 
 #[derive(Debug)]
 struct Interface;
@@ -48,16 +48,18 @@ struct ClassFile {
 }
 
 impl ClassFile {
-    // pub fn new(input: Vec<u8>) -> ClassFile {
-    //     let mut index = 0;
+    // pub fn new(input: &mut Vec<u8>) -> ClassFile {
+    pub fn new(input: &mut [u8]) {
+        let index = 0;
 
-    //     let (_, mut index) = ClassFile::extract_magic(&mut input, index);
-    //     let (minor_version, mut index) = ClassFile::extract_u16(&mut input, index);
-    //     let (major_version, mut index) = ClassFile::extract_u16(&mut input, index);
-    //     let (constant_pool_count, mut index) = ClassFile::extract_u16(&mut input, index);
+        let (_, index) = extract_x_byte_as_usize(input, index, 4);
+        let (minor_version, index) = extract_x_byte_as_usize(input, index, 2);
+        let (major_version, index) = extract_x_byte_as_usize(input, index, 2);
+        let (constant_pool_count, index) = extract_x_byte_as_usize(input, index, 2);
+        let (constant_pool, index) = ConstantPool::new(input, index, constant_pool_count);
 
-    //     let constant_pool = ConstantPool::new(input, index);
-    // }
+        println!("{}", constant_pool);
+    }
 }
 
 #[derive(Debug)]
@@ -90,22 +92,8 @@ impl From<u16> for AccessFlag {
 
 fn main() {
     if let Ok(buffer) = read_file("A.class", &mut vec![]) {
-        dbg!(&buffer);
+        ClassFile::new(buffer);
     }
-    // let a: ConstPoolTag = b.try_into().unwrap_or(ConstPoolTag::ConstantUtf8);
-    // let mut program_context = ProgramContext::new(vec![
-    //     Order::new(Opecode::Iconst, OperandStackItem::I32(1)),
-    //     Order::new(Opecode::Iconst, OperandStackItem::I32(2)),
-    //     Order::new(Opecode::Iadd, OperandStackItem::I32(2)),
-    // ]);
-    // program_context.executes_programs();
-
-    // operand_stack.iconst(OperandStackItem::I32(1));
-    // stackframe.istore(&mut operand_stack, 0);
-
-    // operand_stack.bipush(OperandStackItem::I32(1));
-    // operand_stack.bipush(OperandStackItem::I32(2));
-    // let result = operand_stack.iadd();
 }
 
 /*

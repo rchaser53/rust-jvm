@@ -31,7 +31,7 @@ pub enum Attribute {
 impl Attribute {
     pub fn new(
         constant_pool: &mut ConstantPool,
-        inputs: &mut Vec<u8>,
+        inputs: &mut [u8],
         index: usize,
     ) -> (Attribute, usize) {
         let (attribute_name_index, index) = extract_x_byte_as_usize(inputs, index, 2);
@@ -135,7 +135,7 @@ pub struct SourceFile {
 
 impl SourceFile {
     pub fn new(
-        inputs: &mut Vec<u8>,
+        inputs: &mut [u8],
         index: usize,
         attribute_name_index: u16,
     ) -> (SourceFile, usize) {
@@ -171,7 +171,7 @@ pub struct Code {
 impl Code {
     pub fn new(
         constant_pool: &mut ConstantPool,
-        inputs: &mut Vec<u8>,
+        inputs: &mut [u8],
         index: usize,
         attribute_name_index: u16,
     ) -> (Code, usize) {
@@ -253,7 +253,7 @@ pub enum Instruction {
 }
 
 impl Instruction {
-    pub fn new(inputs: &mut Vec<u8>, index: usize, tag: usize) -> (Instruction, usize) {
+    pub fn new(inputs: &mut [u8], index: usize, tag: usize) -> (Instruction, usize) {
         match tag {
             // aload_n
             val @ 0x2a..0x2d => (Instruction::AloadN(val - 0x2a), index),
@@ -315,7 +315,7 @@ pub struct LineNumberTable {
 
 impl LineNumberTable {
     pub fn new(
-        inputs: &mut Vec<u8>,
+        inputs: &mut [u8],
         index: usize,
         attribute_name_index: u16,
     ) -> (LineNumberTable, usize) {
@@ -369,7 +369,7 @@ pub struct StackMapTable {
 
 impl StackMapTable {
     pub fn new(
-        inputs: &mut Vec<u8>,
+        inputs: &mut [u8],
         index: usize,
         attribute_name_index: u16,
     ) -> (StackMapTable, usize) {
@@ -409,7 +409,7 @@ pub enum StackMapFrame {
 }
 
 impl StackMapFrame {
-    pub fn new(inputs: &mut Vec<u8>, index: usize) -> (StackMapFrame, usize) {
+    pub fn new(inputs: &mut [u8], index: usize) -> (StackMapFrame, usize) {
         let (tag, index) = extract_x_byte_as_usize(inputs, index, 1);
         match tag {
             0..63 => (StackMapFrame::SameFrame(tag), index),

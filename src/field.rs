@@ -11,7 +11,7 @@ pub struct Field {
 }
 
 impl Field {
-    pub fn new(inputs: &mut Vec<u8>, index: usize) -> (Field, usize) {
+    pub fn new(inputs: &mut [u8], index: usize) -> (Field, usize) {
         let (access_flags, index) = extract_x_byte_as_usize(inputs, index, 2);
         let access_flags = FieldAccessFlag::from(access_flags);
 
