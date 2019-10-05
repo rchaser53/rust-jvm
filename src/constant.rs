@@ -1,11 +1,35 @@
 use crate::utils::*;
 
-#[derive(Debug)]
+#[test]
+fn constant_pool_utf8() {
+    let mut inputs = vec![
+        0x01, // utf8
+        0x00, 0x0A, // 0x0a
+        0x53, 0x6F, 0x75, 0x72, 0x63, 0x65, 0x46, 0x69, 0x6C, 0x65, // SourceFile
+    ];
+    let result = ConstantPool::new(&mut inputs, 0, 1);
+
+    assert_eq!(
+        result,
+        (
+            ConstantPool(vec![
+                ConstPoolItem::ConstantNull,
+                ConstPoolItem::ConstantUtf8(ConstantUtf8 {
+                    tag: ConstPoolTag::ConstantUtf8,
+                    length: 0x0a,
+                    bytes: vec![0x53, 0x6F, 0x75, 0x72, 0x63, 0x65, 0x46, 0x69, 0x6C, 0x65]
+                })
+            ]),
+            inputs.len()
+        )
+    );
+}
+
+#[derive(Debug, PartialEq)]
 pub struct ConstantPool(pub Vec<ConstPoolItem>);
 impl ConstantPool {
-    pub fn new(inputs: &mut Vec<u8>, index: usize, length: usize) -> ConstantPool {
+    pub fn new(inputs: &mut Vec<u8>, mut index: usize, length: usize) -> (ConstantPool, usize) {
         let mut items = vec![ConstPoolItem::ConstantNull];
-        let mut index = index;
         for _ in 0..length {
             let tag = inputs[index];
             index += 1;
@@ -36,11 +60,11 @@ impl ConstantPool {
             items.push(item);
         }
 
-        ConstantPool(items)
+        (ConstantPool(items), index)
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum ConstPoolTag {
     ConstantNull = 0, // custom tag for index 0
     ConstantClass = 7,
@@ -81,7 +105,7 @@ impl From<u8> for ConstPoolTag {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum ConstPoolItem {
     ConstantNull,
     ConstantClass(ConstantClass),
@@ -100,7 +124,7 @@ pub enum ConstPoolItem {
     ConstantInvokeDynamic,
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct ConstantNameAndType {
     pub tag: ConstPoolTag,
     pub name_index: usize,       // u2
@@ -131,7 +155,7 @@ impl ConstantNameAndType {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct ConstantClass {
     pub tag: ConstPoolTag,
     pub name_index: usize, // u2
@@ -155,7 +179,7 @@ impl ConstantClass {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct ConstantMethodref {
     pub tag: ConstPoolTag,
     pub class_index: usize,         // u2
@@ -186,7 +210,7 @@ impl ConstantMethodref {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct ConstantUtf8 {
     pub tag: ConstPoolTag,
     pub length: usize, // u2
