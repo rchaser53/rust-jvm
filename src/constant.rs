@@ -29,6 +29,11 @@ impl ConstantPool {
                         ConstantUtf8::create_and_update_index(inputs, update_index);
                     (ConstPoolItem::ConstantUtf8(item), update_index)
                 }
+                ConstPoolTag::ConstantString => {
+                    let (item, update_index) =
+                        ConstantString::create_and_update_index(inputs, update_index);
+                    (ConstPoolItem::ConstantString(item), update_index)
+                }
                 _ => unimplemented!(),
             };
             index = update_index;
@@ -87,7 +92,7 @@ pub enum ConstPoolItem {
     ConstantFieldref,
     ConstantMethodref(ConstantMethodref),
     ConstantInterfaceMethodref,
-    ConstantString,
+    ConstantString(ConstantString),
     ConstantInteger,
     ConstantFloat,
     ConstantLong,
@@ -97,6 +102,25 @@ pub enum ConstPoolItem {
     ConstantMethodHandle,
     ConstantMethodType,
     ConstantInvokeDynamic,
+}
+
+#[derive(Debug, PartialEq)]
+pub struct ConstantString {
+    pub tag: ConstPoolTag,
+    pub string_index: usize, // u2
+}
+
+impl ConstantString {
+    pub fn create_and_update_index(inputs: &mut Vec<u8>, index: usize) -> (ConstantString, usize) {
+        let (string_index, index) = extract_x_byte_as_usize(inputs, index, 2);
+        (
+            ConstantString {
+                tag: ConstPoolTag::ConstantString,
+                string_index,
+            },
+            index,
+        )
+    }
 }
 
 #[derive(Debug, PartialEq)]
