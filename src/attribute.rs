@@ -1,5 +1,5 @@
 use crate::constant::{ConstPoolItem, ConstantPool};
-use crate::utils::extract_x_byte_as_usize;
+use crate::utils::{extract_x_byte_as_usize, extract_x_byte_as_vec};
 
 #[derive(Debug)]
 pub enum Attribute {
@@ -224,24 +224,56 @@ pub struct ExceptionTableItem {
 
 #[derive(Debug)]
 pub enum Instruction {
-    Aload(usize),           // 0x2a(0) - 0x2d(3)
-    Ificmple(usize, usize), // A4
-    Invokespecial(u16, u16),
-    Getfield(u16, u16), // B4
-    Iadd,               // 0x60
-    Return,             // 0xac
-    IloadN(usize),      // 0x1a(0) - 0x1d(3)
-    IconstN(usize),     // 0x02(-1) - 0x08(5)
-    IstoreN(usize),     // 0x3b(0) - 0x3e(3)
+    AloadN(usize),               // 0x2a(0) - 0x2d(3)
+    Ificmple(usize, usize),      // A4
+    Invokespecial(usize, usize), // 0xb7
+    Getfield(usize, usize),      // B4
+    Iadd,                        // 0x60
+    Return,                      // 0xac
+    IloadN(usize),               // 0x1a(0) - 0x1d(3)
+    IconstN(usize),              // 0x02(-1) - 0x08(5)
+    IstoreN(usize),              // 0x3b(0) - 0x3e(3)
 }
 
 impl Instruction {
     pub fn new(inputs: &mut Vec<u8>, index: usize, tag: usize) -> (Instruction, usize) {
         match tag {
-            0x2a..0x2d => {
-                let (val, index) = extract_x_byte_as_usize(inputs, index, 1);
-                (Instruction::Aload(val), index)
+            // aload_n
+            val @ 0x2a..0x2d => (Instruction::AloadN(val - 0x2a), index),
+            // if_icmple
+            0xa4 => {
+                let (val, index) = extract_x_byte_as_vec(inputs, index, 2);
+                (
+                    Instruction::Ificmple(val[0] as usize, val[1] as usize),
+                    index,
+                )
             }
+            // Invokespecial
+            0xb7 => {
+                let (val, index) = extract_x_byte_as_vec(inputs, index, 2);
+                (
+                    Instruction::Invokespecial(val[0] as usize, val[1] as usize),
+                    index,
+                )
+            }
+            // getfield
+            0xb4 => {
+                let (val, index) = extract_x_byte_as_vec(inputs, index, 2);
+                (
+                    Instruction::Getfield(val[0] as usize, val[1] as usize),
+                    index,
+                )
+            }
+            // iadd
+            0x60 => (Instruction::Iadd, index),
+            // return
+            0xac => (Instruction::Return, index),
+            // iload_n
+            val @ 0x1a..0x1d => (Instruction::IloadN(val - 0x1a), index),
+            // iload_n
+            val @ 0x02..0x08 => (Instruction::IconstN(val - 0x03), index),
+            // istore_n
+            val @ 0x3b..0x3e => (Instruction::IstoreN(val - 0x3b), index),
             _ => unimplemented!(),
         }
     }
