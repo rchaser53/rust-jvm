@@ -40,7 +40,14 @@ impl ConstantPool {
                         ConstantFieldref::create_and_update_index(inputs, update_index);
                     (ConstPoolItem::ConstantFieldref(item), update_index)
                 }
-                _ => unimplemented!(),
+                _ => {
+                    println!(
+                        "failed. current constant pool {}. next tag: {}",
+                        ConstantPool(items),
+                        tag
+                    );
+                    unimplemented!()
+                }
             };
             index = update_index;
             items.push(item);
