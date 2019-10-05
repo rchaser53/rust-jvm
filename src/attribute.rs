@@ -238,15 +238,18 @@ pub struct ExceptionTableItem {
 
 #[derive(Debug)]
 pub enum Instruction {
-    AloadN(usize),               // 0x2a(0) - 0x2d(3)
-    Ificmple(usize, usize),      // A4
-    Invokespecial(usize, usize), // 0xb7
-    Getfield(usize, usize),      // B4
-    Iadd,                        // 0x60
-    Return,                      // 0xac
-    IloadN(usize),               // 0x1a(0) - 0x1d(3)
-    IconstN(usize),              // 0x02(-1) - 0x08(5)
-    IstoreN(usize),              // 0x3b(0) - 0x3e(3)
+    IconstN(usize),         // 0x02(-1) - 0x08(5)
+    Ldc(usize),             // 0x12
+    IloadN(usize),          // 0x1a(0) - 0x1d(3)
+    AloadN(usize),          // 0x2a(0) - 0x2d(3)
+    IstoreN(usize),         // 0x3b(0) - 0x3e(3)
+    Iadd,                   // 0x60
+    Ificmple(usize, usize), // 0xa4
+    Return,                 // 0xac
+    Getfield(usize),        // 0xb4
+    Invokevirtual(usize),   // 0xb6
+    Invokespecial(usize),   // 0xb7
+    Getstatic(usize),       // 0xb2
 }
 
 impl Instruction {
@@ -254,6 +257,11 @@ impl Instruction {
         match tag {
             // aload_n
             val @ 0x2a..0x2d => (Instruction::AloadN(val - 0x2a), index),
+            // ldc
+            0x12 => {
+                let (val, index) = extract_x_byte_as_usize(inputs, index, 2);
+                (Instruction::Ldc(val), index)
+            }
             // if_icmple
             0xa4 => {
                 let (val, index) = extract_x_byte_as_vec(inputs, index, 2);
@@ -262,21 +270,25 @@ impl Instruction {
                     index,
                 )
             }
-            // Invokespecial
+            // invokevirtual
+            0xb6 => {
+                let (val, index) = extract_x_byte_as_usize(inputs, index, 4);
+                (Instruction::Invokevirtual(val), index)
+            }
+            // invokespecial
             0xb7 => {
-                let (val, index) = extract_x_byte_as_vec(inputs, index, 2);
-                (
-                    Instruction::Invokespecial(val[0] as usize, val[1] as usize),
-                    index,
-                )
+                let (val, index) = extract_x_byte_as_usize(inputs, index, 4);
+                (Instruction::Invokespecial(val), index)
+            }
+            // getstatic
+            0xb2 => {
+                let (val, index) = extract_x_byte_as_usize(inputs, index, 4);
+                (Instruction::Getstatic(val), index)
             }
             // getfield
             0xb4 => {
-                let (val, index) = extract_x_byte_as_vec(inputs, index, 2);
-                (
-                    Instruction::Getfield(val[0] as usize, val[1] as usize),
-                    index,
-                )
+                let (val, index) = extract_x_byte_as_usize(inputs, index, 4);
+                (Instruction::Getfield(val), index)
             }
             // iadd
             0x60 => (Instruction::Iadd, index),
@@ -405,14 +417,3 @@ impl StackMapFrame {
         }
     }
 }
-
-//  0: iload_1
-//  1: iconst_2
-//  2: if_icmple     12
-//  5: aload_0
-//  6: getfield      #2                  // Field x:I
-//  9: iconst_2
-// 10: iadd
-// 11: istore_1
-// 12: iload_1
-// 13: ireturn
