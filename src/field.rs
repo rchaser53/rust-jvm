@@ -1,5 +1,5 @@
 use crate::attribute::Attribute;
-use crate::utils::{extract_x_byte_as_usize};
+use crate::utils::extract_x_byte_as_usize;
 
 #[derive(Debug)]
 pub struct Field {
