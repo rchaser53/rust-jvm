@@ -1,28 +1,105 @@
 use crate::utils::*;
 
-#[test]
-fn constant_pool_utf8() {
-    let mut inputs = vec![
-        0x01, // utf8
-        0x00, 0x0A, // 0x0a
-        0x53, 0x6F, 0x75, 0x72, 0x63, 0x65, 0x46, 0x69, 0x6C, 0x65, // SourceFile
-    ];
-    let result = ConstantPool::new(&mut inputs, 0, 1);
+#[cfg(test)]
+mod test {
+    use super::*;
+    #[test]
+    fn constant_pool_constant_methodref() {
+        let mut inputs = vec![
+            0x0a, // class
+            0x00, 0x0a, // class_index
+            0x00, 0x0b, // name_and_type_index
+        ];
+        let result = ConstantPool::new(&mut inputs, 0, 1);
 
-    assert_eq!(
-        result,
-        (
-            ConstantPool(vec![
-                ConstPoolItem::ConstantNull,
-                ConstPoolItem::ConstantUtf8(ConstantUtf8 {
-                    tag: ConstPoolTag::ConstantUtf8,
-                    length: 0x0a,
-                    bytes: vec![0x53, 0x6F, 0x75, 0x72, 0x63, 0x65, 0x46, 0x69, 0x6C, 0x65]
-                })
-            ]),
-            inputs.len()
-        )
-    );
+        assert_eq!(
+            result,
+            (
+                ConstantPool(vec![
+                    ConstPoolItem::ConstantNull,
+                    ConstPoolItem::ConstantMethodref(ConstantMethodref {
+                        tag: ConstPoolTag::ConstantMethodref,
+                        class_index: 0x0a,
+                        name_and_type_index: 0x0b
+                    })
+                ]),
+                inputs.len()
+            )
+        );
+    }
+
+    #[test]
+    fn constant_pool_constant_class() {
+        let mut inputs = vec![
+            0x07, // class
+            0x00, 0x0b, // name_index
+        ];
+        let result = ConstantPool::new(&mut inputs, 0, 1);
+
+        assert_eq!(
+            result,
+            (
+                ConstantPool(vec![
+                    ConstPoolItem::ConstantNull,
+                    ConstPoolItem::ConstantClass(ConstantClass {
+                        tag: ConstPoolTag::ConstantClass,
+                        name_index: 0x0b
+                    })
+                ]),
+                inputs.len()
+            )
+        );
+    }
+
+    #[test]
+    fn constant_pool_utf8() {
+        let mut inputs = vec![
+            0x01, // utf8
+            0x00, 0x0A, // length
+            0x53, 0x6F, 0x75, 0x72, 0x63, 0x65, 0x46, 0x69, 0x6C, 0x65, // bytes(SourceFile)
+        ];
+        let result = ConstantPool::new(&mut inputs, 0, 1);
+
+        assert_eq!(
+            result,
+            (
+                ConstantPool(vec![
+                    ConstPoolItem::ConstantNull,
+                    ConstPoolItem::ConstantUtf8(ConstantUtf8 {
+                        tag: ConstPoolTag::ConstantUtf8,
+                        length: 0x0a,
+                        bytes: vec![0x53, 0x6F, 0x75, 0x72, 0x63, 0x65, 0x46, 0x69, 0x6C, 0x65]
+                    })
+                ]),
+                inputs.len()
+            )
+        );
+    }
+
+    #[test]
+    fn constant_pool_name_and_type() {
+        let mut inputs = vec![
+            0x0c, // name_and_type
+            0x00, 0x0a, // name_index
+            0x00, 0x0b, // descriptor_index
+        ];
+        let result = ConstantPool::new(&mut inputs, 0, 1);
+
+        assert_eq!(
+            result,
+            (
+                ConstantPool(vec![
+                    ConstPoolItem::ConstantNull,
+                    ConstPoolItem::ConstantNameAndType(ConstantNameAndType {
+                        tag: ConstPoolTag::ConstantNameAndType,
+                        name_index: 0x0a,
+                        descriptor_index: 0x0b
+                    })
+                ]),
+                inputs.len()
+            )
+        );
+    }
 }
 
 #[derive(Debug, PartialEq)]
