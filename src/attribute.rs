@@ -285,10 +285,11 @@ pub enum Instruction {
     Iadd,                   // 0x60
     Ificmple(usize, usize), // 0xa4
     Return,                 // 0xb1
+    Getstatic(usize),       // 0xb2
     Getfield(usize),        // 0xb4
+    Putfield(usize),        // 0xb5
     Invokevirtual(usize),   // 0xb6
     Invokespecial(usize),   // 0xb7
-    Getstatic(usize),       // 0xb2
 }
 
 impl fmt::Display for Instruction {
@@ -302,10 +303,12 @@ impl fmt::Display for Instruction {
             Instruction::Iadd => write!(f, "iadd"),
             Instruction::Ificmple(_, val) => write!(f, "if_icmple       {}", val),
             Instruction::Return => write!(f, "return"),
+            Instruction::Getstatic(val) => write!(f, "getstatic     #{}", val),
             Instruction::Getfield(val) => write!(f, "getfield          #{}", val),
+            Instruction::Putfield(val) => write!(f, "putfield          #{}", val),
             Instruction::Invokevirtual(val) => write!(f, "invokevirtual     #{}", val),
             Instruction::Invokespecial(val) => write!(f, "invokespecial     #{}", val),
-            Instruction::Getstatic(val) => write!(f, "getstatic     #{}", val),
+
         }
     }
 }
@@ -328,6 +331,11 @@ impl Instruction {
                     index,
                     3,
                 )
+            }
+            // putfield
+            0xb5 => {
+                let (val, index) = extract_x_byte_as_usize(inputs, index, 2);
+                (Instruction::Putfield(val), index, 3)
             }
             // invokevirtual
             0xb6 => {
