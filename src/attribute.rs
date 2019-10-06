@@ -171,7 +171,7 @@ pub struct Code {
 
 impl Code {
     pub fn new(
-        constant_pool: &mut ConstantPool,
+        constant_pool: &ConstantPool,
         inputs: &mut [u8],
         index: usize,
         attribute_name_index: u16,
