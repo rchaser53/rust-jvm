@@ -61,9 +61,9 @@ impl ClassFile {
         let (methods_count, mut index) = extract_x_byte_as_usize(input, index, 2);
         let mut methods = Vec::with_capacity(methods_count);
         for _ in 0..methods_count {
-            let (field, updated_index) = Method::new(&cp_info, input, index);
+            let (method, updated_index) = Method::new(&cp_info, input, index);
             index = updated_index;
-            methods.push(field);
+            methods.push(method);
         }
 
         let (attributes_count, mut index) = extract_x_byte_as_usize(input, index, 2);

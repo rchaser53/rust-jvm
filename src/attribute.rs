@@ -252,15 +252,21 @@ impl fmt::Display for Code {
         for (index, code) in self.code.iter().enumerate() {
             code_strs.push(format!("{}: {}", index, code));
         }
+        let mut attribute_strs = Vec::with_capacity(self.attributes_count);
+        for item in self.attribute_info.iter() {
+            attribute_strs.push(format!("{}", item));
+        }
 
         write!(
             f,
             "Code:
   stack:{}, locals={}, args_size=?
-    {}",
+    {}
+  {}",
             self.max_stack,
             self.max_locals,
-            code_strs.join("\n    ")
+            code_strs.join("\n    "),
+            attribute_strs.join("\n  "),
         )
     }
 }
@@ -442,7 +448,7 @@ pub struct LineNumberTableItem {
 
 impl fmt::Display for LineNumberTableItem {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "line {}: {}", self.line_number, self.start_pc)
+        write!(f, "  line {}: {}", self.line_number, self.start_pc)
     }
 }
 
