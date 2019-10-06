@@ -282,6 +282,7 @@ pub enum Instruction {
     IstoreN(usize),         // 0x3b(0) - 0x3e(3)
     Iadd,                   // 0x60
     Ificmple(usize, usize), // 0xa4
+    Ireturn,                // 0xac
     Return,                 // 0xb1
     Getstatic(usize),       // 0xb2
     Getfield(usize),        // 0xb4
@@ -300,13 +301,13 @@ impl fmt::Display for Instruction {
             Instruction::IstoreN(val) => write!(f, "istore_{}", val),
             Instruction::Iadd => write!(f, "iadd"),
             Instruction::Ificmple(_, val) => write!(f, "if_icmple       {}", val),
+            Instruction::Ireturn => write!(f, "ireturn"),
             Instruction::Return => write!(f, "return"),
             Instruction::Getstatic(val) => write!(f, "getstatic     #{}", val),
             Instruction::Getfield(val) => write!(f, "getfield          #{}", val),
             Instruction::Putfield(val) => write!(f, "putfield          #{}", val),
             Instruction::Invokevirtual(val) => write!(f, "invokevirtual     #{}", val),
             Instruction::Invokespecial(val) => write!(f, "invokespecial     #{}", val),
-
         }
     }
 }
@@ -357,6 +358,8 @@ impl Instruction {
             }
             // iadd
             0x60 => (Instruction::Iadd, index, 1),
+            // ireturn
+            0xac => (Instruction::Ireturn, index, 1),
             // return
             0xb1 => (Instruction::Return, index, 1),
             // iload_n
