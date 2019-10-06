@@ -304,10 +304,10 @@ impl fmt::Display for Instruction {
             Instruction::Ireturn => write!(f, "ireturn"),
             Instruction::Return => write!(f, "return"),
             Instruction::Getstatic(val) => write!(f, "getstatic     #{}", val),
-            Instruction::Getfield(val) => write!(f, "getfield          #{}", val),
-            Instruction::Putfield(val) => write!(f, "putfield          #{}", val),
-            Instruction::Invokevirtual(val) => write!(f, "invokevirtual     #{}", val),
-            Instruction::Invokespecial(val) => write!(f, "invokespecial     #{}", val),
+            Instruction::Getfield(val) => write!(f, "getfield        #{}", val),
+            Instruction::Putfield(val) => write!(f, "putfield        #{}", val),
+            Instruction::Invokevirtual(val) => write!(f, "invokevirtual   #{}", val),
+            Instruction::Invokespecial(val) => write!(f, "invokespecial   #{}", val),
         }
     }
 }

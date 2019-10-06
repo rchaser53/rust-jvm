@@ -66,38 +66,33 @@ impl fmt::Display for ConstantPool {
                     continue;
                 }
                 ConstPoolItem::ConstantMethodref(item) => format!(
-                    "#{} = Methodref    #{}.#{}",
+                    "  #{} = Methodref    #{}.#{}",
                     index, item.class_index, item.name_and_type_index,
                 ),
                 ConstPoolItem::ConstantFieldref(item) => format!(
-                    "#{} = Fieldref     #{}.#{}",
+                    "  #{} = Fieldref     #{}.#{}",
                     index, item.class_index, item.name_and_type_index
                 ),
                 ConstPoolItem::ConstantString(item) => {
-                    format!("#{} = String       #{}", index, item.string_index)
+                    format!("  #{} = String       #{}", index, item.string_index)
                 }
                 ConstPoolItem::ConstantClass(item) => {
-                    format!("#{} = Class        #{}", index, item.name_index)
+                    format!("  #{} = Class        #{}", index, item.name_index)
                 }
                 ConstPoolItem::ConstantUtf8(item) => format!(
-                    "#{} = Utf8         {}",
+                    "  #{} = Utf8         {}",
                     index,
                     String::from_utf8_lossy(item.bytes.as_slice())
                 ),
                 ConstPoolItem::ConstantNameAndType(item) => format!(
-                    "#{} = NameAndType  #{}:#{}",
+                    "  #{} = NameAndType  #{}:#{}",
                     index, item.name_index, item.descriptor_index
                 ),
                 _ => unimplemented!(),
             };
             result.push(rw);
         }
-        write!(
-            f,
-            "Constant pool:
-{}",
-            result.join("\n")
-        )
+        write!(f, "{}", result.join("\n"))
     }
 }
 
@@ -404,10 +399,6 @@ mod test {
         ];
         let (constant_pool, _) = ConstantPool::new(&mut inputs, 0, 2);
 
-        assert_eq!(
-            format!("{}", constant_pool),
-            "Constant pool:
-#1 = NameAndType  #10:#11"
-        );
+        assert_eq!(format!("{}", constant_pool), "  #1 = NameAndType  #10:#11");
     }
 }
