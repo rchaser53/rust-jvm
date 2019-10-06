@@ -70,8 +70,13 @@ impl ClassFile {
         let (interfaces_count, index) = extract_x_byte_as_usize(input, index, 2);
         let interfaces = Vec::with_capacity(interfaces_count);
 
-        let (fields_count, index) = extract_x_byte_as_usize(input, index, 2);
-        let fields = Vec::with_capacity(fields_count);
+        let (fields_count, mut index) = extract_x_byte_as_usize(input, index, 2);
+        let mut fields = Vec::with_capacity(fields_count);
+        for _ in 0..fields_count {
+            let (field, updated_index) = Field::new(input, index);
+            index = updated_index;
+            fields.push(field);
+        }
 
         let (methods_count, index) = extract_x_byte_as_usize(input, index, 2);
         let methods = Vec::with_capacity(methods_count);
