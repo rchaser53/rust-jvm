@@ -69,6 +69,18 @@ impl Attribute {
     }
 }
 
+impl fmt::Display for Attribute {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Attribute::SourceFile(val) => write!(f, "{}", val),
+            Attribute::Code(val) => write!(f, "{}", val),
+            Attribute::LineNumberTable(val) => write!(f, "{}", val),
+            Attribute::StackMapTable(val) => write!(f, "{}", val),
+            _ => unimplemented!(),
+        }
+    }
+}
+
 // this is a custom enum for handling
 #[derive(Debug)]
 pub enum AttributeTag {
@@ -153,6 +165,12 @@ impl SourceFile {
             sourcefile_index,
         };
         (source_file, index)
+    }
+}
+
+impl fmt::Display for SourceFile {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "SourceFile: #{}", self.sourcefile_index)
     }
 }
 
