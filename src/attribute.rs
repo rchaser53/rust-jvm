@@ -205,9 +205,9 @@ impl Code {
         let max_locals = max_locals as u16;
 
         let (code_length, mut index) = extract_x_byte_as_usize(inputs, index, 4);
-
-        let mut code = Vec::with_capacity(code_length as usize);
+        let mut code = Vec::with_capacity(code_length);
         let mut code_loop_index = 0;
+
         while code_length - code_loop_index > 0 {
             let (tag, update_index) = extract_x_byte_as_usize(inputs, index, 1);
             let (instruction, update_index, consume_index) =
@@ -319,7 +319,7 @@ impl Instruction {
             val @ 0x2a..0x2d => (Instruction::AloadN(val - 0x2a), index, 1),
             // ldc
             0x12 => {
-                let (val, index) = extract_x_byte_as_usize(inputs, index, 2);
+                let (val, index) = extract_x_byte_as_usize(inputs, index, 1);
                 (Instruction::Ldc(val), index, 2)
             }
             // if_icmple
