@@ -161,7 +161,7 @@ pub struct Code {
     pub attribute_length: u32,     // u4
     pub max_stack: u16,            // u2
     pub max_locals: u16,           // u2
-    pub code_length: u32,          // u4
+    pub code_length: usize,        // u4
     pub code: Vec<Instruction>,
     pub exception_table_length: u16, // u2
     pub exception_table: Vec<ExceptionTableItem>,
@@ -186,14 +186,15 @@ impl Code {
         let max_locals = max_locals as u16;
 
         let (code_length, mut index) = extract_x_byte_as_usize(inputs, index, 4);
-        let code_length = code_length as u32;
 
         let mut code = Vec::with_capacity(code_length as usize);
-        for _ in 0..code_length {
+        let mut code_loop_index = 0;
+        while code_length - code_loop_index > 0 {
             let (tag, update_index) = extract_x_byte_as_usize(inputs, index, 1);
+            let (instruction, update_index, consume_index) =
+                Instruction::new(inputs, update_index, tag);
 
-            let (instruction, update_index) = Instruction::new(inputs, update_index, tag);
-
+            code_loop_index += consume_index;
             index = update_index;
             code.push(instruction);
         }
@@ -254,14 +255,14 @@ pub enum Instruction {
 }
 
 impl Instruction {
-    pub fn new(inputs: &mut [u8], index: usize, tag: usize) -> (Instruction, usize) {
+    pub fn new(inputs: &mut [u8], index: usize, tag: usize) -> (Instruction, usize, usize) {
         match tag {
             // aload_n
-            val @ 0x2a..0x2d => (Instruction::AloadN(val - 0x2a), index),
+            val @ 0x2a..0x2d => (Instruction::AloadN(val - 0x2a), index, 1),
             // ldc
             0x12 => {
                 let (val, index) = extract_x_byte_as_usize(inputs, index, 2);
-                (Instruction::Ldc(val), index)
+                (Instruction::Ldc(val), index, 2)
             }
             // if_icmple
             0xa4 => {
@@ -269,39 +270,42 @@ impl Instruction {
                 (
                     Instruction::Ificmple(val[0] as usize, val[1] as usize),
                     index,
+                    3,
                 )
             }
             // invokevirtual
             0xb6 => {
                 let (val, index) = extract_x_byte_as_usize(inputs, index, 4);
-                (Instruction::Invokevirtual(val), index)
+                (Instruction::Invokevirtual(val), index, 3)
             }
             // invokespecial
             0xb7 => {
                 let (val, index) = extract_x_byte_as_usize(inputs, index, 4);
-                (Instruction::Invokespecial(val), index)
+                (Instruction::Invokespecial(val), index, 3)
             }
             // getstatic
             0xb2 => {
                 let (val, index) = extract_x_byte_as_usize(inputs, index, 4);
-                (Instruction::Getstatic(val), index)
+                (Instruction::Getstatic(val), index, 3)
             }
             // getfield
             0xb4 => {
                 let (val, index) = extract_x_byte_as_usize(inputs, index, 4);
-                (Instruction::Getfield(val), index)
+                (Instruction::Getfield(val), index, 3)
             }
             // iadd
-            0x60 => (Instruction::Iadd, index),
+            0x60 => (Instruction::Iadd, index, 1),
             // return
-            0xac => (Instruction::Return, index),
+            0xac => (Instruction::Return, index, 1),
             // iload_n
-            val @ 0x1a..0x1d => (Instruction::IloadN(val - 0x1a), index),
+            val @ 0x1a..0x1d => (Instruction::IloadN(val - 0x1a), index, 1),
             // iload_n
-            val @ 0x02..0x08 => (Instruction::IconstN(val - 0x03), index),
+            val @ 0x02..0x08 => (Instruction::IconstN(val - 0x03), index, 1),
             // istore_n
-            val @ 0x3b..0x3e => (Instruction::IstoreN(val - 0x3b), index),
-            _ => unimplemented!(),
+            val @ 0x3b..0x3e => (Instruction::IstoreN(val - 0x3b), index, 1),
+            // return implicitly
+            0x00 => (Instruction::Return, index - 1, 1),
+            _ => unimplemented!("tag: {:x}", tag),
         }
     }
 }
