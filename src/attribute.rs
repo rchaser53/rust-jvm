@@ -182,9 +182,9 @@ pub struct Code {
     pub max_locals: u16,           // u2
     pub code_length: usize,        // u4
     pub code: Vec<Instruction>,
-    pub exception_table_length: u16, // u2
+    pub exception_table_length: usize, // u2
     pub exception_table: Vec<ExceptionTableItem>,
-    pub attributes_count: u16, // u2
+    pub attributes_count: usize, // u2
     pub attribute_info: Vec<Attribute>,
 }
 
@@ -217,13 +217,11 @@ impl Code {
             code.push(instruction);
         }
 
-        let (exception_table_length, index) = extract_x_byte_as_usize(inputs, index, 4);
-        let exception_table_length = exception_table_length as u16;
-        let exception_table = Vec::with_capacity(exception_table_length as usize);
+        let (exception_table_length, index) = extract_x_byte_as_usize(inputs, index, 2);
+        let exception_table = Vec::with_capacity(exception_table_length);
 
-        let (attributes_count, mut index) = extract_x_byte_as_usize(inputs, index, 4);
-        let attributes_count = attributes_count as u16;
-        let mut attribute_info = Vec::with_capacity(attributes_count as usize);
+        let (attributes_count, mut index) = extract_x_byte_as_usize(inputs, index, 2);
+        let mut attribute_info = Vec::with_capacity(attributes_count);
         for _ in 0..attributes_count {
             let (attribute, update_index) = Attribute::new(constant_pool, inputs, index);
             index = update_index;
