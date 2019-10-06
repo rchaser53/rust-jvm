@@ -14,6 +14,7 @@ use crate::attribute::Attribute;
 use crate::constant::ConstantPool;
 use crate::field::Field;
 use crate::utils::{extract_x_byte_as_usize, read_file};
+use std::fmt;
 
 #[derive(Debug)]
 struct Interface;
@@ -62,6 +63,7 @@ impl ClassFile {
 
         let (access_flags_num, index) = extract_x_byte_as_usize(input, index, 2);
         let access_flags = extract_access_flags(access_flags_num);
+        println!("{}", access_flags);
 
         let (this_class, index) = extract_x_byte_as_usize(input, index, 2);
         let (super_class, index) = extract_x_byte_as_usize(input, index, 2);
@@ -135,6 +137,20 @@ pub enum AccessFlag {
     AccAnnotation = 0x2000,
     AccEnum = 0x4000,
 }
+
+impl fmt::Display for AccessFlag {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            AccessFlag::AccPublic => write!(f, "ACC_PUBLIC"),
+            AccessFlag::AccFinal => write!(f, "ACC_FINAL"),
+            AccessFlag::AccSuper => write!(f, "ACC_SUPER"),
+            AccessFlag::AccInterface => write!(f, "ACC_INTERFACE"),
+            AccessFlag::AccAbstract => write!(f, "ACC_ABSTRACT"),
+            AccessFlag::AccSynthetic => write!(f, "ACC_SYNTHETIC"),
+            AccessFlag::AccAnnotation => write!(f, "ACC_ANNOTATION"),
+            AccessFlag::AccEnum => write!(f, "ACC_ENUM"),
+        }
+    }
 }
 
 impl From<usize> for AccessFlag {
@@ -153,8 +169,20 @@ impl From<usize> for AccessFlag {
     }
 }
 
+#[derive(Debug)]
+pub struct AccessFlags(Vec<AccessFlag>);
+impl fmt::Display for AccessFlags {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let mut result = Vec::with_capacity(self.0.len());
+        for item in self.0.iter() {
+            result.push(format!("{}", item));
+        }
+        write!(f, "flags: {}", result.join(", "))
+    } 
+}
+
 fn main() {
-    if let Ok(buffer) = read_file("A.class", &mut vec![]) {
+    if let Ok(buffer) = read_file("Helloworld.class", &mut vec![]) {
         let class_file = ClassFile::new(buffer, 0);
 
         println!("{}", class_file.0.cp_info);
