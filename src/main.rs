@@ -34,7 +34,7 @@ struct ClassFile {
     pub major_version: u16,         // u2
     pub constant_pool_count: usize, // u2
     pub cp_info: ConstantPool,      // cp_info        constant_pool[constant_pool_count-1];
-    pub access_flags: AccessFlag,   // u2
+    pub access_flags: AccessFlags,  // u2
     pub this_class: usize,          // u2
     pub super_class: usize,         // u2
     pub interfaces_count: usize,    // u2
@@ -61,7 +61,7 @@ impl ClassFile {
         let (cp_info, index) = ConstantPool::new(input, index, constant_pool_count);
 
         let (access_flags_num, index) = extract_x_byte_as_usize(input, index, 2);
-        let access_flags = AccessFlag::from(access_flags_num);
+        let access_flags = extract_access_flags(access_flags_num);
 
         let (this_class, index) = extract_x_byte_as_usize(input, index, 2);
         let (super_class, index) = extract_x_byte_as_usize(input, index, 2);
@@ -102,16 +102,39 @@ impl ClassFile {
     }
 }
 
+fn extract_access_flags(num: usize) -> AccessFlags {
+    macro_rules! add_access_flag {
+        ($access_flags:expr, $num:expr, $flag:expr) => {
+            if $num & $flag as usize != 0 {
+                $access_flags.push($flag)
+            }
+        };
+    }
+
+    let mut access_flags = vec![];
+    add_access_flag!(&mut access_flags, num, AccessFlag::AccPublic);
+    add_access_flag!(&mut access_flags, num, AccessFlag::AccFinal);
+    add_access_flag!(&mut access_flags, num, AccessFlag::AccSuper);
+    add_access_flag!(&mut access_flags, num, AccessFlag::AccInterface);
+    add_access_flag!(&mut access_flags, num, AccessFlag::AccAbstract);
+    add_access_flag!(&mut access_flags, num, AccessFlag::AccSynthetic);
+    add_access_flag!(&mut access_flags, num, AccessFlag::AccAnnotation);
+    add_access_flag!(&mut access_flags, num, AccessFlag::AccEnum);
+
+    AccessFlags(access_flags)
+}
+
 #[derive(Debug)]
 pub enum AccessFlag {
-    AccPublic,
-    AccFinal,
-    AccSuper,
-    AccInterface,
-    AccAbstract,
-    AccSynthetic,
-    AccAnnotation,
-    AccEnum,
+    AccPublic = 0x0001,
+    AccFinal = 0x0010,
+    AccSuper = 0x0020,
+    AccInterface = 0x0200,
+    AccAbstract = 0x0400,
+    AccSynthetic = 0x1000,
+    AccAnnotation = 0x2000,
+    AccEnum = 0x4000,
+}
 }
 
 impl From<usize> for AccessFlag {
