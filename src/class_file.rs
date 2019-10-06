@@ -1,20 +1,12 @@
 use crate::attribute::Attribute;
 use crate::constant::ConstantPool;
 use crate::field::Field;
+use crate::method::Method;
 use crate::utils::*;
 use std::fmt;
 
 #[derive(Debug)]
 pub struct Interface;
-
-#[derive(Debug)]
-pub struct Method {
-    pub access_flags: u16,     // u2
-    pub name_index: u16,       // u2
-    pub descriptor_index: u16, // u2
-    pub attributes_count: u16, // u2
-    pub attribute_info: Vec<Attribute>,
-}
 
 #[derive(Debug)]
 pub struct ClassFile {
@@ -66,8 +58,13 @@ impl ClassFile {
             fields.push(field);
         }
 
-        let (methods_count, index) = extract_x_byte_as_usize(input, index, 2);
-        let methods = Vec::with_capacity(methods_count);
+        let (methods_count, mut index) = extract_x_byte_as_usize(input, index, 2);
+        let mut methods = Vec::with_capacity(methods_count);
+        for _ in 0..methods_count {
+            let (field, updated_index) = Method::new(&cp_info, input, index);
+            index = updated_index;
+            methods.push(field);
+        }
 
         let (attributes_count, index) = extract_x_byte_as_usize(input, index, 2);
         let attributes = Vec::with_capacity(attributes_count);

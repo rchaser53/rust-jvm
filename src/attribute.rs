@@ -30,7 +30,7 @@ pub enum Attribute {
 
 impl Attribute {
     pub fn new(
-        constant_pool: &mut ConstantPool,
+        constant_pool: &ConstantPool,
         inputs: &mut [u8],
         index: usize,
     ) -> (Attribute, usize) {

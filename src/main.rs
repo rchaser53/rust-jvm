@@ -6,6 +6,7 @@ mod class_file;
 mod constant;
 mod context;
 mod field;
+mod method;
 mod operand;
 mod order;
 mod stackframe;
@@ -20,18 +21,3 @@ fn main() {
         println!("{}", class_file.0.cp_info);
     }
 }
-
-/*
-* 1 + 2;
-*/
-// bipush 1
-// bipush 2
-// iadd
-
-/*
- *  int i;
- *  i = 0;
- */
-//  iconst_0
-//  istore_1
-//
