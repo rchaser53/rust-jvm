@@ -348,9 +348,9 @@ impl Instruction {
 
 #[derive(Debug)]
 pub struct LineNumberTable {
-    pub attribute_name_index: u16,     // u2
-    pub attribute_length: u32,         // u4
-    pub line_number_table_length: u16, // u2
+    pub attribute_name_index: u16,       // u2
+    pub attribute_length: u32,           // u4
+    pub line_number_table_length: usize, // u2
     pub line_number_tables: Vec<LineNumberTableItem>,
 }
 
@@ -364,9 +364,7 @@ impl LineNumberTable {
         let attribute_length = attribute_length as u32;
 
         let (line_number_table_length, mut index) = extract_x_byte_as_usize(inputs, index, 2);
-        let line_number_table_length = line_number_table_length as u16;
-
-        let mut line_number_tables = Vec::with_capacity(line_number_table_length as usize);
+        let mut line_number_tables = Vec::with_capacity(line_number_table_length);
 
         for _ in 0..line_number_table_length {
             let (start_pc, update_index) = extract_x_byte_as_usize(inputs, index, 2);
@@ -394,10 +392,31 @@ impl LineNumberTable {
     }
 }
 
+impl fmt::Display for LineNumberTable {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let mut table_strs = Vec::with_capacity(self.line_number_table_length);
+        for item in self.line_number_tables.iter() {
+            table_strs.push(format!("{}", item));
+        }
+        write!(
+            f,
+            "LineNumberTable:
+  {}",
+            table_strs.join("\n  ")
+        )
+    }
+}
+
 #[derive(Debug)]
 pub struct LineNumberTableItem {
     pub start_pc: u16,    // u2
     pub line_number: u16, // u2
+}
+
+impl fmt::Display for LineNumberTableItem {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "line {}: {}", self.line_number, self.start_pc)
+    }
 }
 
 #[derive(Debug)]
