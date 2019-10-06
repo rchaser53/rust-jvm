@@ -53,18 +53,45 @@ fn extract_access_flags(num: usize) -> FieldAccessFlags {
 
 #[derive(Debug)]
 pub struct FieldAccessFlags(Vec<FieldAccessFlag>);
+impl fmt::Display for FieldAccessFlags {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let mut result = Vec::with_capacity(self.0.len());
+        for item in self.0.iter() {
+            result.push(format!("{}", item));
+        }
+        write!(f, "flags: {}", result.join(", "))
+    }
+}
+
 #[derive(Debug)]
 pub enum FieldAccessFlag {
-    Unknown,
-    AccPublic,
-    AccPrivate,
-    AccProtected,
-    AccStatic,
-    AccFinal,
-    AccVolatitle,
-    AccTransient,
-    AccSynthetic,
-    AccEnum,
+    Unknown = 0x0000,
+    AccPublic = 0x0001,
+    AccPrivate = 0x0002,
+    AccProtected = 0x0004,
+    AccStatic = 0x0008,
+    AccFinal = 0x0010,
+    AccVolatitle = 0x0040,
+    AccTransient = 0x0080,
+    AccSynthetic = 0x1000,
+    AccEnum = 0x4000,
+}
+
+impl fmt::Display for FieldAccessFlag {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            FieldAccessFlag::Unknown => write!(f, ""),
+            FieldAccessFlag::AccPublic => write!(f, "ACC_PUBLIC"),
+            FieldAccessFlag::AccPrivate => write!(f, "ACC_PRIVATE"),
+            FieldAccessFlag::AccProtected => write!(f, "ACC_PROTECTED"),
+            FieldAccessFlag::AccStatic => write!(f, "ACC_STATIC"),
+            FieldAccessFlag::AccFinal => write!(f, "ACC_FINAL"),
+            FieldAccessFlag::AccVolatitle => write!(f, "ACC_VOLATITLE"),
+            FieldAccessFlag::AccTransient => write!(f, "ACC_TRANSIENT"),
+            FieldAccessFlag::AccSynthetic => write!(f, "ACC_SYNTHETIC"),
+            FieldAccessFlag::AccEnum => write!(f, "ACC_ENUM"),
+        }
+    }
 }
 
 impl From<usize> for FieldAccessFlag {
