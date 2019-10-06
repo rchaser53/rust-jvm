@@ -1,5 +1,6 @@
 use crate::constant::{ConstPoolItem, ConstantPool};
 use crate::utils::{extract_x_byte_as_usize, extract_x_byte_as_vec};
+use std::fmt;
 
 #[derive(Debug)]
 pub enum Attribute {
@@ -229,6 +230,25 @@ impl Code {
     }
 }
 
+impl fmt::Display for Code {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let mut code_strs = Vec::with_capacity(self.code_length);
+        for (index, code) in self.code.iter().enumerate() {
+            code_strs.push(format!("{}: {}", index, code));
+        }
+
+        write!(
+            f,
+            "Code:
+  stack:{}, locals={}, args_size=?
+    {}",
+            self.max_stack,
+            self.max_locals,
+            code_strs.join("\n    ")
+        )
+    }
+}
+
 #[derive(Debug)]
 pub struct ExceptionTableItem {
     pub start_pc: u16,   //u2
@@ -246,11 +266,30 @@ pub enum Instruction {
     IstoreN(usize),         // 0x3b(0) - 0x3e(3)
     Iadd,                   // 0x60
     Ificmple(usize, usize), // 0xa4
-    Return,                 // 0xac
+    Return,                 // 0xb1
     Getfield(usize),        // 0xb4
     Invokevirtual(usize),   // 0xb6
     Invokespecial(usize),   // 0xb7
     Getstatic(usize),       // 0xb2
+}
+
+impl fmt::Display for Instruction {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Instruction::IconstN(val) => write!(f, "iconst_{}", val),
+            Instruction::Ldc(val) => write!(f, "ldc             #{}", val),
+            Instruction::IloadN(val) => write!(f, "iload_{}", val),
+            Instruction::AloadN(val) => write!(f, "aload_{}", val),
+            Instruction::IstoreN(val) => write!(f, "istore_{}", val),
+            Instruction::Iadd => write!(f, "iadd"),
+            Instruction::Ificmple(_, val) => write!(f, "if_icmple       {}", val),
+            Instruction::Return => write!(f, "return"),
+            Instruction::Getfield(val) => write!(f, "getfield          #{}", val),
+            Instruction::Invokevirtual(val) => write!(f, "invokevirtual     #{}", val),
+            Instruction::Invokespecial(val) => write!(f, "invokespecial     #{}", val),
+            Instruction::Getstatic(val) => write!(f, "getstatic     #{}", val),
+        }
+    }
 }
 
 impl Instruction {
