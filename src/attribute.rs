@@ -52,6 +52,11 @@ impl Attribute {
                     let (item, index) = StackMapTable::new(inputs, index, attribute_name_index);
                     (Attribute::StackMapTable(item), index)
                 }
+                AttributeTag::Code => {
+                    let (item, index) =
+                        Code::new(constant_pool, inputs, index, attribute_name_index);
+                    (Attribute::Code(item), index)
+                }
                 _ => unimplemented!(),
             }
         } else {
