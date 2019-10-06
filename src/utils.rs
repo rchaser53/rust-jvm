@@ -24,6 +24,15 @@ pub fn extract_x_byte_as_usize(input: &mut [u8], index: usize, x: usize) -> (usi
     (result, index + x)
 }
 
+#[macro_export]
+macro_rules! add_flags {
+    ($flags:expr, $num:expr, $flag:expr) => {
+        if $num & $flag as usize != 0 {
+            $flags.push($flag)
+        }
+    };
+}
+
 #[test]
 pub fn test_extract_x_byte_as_vec() {
     let mut input = vec![1, 2, 3, 4];

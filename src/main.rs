@@ -13,7 +13,7 @@ mod utils;
 use crate::attribute::Attribute;
 use crate::constant::ConstantPool;
 use crate::field::Field;
-use crate::utils::{extract_x_byte_as_usize, read_file};
+use crate::utils::*;
 use std::fmt;
 
 #[derive(Debug)]
@@ -63,7 +63,6 @@ impl ClassFile {
 
         let (access_flags_num, index) = extract_x_byte_as_usize(input, index, 2);
         let access_flags = extract_access_flags(access_flags_num);
-        println!("{}", access_flags);
 
         let (this_class, index) = extract_x_byte_as_usize(input, index, 2);
         let (super_class, index) = extract_x_byte_as_usize(input, index, 2);
@@ -105,23 +104,15 @@ impl ClassFile {
 }
 
 fn extract_access_flags(num: usize) -> AccessFlags {
-    macro_rules! add_access_flag {
-        ($access_flags:expr, $num:expr, $flag:expr) => {
-            if $num & $flag as usize != 0 {
-                $access_flags.push($flag)
-            }
-        };
-    }
-
     let mut access_flags = vec![];
-    add_access_flag!(&mut access_flags, num, AccessFlag::AccPublic);
-    add_access_flag!(&mut access_flags, num, AccessFlag::AccFinal);
-    add_access_flag!(&mut access_flags, num, AccessFlag::AccSuper);
-    add_access_flag!(&mut access_flags, num, AccessFlag::AccInterface);
-    add_access_flag!(&mut access_flags, num, AccessFlag::AccAbstract);
-    add_access_flag!(&mut access_flags, num, AccessFlag::AccSynthetic);
-    add_access_flag!(&mut access_flags, num, AccessFlag::AccAnnotation);
-    add_access_flag!(&mut access_flags, num, AccessFlag::AccEnum);
+    add_flags!(&mut access_flags, num, AccessFlag::AccPublic);
+    add_flags!(&mut access_flags, num, AccessFlag::AccFinal);
+    add_flags!(&mut access_flags, num, AccessFlag::AccSuper);
+    add_flags!(&mut access_flags, num, AccessFlag::AccInterface);
+    add_flags!(&mut access_flags, num, AccessFlag::AccAbstract);
+    add_flags!(&mut access_flags, num, AccessFlag::AccSynthetic);
+    add_flags!(&mut access_flags, num, AccessFlag::AccAnnotation);
+    add_flags!(&mut access_flags, num, AccessFlag::AccEnum);
 
     AccessFlags(access_flags)
 }
@@ -178,7 +169,7 @@ impl fmt::Display for AccessFlags {
             result.push(format!("{}", item));
         }
         write!(f, "flags: {}", result.join(", "))
-    } 
+    }
 }
 
 fn main() {
