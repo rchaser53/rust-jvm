@@ -99,6 +99,48 @@ impl ClassFile {
     }
 }
 
+impl fmt::Display for ClassFile {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let mut field_strs = Vec::with_capacity(self.fields_count);
+        for item in self.fields.iter() {
+            field_strs.push(format!("{}", item));
+        }
+
+        let mut method_strs = Vec::with_capacity(self.methods_count);
+        for item in self.methods.iter() {
+            method_strs.push(format!("{}", item));
+        }
+
+        let mut attribute_strs = Vec::with_capacity(self.attributes_count);
+        for item in self.attributes.iter() {
+            attribute_strs.push(format!("{}", item));
+        }
+        write!(
+            f,
+            "minor version: {}
+major version: {}
+flags: {}
+Constant pool:
+{}
+
+Fields:
+{}
+Methods:
+{}
+
+Attributes:
+  {}",
+            self.minor_version,
+            self.major_version,
+            self.access_flags,
+            self.cp_info,
+            field_strs.join("\n"),
+            method_strs.join("\n\n"),
+            attribute_strs.join("\n  ")
+        )
+    }
+}
+
 fn extract_access_flags(num: usize) -> AccessFlags {
     let mut access_flags = vec![];
     crate::add_flags!(&mut access_flags, num, AccessFlag::AccPublic);
