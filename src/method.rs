@@ -40,6 +40,27 @@ impl Method {
     }
 }
 
+impl fmt::Display for Method {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let mut attribute_strs = Vec::with_capacity(self.attributes_count);
+        for item in self.attribute_info.iter() {
+            attribute_strs.push(format!("{}", item));
+        }
+
+        write!(
+            f,
+            "  name: #{}
+  descriptor: #{}
+  flags: {}
+  {}",
+            self.name_index,
+            self.descriptor_index,
+            self.access_flags,
+            attribute_strs.join("\n\n")
+        )
+    }
+}
+
 fn extract_access_flags(num: usize) -> MethodAccessFlags {
     let mut access_flags = vec![];
     crate::add_flags!(&mut access_flags, num, MethodAccessFlag::AccPublic);
@@ -122,6 +143,10 @@ impl fmt::Display for MethodAccessFlags {
         for item in self.0.iter() {
             result.push(format!("{}", item));
         }
-        write!(f, "flags: {}", result.join(", "))
+        if result.is_empty() {
+            write!(f, "")
+        } else {
+            write!(f, "{}", result.join(", "))
+        }
     }
 }
