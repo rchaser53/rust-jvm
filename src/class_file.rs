@@ -66,8 +66,14 @@ impl ClassFile {
             methods.push(field);
         }
 
-        let (attributes_count, index) = extract_x_byte_as_usize(input, index, 2);
-        let attributes = Vec::with_capacity(attributes_count);
+        let (attributes_count, mut index) = extract_x_byte_as_usize(input, index, 2);
+        let mut attributes = Vec::with_capacity(attributes_count);
+
+        for _ in 0..attributes_count {
+            let (attribute, updated_index) = Attribute::new(&cp_info, input, index);
+            index = updated_index;
+            attributes.push(attribute);
+        }
 
         (
             ClassFile {
