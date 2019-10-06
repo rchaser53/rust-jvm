@@ -1,19 +1,20 @@
 use crate::attribute::Attribute;
 use crate::utils::extract_x_byte_as_usize;
+use std::fmt;
 
 #[derive(Debug)]
 pub struct Field {
-    pub access_flags: FieldAccessFlag, // u2
-    pub name_index: u16,               // u2
-    pub descriptor_index: u16,         // u2
-    pub attributes_count: u16,         // u2
+    pub access_flags: FieldAccessFlags, // u2
+    pub name_index: u16,                // u2
+    pub descriptor_index: u16,          // u2
+    pub attributes_count: u16,          // u2
     pub attribute_info: Vec<Attribute>,
 }
 
 impl Field {
     pub fn new(inputs: &mut [u8], index: usize) -> (Field, usize) {
         let (access_flags, index) = extract_x_byte_as_usize(inputs, index, 2);
-        let access_flags = FieldAccessFlag::from(access_flags);
+        let access_flags = extract_access_flags(access_flags);
 
         let (name_index, index) = extract_x_byte_as_usize(inputs, index, 2);
         let name_index = name_index as u16;
@@ -35,6 +36,23 @@ impl Field {
     }
 }
 
+fn extract_access_flags(num: usize) -> FieldAccessFlags {
+    let mut access_flags = vec![];
+    crate::add_flags!(&mut access_flags, num, FieldAccessFlag::AccPublic);
+    crate::add_flags!(&mut access_flags, num, FieldAccessFlag::AccPrivate);
+    crate::add_flags!(&mut access_flags, num, FieldAccessFlag::AccProtected);
+    crate::add_flags!(&mut access_flags, num, FieldAccessFlag::AccStatic);
+    crate::add_flags!(&mut access_flags, num, FieldAccessFlag::AccFinal);
+    crate::add_flags!(&mut access_flags, num, FieldAccessFlag::AccVolatitle);
+    crate::add_flags!(&mut access_flags, num, FieldAccessFlag::AccTransient);
+    crate::add_flags!(&mut access_flags, num, FieldAccessFlag::AccSynthetic);
+    crate::add_flags!(&mut access_flags, num, FieldAccessFlag::AccEnum);
+
+    FieldAccessFlags(access_flags)
+}
+
+#[derive(Debug)]
+pub struct FieldAccessFlags(Vec<FieldAccessFlag>);
 #[derive(Debug)]
 pub enum FieldAccessFlag {
     Unknown,
