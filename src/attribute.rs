@@ -193,7 +193,6 @@ impl Code {
             let (tag, update_index) = extract_x_byte_as_usize(inputs, index, 1);
             let (instruction, update_index, consume_index) =
                 Instruction::new(inputs, update_index, tag);
-
             code_loop_index += consume_index;
             index = update_index;
             code.push(instruction);
@@ -275,36 +274,34 @@ impl Instruction {
             }
             // invokevirtual
             0xb6 => {
-                let (val, index) = extract_x_byte_as_usize(inputs, index, 4);
+                let (val, index) = extract_x_byte_as_usize(inputs, index, 2);
                 (Instruction::Invokevirtual(val), index, 3)
             }
             // invokespecial
             0xb7 => {
-                let (val, index) = extract_x_byte_as_usize(inputs, index, 4);
+                let (val, index) = extract_x_byte_as_usize(inputs, index, 2);
                 (Instruction::Invokespecial(val), index, 3)
             }
             // getstatic
             0xb2 => {
-                let (val, index) = extract_x_byte_as_usize(inputs, index, 4);
+                let (val, index) = extract_x_byte_as_usize(inputs, index, 2);
                 (Instruction::Getstatic(val), index, 3)
             }
             // getfield
             0xb4 => {
-                let (val, index) = extract_x_byte_as_usize(inputs, index, 4);
+                let (val, index) = extract_x_byte_as_usize(inputs, index, 2);
                 (Instruction::Getfield(val), index, 3)
             }
             // iadd
             0x60 => (Instruction::Iadd, index, 1),
             // return
-            0xac => (Instruction::Return, index, 1),
+            0xb1 => (Instruction::Return, index, 1),
             // iload_n
             val @ 0x1a..0x1d => (Instruction::IloadN(val - 0x1a), index, 1),
             // iload_n
             val @ 0x02..0x08 => (Instruction::IconstN(val - 0x03), index, 1),
             // istore_n
             val @ 0x3b..0x3e => (Instruction::IstoreN(val - 0x3b), index, 1),
-            // return implicitly
-            0x00 => (Instruction::Return, index - 1, 1),
             _ => unimplemented!("tag: {:x}", tag),
         }
     }
