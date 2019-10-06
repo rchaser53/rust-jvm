@@ -404,7 +404,7 @@ pub struct LineNumberTableItem {
 pub struct StackMapTable {
     attribute_name_index: u16, // u2
     attribute_length: u32,     // u4
-    number_of_entries: u16,    // u2
+    number_of_entries: usize,  // u2
     stack_map_frame: Vec<StackMapFrame>,
 }
 
@@ -418,8 +418,7 @@ impl StackMapTable {
         let attribute_length = attribute_length as u32;
 
         let (number_of_entries, mut index) = extract_x_byte_as_usize(inputs, index, 2);
-        let number_of_entries = number_of_entries as u16;
-        let mut stack_map_frame = Vec::with_capacity(number_of_entries as usize);
+        let mut stack_map_frame = Vec::with_capacity(number_of_entries);
 
         for _ in 0..number_of_entries {
             let (frame, update_index) = StackMapFrame::new(inputs, index);
@@ -434,6 +433,23 @@ impl StackMapTable {
                 stack_map_frame,
             },
             index,
+        )
+    }
+}
+
+impl fmt::Display for StackMapTable {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let mut stack_map_frame_strs = Vec::with_capacity(self.number_of_entries);
+        for item in self.stack_map_frame.iter() {
+            stack_map_frame_strs.push(format!("frame_type = {}", item));
+        }
+
+        write!(
+            f,
+            "StackMapTable: number_of_entries = {}
+  frame_type = {}",
+            self.number_of_entries,
+            stack_map_frame_strs.join("\n  ")
         )
     }
 }
@@ -454,6 +470,15 @@ impl StackMapFrame {
         let (tag, index) = extract_x_byte_as_usize(inputs, index, 1);
         match tag {
             0..63 => (StackMapFrame::SameFrame(tag), index),
+            _ => unimplemented!(),
+        }
+    }
+}
+
+impl fmt::Display for StackMapFrame {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            StackMapFrame::SameFrame(val) => write!(f, "{}   /* same */", val),
             _ => unimplemented!(),
         }
     }
