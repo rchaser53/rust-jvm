@@ -5,9 +5,9 @@ use std::fmt;
 #[derive(Debug)]
 pub struct Field {
     pub access_flags: FieldAccessFlags, // u2
-    pub name_index: u16,                // u2
-    pub descriptor_index: u16,          // u2
-    pub attributes_count: u16,          // u2
+    pub name_index: usize,              // u2
+    pub descriptor_index: usize,        // u2
+    pub attributes_count: usize,        // u2
     pub attribute_info: Vec<Attribute>,
 }
 
@@ -17,11 +17,8 @@ impl Field {
         let access_flags = extract_access_flags(access_flags);
 
         let (name_index, index) = extract_x_byte_as_usize(inputs, index, 2);
-        let name_index = name_index as u16;
         let (descriptor_index, index) = extract_x_byte_as_usize(inputs, index, 2);
-        let descriptor_index = descriptor_index as u16;
         let (attributes_count, index) = extract_x_byte_as_usize(inputs, index, 2);
-        let attributes_count = attributes_count as u16;
 
         (
             Field {
@@ -32,6 +29,28 @@ impl Field {
                 attribute_info: vec![],
             },
             index,
+        )
+    }
+}
+
+impl fmt::Display for Field {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let mut attribute_strs = Vec::with_capacity(self.attributes_count);
+        for item in self.attribute_info.iter() {
+            attribute_strs.push(format!("{}", item));
+        }
+
+        write!(
+            f,
+            "  name: #{}
+  descriptor: #{}
+  flags: {}
+  attribute:
+    {}",
+            self.name_index,
+            self.descriptor_index,
+            self.access_flags,
+            attribute_strs.join("\n  ")
         )
     }
 }
@@ -59,7 +78,7 @@ impl fmt::Display for FieldAccessFlags {
         for item in self.0.iter() {
             result.push(format!("{}", item));
         }
-        write!(f, "flags: {}", result.join(", "))
+        write!(f, "{}", result.join(", "))
     }
 }
 
