@@ -1,7 +1,7 @@
 use crate::attribute::Attribute;
 use crate::constant::ConstantPool;
 use crate::field::Field;
-use crate::method::Method;
+use crate::method::{Method, MethodAccessFlag};
 use crate::utils::*;
 use std::fmt;
 
@@ -96,6 +96,22 @@ impl ClassFile {
             },
             index,
         )
+    }
+
+    pub fn run_entry_file(&self) {
+        if let Some(main_index) = self.cp_info.get_main_index() {
+            let entry_method = self.methods.iter().find(|method| {
+                method
+                    .access_flags
+                    .0
+                    .iter()
+                    .find(|flag| **flag == MethodAccessFlag::AccPublic)
+                    .is_some()
+                    && method.name_index == main_index
+            });
+        } else {
+            panic!("failed to find main method in {}", self);
+        }
     }
 }
 

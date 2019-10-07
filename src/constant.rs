@@ -55,6 +55,16 @@ impl ConstantPool {
 
         (ConstantPool(items), index)
     }
+
+    pub fn get_main_index(&self) -> Option<usize> {
+        self.0.iter().position(|item| {
+            if let ConstPoolItem::ConstantUtf8(utf8) = item {
+                utf8.bytes == vec![0x6D, 0x61, 0x69, 0x6E] // main
+            } else {
+                false
+            }
+        })
+    }
 }
 
 impl fmt::Display for ConstantPool {

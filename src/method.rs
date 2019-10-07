@@ -80,7 +80,7 @@ fn extract_access_flags(num: usize) -> MethodAccessFlags {
     MethodAccessFlags(access_flags)
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum MethodAccessFlag {
     AccPublic = 0x0001,
     AccPrivate = 0x0002,
@@ -136,7 +136,7 @@ impl From<usize> for MethodAccessFlag {
 }
 
 #[derive(Debug)]
-pub struct MethodAccessFlags(Vec<MethodAccessFlag>);
+pub struct MethodAccessFlags(pub Vec<MethodAccessFlag>);
 impl fmt::Display for MethodAccessFlags {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let mut result = Vec::with_capacity(self.0.len());
