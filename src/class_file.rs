@@ -6,7 +6,7 @@ use crate::utils::*;
 use std::fmt;
 
 #[derive(Debug)]
-pub struct Interface;
+pub struct Interface(usize);
 
 #[derive(Debug)]
 pub struct ClassFile {
@@ -47,8 +47,13 @@ impl ClassFile {
         let (this_class, index) = extract_x_byte_as_usize(input, index, 2);
         let (super_class, index) = extract_x_byte_as_usize(input, index, 2);
 
-        let (interfaces_count, index) = extract_x_byte_as_usize(input, index, 2);
-        let interfaces = Vec::with_capacity(interfaces_count);
+        let (interfaces_count, mut index) = extract_x_byte_as_usize(input, index, 2);
+        let mut interfaces = Vec::with_capacity(interfaces_count);
+        for _ in 0..interfaces_count {
+            let (interface_index, updated_index) = extract_x_byte_as_usize(input, index, 2);
+            index = updated_index;
+            interfaces.push(Interface(interface_index));
+        }
 
         let (fields_count, mut index) = extract_x_byte_as_usize(input, index, 2);
         let mut fields = Vec::with_capacity(fields_count);
