@@ -287,6 +287,10 @@ pub enum Instruction {
     AloadN(usize),          // 0x2a(0) - 0x2d(3)
     IstoreN(usize),         // 0x3b(0) - 0x3e(3)
     Iadd,                   // 0x60
+    Isub,                   // 0x64
+    Imul,                   // 0x68
+    Idiv,                   // 0x6C
+    Irem,                   // 0x70
     Ificmple(usize, usize), // 0xa4
     Ireturn,                // 0xac
     Return,                 // 0xb1
@@ -306,6 +310,10 @@ impl fmt::Display for Instruction {
             Instruction::AloadN(val) => write!(f, "aload_{}", val),
             Instruction::IstoreN(val) => write!(f, "istore_{}", val),
             Instruction::Iadd => write!(f, "iadd"),
+            Instruction::Isub => write!(f, "isub"),
+            Instruction::Imul => write!(f, "imul"),
+            Instruction::Idiv => write!(f, "idiv"),
+            Instruction::Irem => write!(f, "irem"),
             Instruction::Ificmple(_, val) => write!(f, "if_icmple       {}", val),
             Instruction::Ireturn => write!(f, "ireturn"),
             Instruction::Return => write!(f, "return"),
@@ -364,6 +372,14 @@ impl Instruction {
             }
             // iadd
             0x60 => (Instruction::Iadd, index, 1),
+            // isub
+            0x64 => (Instruction::Isub, index, 1),
+            // imul
+            0x68 => (Instruction::Imul, index, 1),
+            // idiv
+            0x6c => (Instruction::Idiv, index, 1),
+            // irem
+            0x70 => (Instruction::Irem, index, 1),
             // ireturn
             0xac => (Instruction::Ireturn, index, 1),
             // return
