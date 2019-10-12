@@ -1,4 +1,4 @@
-use crate::attribute::Attribute;
+use crate::attribute::defs::Attribute;
 use crate::utils::extract_x_byte_as_usize;
 use std::fmt;
 

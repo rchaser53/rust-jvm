@@ -1,4 +1,4 @@
-use crate::attribute::{Attribute, Code};
+use crate::attribute::{code::Code, defs::Attribute};
 use crate::constant::ConstantPool;
 use crate::field::Field;
 use crate::method::{Method, MethodAccessFlag};

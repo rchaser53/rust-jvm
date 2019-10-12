@@ -1,4 +1,4 @@
-use crate::attribute::Attribute;
+use crate::attribute::defs::Attribute;
 use crate::constant::ConstantPool;
 use crate::utils::*;
 use std::fmt;
