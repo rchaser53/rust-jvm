@@ -25,6 +25,8 @@ jobs:
             targets: 'x86_64-unknown-linux-musl'
     steps:
     - uses: actions/checkout@v1
+    - name: Install rustfmt
+      run: rustup component add rustfmt
     - name: Check Format
       run: cargo fmt -- --check
     - name: Build
