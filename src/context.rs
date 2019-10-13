@@ -2,11 +2,13 @@ use crate::attribute::instruction::Instruction;
 use crate::class_file::ClassFile;
 use crate::method::Method;
 use crate::operand::{OperandStack, OperandStackItem};
+use crate::stackframe::{Stackframe, StarckframeItem};
 
 #[derive(Debug)]
 pub struct Context {
     pub operand_stack: OperandStack,
     pub program_count: usize,
+    pub stack_frames: Vec<Stackframe>,
 }
 
 impl Context {
@@ -14,6 +16,7 @@ impl Context {
         Context {
             operand_stack: OperandStack::new(),
             program_count: 0,
+            stack_frames: vec![],
         }
     }
 
@@ -28,12 +31,16 @@ impl Context {
     }
 
     pub fn run_method(&mut self, method: &Method) {
+        self.stack_frames.push(Stackframe::new(0));
+
         if let Some(code) = method.extract_code() {
             for instruction in code.code.iter() {
                 self.execute(instruction);
                 println!("{}", instruction);
             }
         }
+
+        self.stack_frames.pop();
     }
 
     pub fn execute(&mut self, instruction: &Instruction) {
