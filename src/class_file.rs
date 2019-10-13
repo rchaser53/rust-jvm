@@ -1,4 +1,4 @@
-use crate::attribute::{code::Code, defs::Attribute};
+use crate::attribute::defs::Attribute;
 use crate::constant::ConstantPool;
 use crate::field::Field;
 use crate::method::{Method, MethodAccessFlag};
@@ -103,9 +103,9 @@ impl ClassFile {
         )
     }
 
-    pub fn run_entry_file(&self) {
+    pub fn get_entry_method(&self) -> Option<&Method> {
         if let Some(main_index) = self.cp_info.get_main_index() {
-            if let Some(entry_method) = self.methods.iter().find(|method| {
+            return self.methods.iter().find(|method| {
                 method
                     .access_flags
                     .0
@@ -113,38 +113,9 @@ impl ClassFile {
                     .find(|flag| **flag == MethodAccessFlag::AccPublic)
                     .is_some()
                     && method.name_index == main_index
-            }) {
-                self.run_method(entry_method);
-                return;
-            }
+            });
         }
         panic!("failed to find main method in {}", self);
-    }
-
-    pub fn run_method(&self, method: &Method) {
-        if let Some(code) = self.extract_code(method) {
-            for instruction in code.code.iter() {
-                println!("{}", instruction);
-            }
-        }
-    }
-
-    pub fn extract_code<'a>(&self, method: &'a Method) -> Option<&'a Code> {
-        if let Some(attribute) = method.attribute_info.iter().find(|attribute| {
-            if let Attribute::Code(_) = attribute {
-                true
-            } else {
-                false
-            }
-        }) {
-            if let Attribute::Code(ref code) = attribute {
-                Some(code)
-            } else {
-                unreachable!();
-            }
-        } else {
-            None
-        }
     }
 }
 

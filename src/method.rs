@@ -1,4 +1,6 @@
+use crate::attribute::code::Code;
 use crate::attribute::defs::Attribute;
+use crate::class_file::ClassFile;
 use crate::constant::ConstantPool;
 use crate::utils::*;
 use std::fmt;
@@ -37,6 +39,33 @@ impl Method {
             },
             index,
         )
+    }
+
+    pub fn extract_code<'a>(&self) -> Option<&Code> {
+        if let Some(attribute) = self.attribute_info.iter().find(|attribute| {
+            if let Attribute::Code(_) = attribute {
+                true
+            } else {
+                false
+            }
+        }) {
+            if let Attribute::Code(ref code) = attribute {
+                Some(code)
+            } else {
+                unreachable!();
+            }
+        } else {
+            None
+        }
+    }
+
+    pub fn run(&self, class_file: &mut ClassFile) -> Result<(), String> {
+        if let Some(code) = self.extract_code() {
+            for instruction in code.code.iter() {
+                println!("{}", instruction);
+            }
+        }
+        Ok(())
     }
 }
 

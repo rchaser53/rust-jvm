@@ -1,3 +1,3 @@
 pub mod code;
 pub mod defs;
-mod instruction;
+pub mod instruction;

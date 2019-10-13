@@ -1,29 +1,81 @@
+use crate::attribute::instruction::Instruction;
 use crate::class_file::ClassFile;
+use crate::method::{Method, MethodAccessFlag};
 use crate::operand::OperandStack;
 use crate::utils::read_file;
 
 #[derive(Debug)]
 pub struct Context {
-    pub class_file: ClassFile,
     pub operand_stack: OperandStack,
 }
 
 impl Context {
-    pub fn new(class_name: &str) -> Context {
-        if let Ok(buffer) = read_file(class_name, &mut vec![]) {
-            let (class_file, _) = ClassFile::new(buffer, 0);
-            Context {
-                class_file,
-                operand_stack: OperandStack::new(),
-            }
-        } else {
-            unimplemented!("need to add handler for the case failed to find the class file")
+    pub fn new() -> Context {
+        Context {
+            operand_stack: OperandStack::new(),
         }
     }
 
-    pub fn run_entry_file(&mut self) {
-        self.class_file.run_entry_file();
+    pub fn run_entry_file(&mut self, class_file: &ClassFile) {
+        let entry_method = if let Some(entry_method) = class_file.get_entry_method() {
+            entry_method
+        } else {
+            unimplemented!("add handler in the case failed to find entry method")
+        };
+
+        self.run_method(entry_method);
     }
+
+    pub fn run_method(&mut self, method: &Method) {
+        if let Some(code) = method.extract_code() {
+            for instruction in code.code.iter() {
+                // self.execute(instruction);
+                println!("{}", instruction);
+            }
+        }
+    }
+
+    // pub fn execute(&mut self, instruction: Instruction) {
+    //     // let order = &self.orders[self.program_count];
+    //     match instruction {
+    //         Instruction::Iadd => {
+    //             let val = self.operand_stack.iadd();
+    //             self.operand_stack.stack.push(OperandStackItem::I32(val));
+    //         }
+    //         Instruction::Isub => write!(f, "isub"),
+    //         Instruction::Imul => write!(f, "imul"),
+    //         Instruction::Idiv => write!(f, "idiv"),
+    //         Instruction::Irem => write!(f, "irem"),
+
+    //         Instruction::IconstN(val) => {
+    //             self.operand_stack.iconst(order.operand);
+    //         }
+    //         Instruction::Ireturn => {
+    //             // TODO: how should I handle this value?
+    //             let _ = self.operand_stack.stack.pop();
+    //         }
+    //         Instruction::Ificmple => {
+    //             let left = self.operand_stack.stack.pop();
+    //             let right = self.operand_stack.stack.pop();
+    //             if left > right {
+    //                 if let OperandStackItem::I32(val) = order.operand {
+    //                     self.program_count = val as usize;
+    //                 }
+    //             }
+    //         }
+    //     };
+    // }
+
+    // Instruction::Ldc(val) => write!(f, "ldc             #{}", val),
+    // Instruction::IloadN(val) => write!(f, "iload_{}", val),
+    // Instruction::AloadN(val) => write!(f, "aload_{}", val),
+    // Instruction::IstoreN(val) => write!(f, "istore_{}", val),
+    // Instruction::Return => write!(f, "return"),
+    // Instruction::Getstatic(val) => write!(f, "getstatic     #{}", val),
+    // Instruction::Getfield(val) => write!(f, "getfield        #{}", val),
+    // Instruction::Putfield(val) => write!(f, "putfield        #{}", val),
+    // Instruction::Invokevirtual(val) => write!(f, "invokevirtual   #{}", val),
+    // Instruction::Invokespecial(val) => write!(f, "invokespecial   #{}", val),
 }
 
 // use crate::operand::{OperandStack, OperandStackItem};
@@ -60,29 +112,4 @@ impl Context {
 //         }
 //     }
 
-//     pub fn execute(&mut self) {
-//         let order = &self.orders[self.program_count];
-//         match order.opecode {
-//             Opecode::Iadd => {
-//                 let val = self.operand_stack.iadd();
-//                 self.operand_stack.stack.push(OperandStackItem::I32(val));
-//             }
-//             Opecode::Iconst => {
-//                 self.operand_stack.iconst(order.operand);
-//             }
-//             Opecode::Ireturn => {
-//                 // TODO: how should I handle this value?
-//                 let _ = self.operand_stack.stack.pop();
-//             }
-//             Opecode::IfIcmple => {
-//                 let left = self.operand_stack.stack.pop();
-//                 let right = self.operand_stack.stack.pop();
-//                 if left > right {
-//                     if let OperandStackItem::I32(val) = order.operand {
-//                         self.program_count = val as usize;
-//                     }
-//                 }
-//             }
-//         };
-//     }
 // }
