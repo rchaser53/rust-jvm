@@ -1,8 +1,7 @@
 use crate::attribute::instruction::Instruction;
 use crate::class_file::ClassFile;
-use crate::method::{Method, MethodAccessFlag};
+use crate::method::Method;
 use crate::operand::OperandStack;
-use crate::utils::read_file;
 
 #[derive(Debug)]
 pub struct Context {
@@ -31,42 +30,55 @@ impl Context {
     pub fn run_method(&mut self, method: &Method) {
         if let Some(code) = method.extract_code() {
             for instruction in code.code.iter() {
-                // self.execute(instruction);
+                self.execute(instruction);
                 println!("{}", instruction);
             }
         }
     }
 
-    // pub fn execute(&mut self, instruction: Instruction) {
-    //     // let order = &self.orders[self.program_count];
-    //     match instruction {
-    //         Instruction::Iadd => {
-    //             let val = self.operand_stack.iadd();
-    //             self.operand_stack.stack.push(OperandStackItem::I32(val));
-    //         }
-    //         Instruction::Isub => write!(f, "isub"),
-    //         Instruction::Imul => write!(f, "imul"),
-    //         Instruction::Idiv => write!(f, "idiv"),
-    //         Instruction::Irem => write!(f, "irem"),
+    pub fn execute(&mut self, instruction: &Instruction) {
+        //     // let order = &self.orders[self.program_count];
+        match instruction {
+            Instruction::Iadd => {
+                let item = self.operand_stack.iadd();
+                self.operand_stack.stack.push(item);
+            }
+            Instruction::Isub => {
+                let item = self.operand_stack.isub();
+                self.operand_stack.stack.push(item);
+            }
+            Instruction::Imul => {
+                let item = self.operand_stack.imul();
+                self.operand_stack.stack.push(item);
+            }
+            Instruction::Idiv => {
+                let item = self.operand_stack.idiv();
+                self.operand_stack.stack.push(item);
+            }
+            Instruction::Irem => {
+                let item = self.operand_stack.irem();
+                self.operand_stack.stack.push(item);
+            }
 
-    //         Instruction::IconstN(val) => {
-    //             self.operand_stack.iconst(order.operand);
-    //         }
-    //         Instruction::Ireturn => {
-    //             // TODO: how should I handle this value?
-    //             let _ = self.operand_stack.stack.pop();
-    //         }
-    //         Instruction::Ificmple => {
-    //             let left = self.operand_stack.stack.pop();
-    //             let right = self.operand_stack.stack.pop();
-    //             if left > right {
-    //                 if let OperandStackItem::I32(val) = order.operand {
-    //                     self.program_count = val as usize;
-    //                 }
-    //             }
-    //         }
-    //     };
-    // }
+            // Instruction::IconstN(val) => {
+            //     self.operand_stack.iconst(order.operand);
+            // }
+            // Instruction::Ireturn => {
+            // TODO: how should I handle this value?
+            //     let _ = self.operand_stack.stack.pop();
+            // }
+            // Instruction::Ificmple => {
+            //     let left = self.operand_stack.stack.pop();
+            //     let right = self.operand_stack.stack.pop();
+            //     if left > right {
+            //         if let OperandStackItem::I32(val) = order.operand {
+            //             self.program_count = val as usize;
+            //         }
+            //     }
+            // }
+            _ => unimplemented!(),
+        };
+    }
 
     // Instruction::Ldc(val) => write!(f, "ldc             #{}", val),
     // Instruction::IloadN(val) => write!(f, "iload_{}", val),
