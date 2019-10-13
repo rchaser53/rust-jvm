@@ -1,9 +1,19 @@
+use crate::stackframe::StarckframeItem;
 use std::cmp::{Ordering, PartialOrd};
 
 #[derive(PartialEq, Clone, Copy, Debug)]
 pub enum OperandStackItem {
     Null,
     I32(i32),
+}
+
+impl From<&StarckframeItem> for OperandStackItem {
+    fn from(item: &StarckframeItem) -> OperandStackItem {
+        match item {
+            StarckframeItem::I32(value) => OperandStackItem::I32(*value),
+            StarckframeItem::Null => OperandStackItem::Null,
+        }
+    }
 }
 
 impl PartialOrd for OperandStackItem {

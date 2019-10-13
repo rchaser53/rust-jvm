@@ -67,7 +67,8 @@ impl Context {
                 self.operand_stack.stack.push(item);
             }
             Instruction::IconstN(val) => {
-                self.operand_stack.iconst(OperandStackItem::I32(*val as i32));
+                self.operand_stack
+                    .iconst(OperandStackItem::I32(*val as i32));
             }
             Instruction::Ificmple(if_val, else_val) => {
                 let left = self.operand_stack.stack.pop();
@@ -78,7 +79,12 @@ impl Context {
                     self.program_count = *else_val;
                 }
             }
-
+            Instruction::IloadN(index) => {
+                if let Some(stack_frame) = self.stack_frames.last() {
+                    let value = &stack_frame.local_variables[*index];
+                    self.operand_stack.stack.push(OperandStackItem::from(value));
+                }
+            }
             // Instruction::Ireturn => {
             // TODO: how should I handle this value?
             //     let _ = self.operand_stack.stack.pop();
@@ -88,7 +94,7 @@ impl Context {
     }
 
     // Instruction::Ldc(val) => write!(f, "ldc             #{}", val),
-    // Instruction::IloadN(val) => write!(f, "iload_{}", val),
+
     // Instruction::AloadN(val) => write!(f, "aload_{}", val),
     // Instruction::IstoreN(val) => write!(f, "istore_{}", val),
     // Instruction::Return => write!(f, "return"),
