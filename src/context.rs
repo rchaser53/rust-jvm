@@ -85,18 +85,24 @@ impl Context {
                     self.operand_stack.stack.push(OperandStackItem::from(value));
                 }
             }
+            Instruction::IstoreN(index) => {
+                if let Some(stack_frame) = self.stack_frames.last_mut() {
+                    if let Some(item) = self.operand_stack.stack.pop() {
+                        stack_frame.local_variables[*index] = StarckframeItem::from(item);
+                    }
+                }
+            }
             // Instruction::Ireturn => {
             // TODO: how should I handle this value?
             //     let _ = self.operand_stack.stack.pop();
             // }
-            _ => unimplemented!(),
+            _ => {},
         };
     }
 
     // Instruction::Ldc(val) => write!(f, "ldc             #{}", val),
 
     // Instruction::AloadN(val) => write!(f, "aload_{}", val),
-    // Instruction::IstoreN(val) => write!(f, "istore_{}", val),
     // Instruction::Return => write!(f, "return"),
     // Instruction::Getstatic(val) => write!(f, "getstatic     #{}", val),
     // Instruction::Getfield(val) => write!(f, "getfield        #{}", val),
