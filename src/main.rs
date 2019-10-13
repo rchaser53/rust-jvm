@@ -12,12 +12,9 @@ mod order;
 mod stackframe;
 mod utils;
 
-use crate::utils::read_file;
+use crate::context::Context;
 
 fn main() {
-    if let Ok(buffer) = read_file("A.class", &mut vec![]) {
-        let class_file = class_file::ClassFile::new(buffer, 0);
-
-        println!("{}", class_file.0.cp_info);
-    }
+    let mut context = Context::new("HelloWorld.class");
+    context.run_entry_file();
 }
