@@ -26,16 +26,25 @@ impl OperandStack {
         OperandStack { stack: vec![] }
     }
 
-    pub fn iadd(&mut self) -> i32 {
+    pub fn iadd(&mut self) -> OperandStackItem {
         match (self.stack.pop(), self.stack.pop()) {
             (Some(left), Some(right)) => OperandStack::add_two_item(left, right),
             _ => panic!("shortage item in OperandStack"),
         }
     }
 
-    pub fn add_two_item(left: OperandStackItem, right: OperandStackItem) -> i32 {
+    pub fn add_two_item(left: OperandStackItem, right: OperandStackItem) -> OperandStackItem {
         match (&left, &right) {
-            (OperandStackItem::I32(left), OperandStackItem::I32(right)) => left + right,
+            (OperandStackItem::I32(left), OperandStackItem::I32(right)) => {
+                OperandStackItem::I32(left + right)
+            }
+            _ => panic!(
+                "left:{:?} and right:{:?} types are not matched",
+                left, right
+            ),
+        }
+    }
+        match (&left, &right) {
             _ => panic!(
                 "left:{:?} and right:{:?} types are not matched",
                 left, right
