@@ -7,12 +7,14 @@ use crate::utils::read_file;
 #[derive(Debug)]
 pub struct Context {
     pub operand_stack: OperandStack,
+    pub program_count: usize,
 }
 
 impl Context {
     pub fn new() -> Context {
         Context {
             operand_stack: OperandStack::new(),
+            program_count: 0,
         }
     }
 
