@@ -1,7 +1,7 @@
 use crate::attribute::instruction::Instruction;
 use crate::class_file::ClassFile;
 use crate::method::Method;
-use crate::operand::OperandStack;
+use crate::operand::{OperandStack, OperandStackItem};
 
 #[derive(Debug)]
 pub struct Context {
@@ -59,22 +59,22 @@ impl Context {
                 let item = self.operand_stack.irem();
                 self.operand_stack.stack.push(item);
             }
+            Instruction::IconstN(val) => {
+                self.operand_stack.iconst(OperandStackItem::I32(*val as i32));
+            }
+            Instruction::Ificmple(if_val, else_val) => {
+                let left = self.operand_stack.stack.pop();
+                let right = self.operand_stack.stack.pop();
+                if left > right {
+                    self.program_count = *if_val;
+                } else {
+                    self.program_count = *else_val;
+                }
+            }
 
-            // Instruction::IconstN(val) => {
-            //     self.operand_stack.iconst(order.operand);
-            // }
             // Instruction::Ireturn => {
             // TODO: how should I handle this value?
             //     let _ = self.operand_stack.stack.pop();
-            // }
-            // Instruction::Ificmple => {
-            //     let left = self.operand_stack.stack.pop();
-            //     let right = self.operand_stack.stack.pop();
-            //     if left > right {
-            //         if let OperandStackItem::I32(val) = order.operand {
-            //             self.program_count = val as usize;
-            //         }
-            //     }
             // }
             _ => unimplemented!(),
         };
