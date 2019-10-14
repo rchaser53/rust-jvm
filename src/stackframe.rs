@@ -5,7 +5,8 @@ pub enum StarckframeItem {
     Null,
     I32(i32),
     Utf8(usize),
-    ClassRef(usize),
+    Classref(usize),
+    Fieldref(usize),
 }
 
 impl From<OperandStackItem> for StarckframeItem {
@@ -13,7 +14,8 @@ impl From<OperandStackItem> for StarckframeItem {
         match item {
             OperandStackItem::I32(value) => StarckframeItem::I32(value),
             OperandStackItem::Utf8(index) => StarckframeItem::Utf8(index),
-            OperandStackItem::ClassRef(index) => StarckframeItem::ClassRef(index),
+            OperandStackItem::Classref(index) => StarckframeItem::Classref(index),
+            OperandStackItem::Fieldref(index) => StarckframeItem::Fieldref(index),
             OperandStackItem::Null => StarckframeItem::Null,
         }
     }

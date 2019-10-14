@@ -29,18 +29,23 @@ impl Context {
 
         // TBD Perhaps this method is not invoked from super_class
         let super_class_index = class_file.super_class;
-        let stack_frame_item_0 = StarckframeItem::ClassRef(super_class_index);
-        self.run_method(entry_method, stack_frame_item_0);
+        let stack_frame_item_0 = StarckframeItem::Classref(super_class_index);
+        self.run_method(class_file, entry_method, stack_frame_item_0);
     }
 
-    pub fn run_method(&mut self, method: &Method, stack_frame_item: StarckframeItem) {
+    pub fn run_method(
+        &mut self,
+        class_file: &ClassFile,
+        method: &Method,
+        stack_frame_item: StarckframeItem,
+    ) {
         let mut stack_frame = Stackframe::new(0);
         stack_frame.local_variables.push(stack_frame_item);
         self.stack_frames.push(stack_frame);
 
         if let Some(code) = method.extract_code() {
             for instruction in code.code.iter() {
-                self.execute(instruction);
+                self.execute(class_file, instruction);
                 println!("{}", instruction);
             }
         }
@@ -48,7 +53,7 @@ impl Context {
         self.stack_frames.pop();
     }
 
-    pub fn execute(&mut self, instruction: &Instruction) {
+    pub fn execute(&mut self, class_file: &ClassFile, instruction: &Instruction) {
         //     // let order = &self.orders[self.program_count];
         match instruction {
             Instruction::Iadd => {
@@ -107,7 +112,11 @@ impl Context {
                     let value = &stack_frame.local_variables[*index];
                     self.operand_stack.stack.push(OperandStackItem::from(value));
                 }
-            },
+            }
+            Instruction::Getstatic(index) => {
+                let item = class_file.cp_info.get_operand_stack_item(*index);
+                self.operand_stack.stack.push(item);
+            }
 
             // Instruction::Ireturn => {
             // TODO: how should I handle this value?
@@ -118,10 +127,8 @@ impl Context {
     }
 
     // Instruction::Ldc(val) => write!(f, "ldc             #{}", val),
-
     // Instruction::AloadN(val) => write!(f, "aload_{}", val),
     // Instruction::Return => write!(f, "return"),
-    // Instruction::Getstatic(val) => write!(f, "getstatic     #{}", val),
     // Instruction::Getfield(val) => write!(f, "getfield        #{}", val),
     // Instruction::Putfield(val) => write!(f, "putfield        #{}", val),
     // Instruction::Invokevirtual(val) => write!(f, "invokevirtual   #{}", val),

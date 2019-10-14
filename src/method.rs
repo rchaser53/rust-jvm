@@ -1,6 +1,5 @@
 use crate::attribute::code::Code;
 use crate::attribute::defs::Attribute;
-use crate::class_file::ClassFile;
 use crate::constant::ConstantPool;
 use crate::utils::*;
 use std::fmt;
@@ -59,7 +58,7 @@ impl Method {
         }
     }
 
-    pub fn run(&self, class_file: &mut ClassFile) -> Result<(), String> {
+    pub fn run(&self) -> Result<(), String> {
         if let Some(code) = self.extract_code() {
             for instruction in code.code.iter() {
                 println!("{}", instruction);
