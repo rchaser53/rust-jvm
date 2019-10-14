@@ -27,11 +27,16 @@ impl Context {
             unimplemented!("add handler in the case failed to find entry method")
         };
 
-        self.run_method(entry_method);
+        // TBD Perhaps this method is not invoked from super_class
+        let super_class_index = class_file.super_class;
+        let stack_frame_item_0 = StarckframeItem::Utf8(super_class_index);
+        self.run_method(entry_method, stack_frame_item_0);
     }
 
-    pub fn run_method(&mut self, method: &Method) {
-        self.stack_frames.push(Stackframe::new(0));
+    pub fn run_method(&mut self, method: &Method, stack_frame_item: StarckframeItem) {
+        let mut stack_frame = Stackframe::new(0);
+        stack_frame.local_variables.push(stack_frame_item);
+        self.stack_frames.push(stack_frame);
 
         if let Some(code) = method.extract_code() {
             for instruction in code.code.iter() {
