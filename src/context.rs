@@ -102,6 +102,12 @@ impl Context {
                     }
                 }
             }
+            Instruction::AloadN(index) => {
+                if let Some(stack_frame) = self.stack_frames.last() {
+                    let value = &stack_frame.local_variables[*index];
+                    self.operand_stack.stack.push(OperandStackItem::from(value));
+                }
+            },
 
             // Instruction::Ireturn => {
             // TODO: how should I handle this value?
