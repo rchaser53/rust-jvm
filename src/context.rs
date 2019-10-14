@@ -70,6 +70,11 @@ impl Context {
                 self.operand_stack
                     .iconst(OperandStackItem::I32(*val as i32));
             }
+            // maybe need to fix for float or something like that
+            Instruction::Bipush(val) => {
+                self.operand_stack
+                    .iconst(OperandStackItem::I32(*val as i32));
+            }
             Instruction::Ificmple(if_val, else_val) => {
                 let left = self.operand_stack.stack.pop();
                 let right = self.operand_stack.stack.pop();
@@ -92,11 +97,12 @@ impl Context {
                     }
                 }
             }
+
             // Instruction::Ireturn => {
             // TODO: how should I handle this value?
             //     let _ = self.operand_stack.stack.pop();
             // }
-            _ => {},
+            _ => {}
         };
     }
 
