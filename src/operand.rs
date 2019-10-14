@@ -5,12 +5,14 @@ use std::cmp::{Ordering, PartialOrd};
 pub enum OperandStackItem {
     Null,
     I32(i32),
+    Utf8(usize),
 }
 
 impl From<&StarckframeItem> for OperandStackItem {
     fn from(item: &StarckframeItem) -> OperandStackItem {
         match item {
             StarckframeItem::I32(value) => OperandStackItem::I32(*value),
+            StarckframeItem::Utf8(index) => OperandStackItem::Utf8(*index),
             StarckframeItem::Null => OperandStackItem::Null,
         }
     }
@@ -21,6 +23,7 @@ impl PartialOrd for OperandStackItem {
         match (self, other) {
             (OperandStackItem::Null, OperandStackItem::Null) => Some(Ordering::Equal),
             (OperandStackItem::I32(left), OperandStackItem::I32(right)) => Some(left.cmp(right)),
+            (OperandStackItem::Utf8(left), OperandStackItem::Utf8(right)) => Some(left.cmp(right)),
             _ => None,
         }
     }

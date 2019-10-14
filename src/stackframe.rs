@@ -4,12 +4,14 @@ use crate::operand::{OperandStack, OperandStackItem};
 pub enum StarckframeItem {
     Null,
     I32(i32),
+    Utf8(usize),
 }
 
 impl From<OperandStackItem> for StarckframeItem {
     fn from(item: OperandStackItem) -> StarckframeItem {
         match item {
             OperandStackItem::I32(value) => StarckframeItem::I32(value),
+            OperandStackItem::Utf8(index) => StarckframeItem::Utf8(index),
             OperandStackItem::Null => StarckframeItem::Null,
         }
     }
