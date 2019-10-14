@@ -1,3 +1,4 @@
+use crate::operand::OperandStackItem;
 use crate::utils::*;
 use std::fmt;
 
@@ -64,6 +65,20 @@ impl ConstantPool {
                 false
             }
         })
+    }
+
+    pub fn get_operand_stack_item(&self, index: usize) -> OperandStackItem {
+        match self.0[index] {
+            // ConstPoolItem::ConstantNull,
+            // ConstPoolItem::ConstantClass(ConstantClass),
+            // ConstPoolItem::ConstantMethodref(ConstantMethodref),
+            // ConstPoolItem::ConstantInterfaceMethodref,
+            // ConstPoolItem::ConstantString(ConstantString),
+            // ConstPoolItem::ConstantNameAndType(ConstantNameAndType),
+            ConstPoolItem::ConstantFieldref(_) => OperandStackItem::Fieldref(index),
+            ConstPoolItem::ConstantUtf8(_) => OperandStackItem::Utf8(index),
+            _ => unimplemented!("{:?}", self.0[index]),
+        }
     }
 }
 
