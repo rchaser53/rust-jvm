@@ -1,11 +1,12 @@
 use crate::stackframe::StarckframeItem;
 use std::cmp::{Ordering, PartialOrd};
 
-#[derive(PartialEq, Clone, Copy, Debug)]
+#[derive(PartialEq, Clone, Debug)]
 pub enum OperandStackItem {
     Null,
     I32(i32),
     Utf8(usize),
+    ClassRef(usize),
 }
 
 impl From<&StarckframeItem> for OperandStackItem {
@@ -13,6 +14,7 @@ impl From<&StarckframeItem> for OperandStackItem {
         match item {
             StarckframeItem::I32(value) => OperandStackItem::I32(*value),
             StarckframeItem::Utf8(index) => OperandStackItem::Utf8(*index),
+            StarckframeItem::ClassRef(index) => OperandStackItem::ClassRef(*index),
             StarckframeItem::Null => OperandStackItem::Null,
         }
     }

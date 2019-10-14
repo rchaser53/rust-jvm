@@ -29,7 +29,7 @@ impl Context {
 
         // TBD Perhaps this method is not invoked from super_class
         let super_class_index = class_file.super_class;
-        let stack_frame_item_0 = StarckframeItem::Utf8(super_class_index);
+        let stack_frame_item_0 = StarckframeItem::ClassRef(super_class_index);
         self.run_method(entry_method, stack_frame_item_0);
     }
 
