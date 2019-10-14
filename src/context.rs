@@ -45,15 +45,18 @@ impl Context {
 
         if let Some(code) = method.extract_code() {
             for instruction in code.code.iter() {
-                self.execute(class_file, instruction);
                 println!("{}", instruction);
+                let should_finish = self.execute(class_file, instruction);
+                if should_finish {
+                    break;
+                }
             }
         }
 
         self.stack_frames.pop();
     }
 
-    pub fn execute(&mut self, class_file: &ClassFile, instruction: &Instruction) {
+    pub fn execute(&mut self, class_file: &ClassFile, instruction: &Instruction) -> bool {
         //     // let order = &self.orders[self.program_count];
         match instruction {
             Instruction::Iadd => {
@@ -118,12 +121,18 @@ impl Context {
                 self.operand_stack.stack.push(item);
             }
 
-            // Instruction::Ireturn => {
-            // TODO: how should I handle this value?
-            //     let _ = self.operand_stack.stack.pop();
-            // }
+            Instruction::Ireturn => {
+                if let Some(item) = self.operand_stack.stack.pop() {
+                    self.operand_stack.stack.clear();
+                    self.operand_stack.stack.push(item);
+                } else {
+                    unreachable!("should exist return value on operand_stack");
+                }
+                return true;
+            }
             _ => {}
         };
+        false
     }
 
     // Instruction::Ldc(val) => write!(f, "ldc             #{}", val),
@@ -134,12 +143,6 @@ impl Context {
     // Instruction::Invokevirtual(val) => write!(f, "invokevirtual   #{}", val),
     // Instruction::Invokespecial(val) => write!(f, "invokespecial   #{}", val),
 }
-
-// use crate::operand::{OperandStack, OperandStackItem};
-
-// use crate::constant::ConstantPool;
-// use crate::order::{Opecode, Order};
-// use crate::stackframe::Stackframe;
 
 // #[derive(Debug)]
 // pub struct ProgramContext {
