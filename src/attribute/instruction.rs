@@ -9,6 +9,7 @@ pub enum Instruction {
     IloadN(usize),          // 0x1a(0) - 0x1d(3)
     AloadN(usize),          // 0x2a(0) - 0x2d(3)
     IstoreN(usize),         // 0x3b(0) - 0x3e(3)
+    Pop,                    // 0x57
     Iadd,                   // 0x60
     Isub,                   // 0x64
     Imul,                   // 0x68
@@ -33,6 +34,7 @@ impl fmt::Display for Instruction {
             Instruction::IloadN(val) => write!(f, "iload_{}", val),
             Instruction::AloadN(val) => write!(f, "aload_{}", val),
             Instruction::IstoreN(val) => write!(f, "istore_{}", val),
+            Instruction::Pop => write!(f, "pop"),
             Instruction::Iadd => write!(f, "iadd"),
             Instruction::Isub => write!(f, "isub"),
             Instruction::Imul => write!(f, "imul"),
@@ -71,6 +73,8 @@ impl Instruction {
             val @ 0x2a..0x2d => (Instruction::AloadN(val - 0x2a), index, 1),
             // istore_n
             val @ 0x3b..0x3e => (Instruction::IstoreN(val - 0x3b), index, 1),
+            // pop
+            0x57 => (Instruction::Pop, index, 1),
             // iadd
             0x60 => (Instruction::Iadd, index, 1),
             // isub

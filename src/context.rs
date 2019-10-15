@@ -120,7 +120,6 @@ impl Context {
                 let item = class_file.cp_info.get_operand_stack_item(*index);
                 self.operand_stack.stack.push(item);
             }
-
             Instruction::Ireturn => {
                 if let Some(item) = self.operand_stack.stack.pop() {
                     self.operand_stack.stack.clear();
@@ -129,6 +128,9 @@ impl Context {
                     unreachable!("should exist return value on operand_stack");
                 }
                 return true;
+            }
+            Instruction::Pop => {
+                self.operand_stack.stack.pop();
             }
             _ => {}
         };
