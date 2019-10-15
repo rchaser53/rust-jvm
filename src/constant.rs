@@ -80,6 +80,35 @@ impl ConstantPool {
             _ => unimplemented!("{:?}", self.0[index]),
         }
     }
+
+    pub fn get_class_ref(&self, index: usize) -> &ConstantClass {
+        let actual_index = index;
+        match self.0[actual_index] {
+            ConstPoolItem::ConstantClass(ref item) => item,
+            _ => unreachable!("should be ConstantClass. actual {:?}", self.0[actual_index]),
+        }
+    }
+
+    pub fn get_method_ref(&self, index: usize) -> &ConstantMethodref {
+        let actual_index = index;
+        match self.0[actual_index] {
+            ConstPoolItem::ConstantMethodref(ref item) => item,
+            _ => unreachable!(
+                "should be ConstantMethodref. actual {:?}",
+                self.0[actual_index]
+            ),
+        }
+    }
+
+    pub fn get_utf8(&self, index: usize) -> String {
+        let actual_index = index;
+        match self.0[actual_index] {
+            ConstPoolItem::ConstantUtf8(ref item) => {
+                String::from_utf8_lossy(item.bytes.as_slice()).to_string()
+            }
+            _ => unreachable!("should be ConstantUtf8. actual {:?}", self.0[actual_index]),
+        }
+    }
 }
 
 impl fmt::Display for ConstantPool {
