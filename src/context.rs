@@ -136,6 +136,19 @@ impl<'a> Context<'a> {
             Instruction::Pop => {
                 self.operand_stack.stack.pop();
             }
+            Instruction::Invokevirtual(index) => {
+                let method_ref = class_file.cp_info.get_method_ref(*index);
+                let class_ref = class_file.cp_info.get_class_ref(method_ref.class_index);
+
+                let name_and_type = class_file
+                    .cp_info
+                    .get_name_and_type(method_ref.name_and_type_index);
+                let method_name = class_file.cp_info.get_utf8(name_and_type.name_index);
+                let class_name = class_file.cp_info.get_utf8(class_ref.name_index);
+            }
+            Instruction::Invokespecial(index) => {
+                let method_ref = class_file.cp_info.get_method_ref(*index);
+            }
             _ => {}
         };
         false
