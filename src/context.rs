@@ -1,25 +1,10 @@
 use crate::attribute::instruction::Instruction;
-use crate::class_file::ClassFile;
 use crate::constant::{ConstPoolItem, ConstantMethodref, ConstantPool};
+use crate::java_class::{custom::Custom, JavaClass};
 use crate::method::Method;
 use crate::operand::{OperandStack, OperandStackItem};
 use crate::stackframe::{Stackframe, StarckframeItem};
 use std::collections::HashMap;
-
-#[derive(Debug)]
-pub enum JavaClass<'a> {
-    CustomClass(ClassFile),
-    BuiltIn(BuiltIn<'a>),
-}
-
-#[derive(Debug)]
-pub struct BuiltIn<'a> {
-    pub class_name: &'a str,
-    pub methods: HashMap<&'a str, BuiltInMethod>,
-}
-
-#[derive(Debug)]
-pub struct BuiltInMethod;
 
 #[derive(Debug)]
 pub struct Context<'a> {
@@ -39,7 +24,7 @@ impl<'a> Context<'a> {
         }
     }
 
-    pub fn run_entry_file(&mut self, class_file: &ClassFile) {
+    pub fn run_entry_file(&mut self, class_file: &Custom) {
         let entry_method = if let Some(entry_method) = class_file.get_entry_method() {
             entry_method
         } else {
@@ -54,7 +39,7 @@ impl<'a> Context<'a> {
 
     pub fn run_method(
         &mut self,
-        class_file: &ClassFile,
+        class_file: &Custom,
         method: &Method,
         stack_frame_item: StarckframeItem,
     ) {
@@ -75,7 +60,7 @@ impl<'a> Context<'a> {
         self.stack_frames.pop();
     }
 
-    pub fn execute(&mut self, class_file: &ClassFile, instruction: &Instruction) -> bool {
+    pub fn execute(&mut self, class_file: &Custom, instruction: &Instruction) -> bool {
         //     // let order = &self.orders[self.program_count];
         match instruction {
             Instruction::Iadd => {
