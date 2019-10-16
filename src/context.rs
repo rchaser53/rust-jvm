@@ -3,17 +3,20 @@ use crate::class_file::ClassFile;
 use crate::method::Method;
 use crate::operand::{OperandStack, OperandStackItem};
 use crate::stackframe::{Stackframe, StarckframeItem};
+use std::collections::HashMap;
 
 #[derive(Debug)]
-pub struct Context {
+pub struct Context<'a> {
+    pub class_map: HashMap<&'a str, &'a ClassFile>,
     pub operand_stack: OperandStack,
     pub program_count: usize,
     pub stack_frames: Vec<Stackframe>,
 }
 
-impl Context {
-    pub fn new() -> Context {
+impl<'a> Context<'a> {
+    pub fn new(class_map: HashMap<&'a str, &'a ClassFile>) -> Context<'_> {
         Context {
+            class_map,
             operand_stack: OperandStack::new(),
             program_count: 0,
             stack_frames: vec![],
