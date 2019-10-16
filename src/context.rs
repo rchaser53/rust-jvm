@@ -1,20 +1,30 @@
 use crate::attribute::instruction::Instruction;
 use crate::class_file::ClassFile;
+use crate::constant::{ConstPoolItem, ConstantMethodref, ConstantPool};
 use crate::method::Method;
 use crate::operand::{OperandStack, OperandStackItem};
 use crate::stackframe::{Stackframe, StarckframeItem};
 use std::collections::HashMap;
 
 #[derive(Debug)]
+pub enum JavaClass {
+    CustomClass(ClassFile),
+    BuiltIn(BuiltIn),
+}
+
+#[derive(Debug)]
+pub struct BuiltIn;
+
+#[derive(Debug)]
 pub struct Context<'a> {
-    pub class_map: HashMap<&'a str, &'a ClassFile>,
+    pub class_map: HashMap<&'a str, &'a JavaClass>,
     pub operand_stack: OperandStack,
     pub program_count: usize,
     pub stack_frames: Vec<Stackframe>,
 }
 
 impl<'a> Context<'a> {
-    pub fn new(class_map: HashMap<&'a str, &'a ClassFile>) -> Context<'_> {
+    pub fn new(class_map: HashMap<&'a str, &'a JavaClass>) -> Context<'_> {
         Context {
             class_map,
             operand_stack: OperandStack::new(),

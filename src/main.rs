@@ -13,7 +13,7 @@ mod stackframe;
 mod utils;
 
 use crate::class_file::ClassFile;
-use crate::context::Context;
+use crate::context::{Context, JavaClass};
 use crate::utils::read_file;
 
 #[macro_use]
@@ -26,12 +26,15 @@ fn main() {
     if let Ok(buffer) = read_file(class_name, &mut vec![]) {
         let (class_file, _pc_count) = ClassFile::new(buffer, 0);
         let class_name = class_file.this_class_name();
+        let java_class_file = JavaClass::CustomClass(class_file);
 
         let mut class_map = HashMap::new();
-        class_map.insert(class_name.as_str(), &class_file);
-
+        class_map.insert(class_name.as_str(), &java_class_file);
         let mut context = Context::new(class_map);
-        context.run_entry_file(&class_file);
+
+        if let JavaClass::CustomClass(ref class_file) = java_class_file {
+            context.run_entry_file(&class_file);
+        }
     } else {
         unimplemented!("need to add handler for the case failed to find the class file")
     }
