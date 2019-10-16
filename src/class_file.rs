@@ -79,7 +79,6 @@ impl ClassFile {
             index = updated_index;
             attributes.push(attribute);
         }
-
         (
             ClassFile {
                 magic,
@@ -116,6 +115,11 @@ impl ClassFile {
             });
         }
         panic!("failed to find main method in {}", self);
+    }
+
+    pub fn this_class_name(&self) -> String {
+        let class_ref = self.cp_info.get_class_ref(self.this_class);
+        self.cp_info.get_utf8(class_ref.name_index)
     }
 }
 
