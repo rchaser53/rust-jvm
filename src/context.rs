@@ -7,24 +7,30 @@ use crate::stackframe::{Stackframe, StarckframeItem};
 use std::collections::HashMap;
 
 #[derive(Debug)]
-pub enum JavaClass {
+pub enum JavaClass<'a> {
     CustomClass(ClassFile),
-    BuiltIn(BuiltIn),
+    BuiltIn(BuiltIn<'a>),
 }
 
 #[derive(Debug)]
-pub struct BuiltIn;
+pub struct BuiltIn<'a> {
+    pub class_name: &'a str,
+    pub methods: HashMap<&'a str, BuiltInMethod>,
+}
+
+#[derive(Debug)]
+pub struct BuiltInMethod;
 
 #[derive(Debug)]
 pub struct Context<'a> {
-    pub class_map: HashMap<&'a str, &'a JavaClass>,
+    pub class_map: HashMap<&'a str, &'a JavaClass<'a>>,
     pub operand_stack: OperandStack,
     pub program_count: usize,
     pub stack_frames: Vec<Stackframe>,
 }
 
 impl<'a> Context<'a> {
-    pub fn new(class_map: HashMap<&'a str, &'a JavaClass>) -> Context<'_> {
+    pub fn new(class_map: HashMap<&'a str, &'a JavaClass<'a>>) -> Context<'a> {
         Context {
             class_map,
             operand_stack: OperandStack::new(),
@@ -155,7 +161,6 @@ impl<'a> Context<'a> {
     // Instruction::Return => write!(f, "return"),
     // Instruction::Getfield(val) => write!(f, "getfield        #{}", val),
     // Instruction::Putfield(val) => write!(f, "putfield        #{}", val),
-    // Instruction::Invokevirtual(val) => write!(f, "invokevirtual   #{}", val),
     // Instruction::Invokespecial(val) => write!(f, "invokespecial   #{}", val),
 }
 
