@@ -8,14 +8,14 @@ use std::collections::HashMap;
 
 #[derive(Debug)]
 pub struct Context<'a> {
-    pub class_map: HashMap<&'a str, &'a JavaClass<'a>>,
+    pub class_map: HashMap<String, &'a JavaClass<'a>>,
     pub operand_stack: OperandStack,
     pub program_count: usize,
     pub stack_frames: Vec<Stackframe>,
 }
 
 impl<'a> Context<'a> {
-    pub fn new(class_map: HashMap<&'a str, &'a JavaClass<'a>>) -> Context<'a> {
+    pub fn new(class_map: HashMap<String, &'a JavaClass<'a>>) -> Context<'a> {
         Context {
             class_map,
             operand_stack: OperandStack::new(),
@@ -161,33 +161,3 @@ impl<'a> Context<'a> {
     // Instruction::Putfield(val) => write!(f, "putfield        #{}", val),
     // Instruction::Invokespecial(val) => write!(f, "invokespecial   #{}", val),
 }
-
-// #[derive(Debug)]
-// pub struct ProgramContext {
-//     pub orders: Vec<Order>,
-//     pub operand_stack: OperandStack,
-//     pub stack_frames: Vec<Stackframe>,
-//     pub constant_pool: ConstantPool,
-//     pub program_count: usize,
-// }
-// impl ProgramContext {
-//     // pub fn new(orders: Vec<Order>) -> ProgramContext {
-//     //     ProgramContext {
-//     //         orders,
-//     //         operand_stack: OperandStack::new(),
-//     //         stack_frames: vec![],
-//     //         // TBD
-//     //         constant_pool: ConstantPool::new(&mut []),
-//     //         program_count: 0,
-//     //     }
-//     // }
-
-//     pub fn executes_programs(&mut self) {
-//         let order_item_number = self.orders.len() - 1;
-//         while order_item_number > self.program_count {
-//             self.execute();
-//             self.program_count += 1;
-//         }
-//     }
-
-// }

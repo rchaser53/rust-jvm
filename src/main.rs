@@ -29,7 +29,7 @@ fn main() {
         let java_class_file = JavaClass::Custom(class_file);
 
         let mut class_map = HashMap::new();
-        class_map.insert(class_name.as_str(), &java_class_file);
+        class_map.insert(class_name, &java_class_file);
         let mut context = Context::new(class_map);
 
         if let JavaClass::Custom(ref class_file) = java_class_file {
