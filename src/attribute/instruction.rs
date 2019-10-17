@@ -60,7 +60,7 @@ impl Instruction {
             // bipush
             0x10 => {
                 let (val, index) = extract_x_byte_as_usize(inputs, index, 1);
-                (Instruction::Bipush(val), index, 1)
+                (Instruction::Bipush(val), index, 2)
             }
             // ldc
             0x12 => {
