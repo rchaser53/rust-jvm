@@ -1,3 +1,4 @@
+use crate::attribute::code::Code;
 use crate::attribute::defs::Attribute;
 use crate::constant::ConstantPool;
 use crate::field::Field;
@@ -126,6 +127,27 @@ impl Custom {
         self.methods
             .iter()
             .find(|item| item.name_index == name_index && item.descriptor_index == descriptor_index)
+    }
+
+    pub fn get_method_code(&self, name_index: usize, descriptor_index: usize) -> Option<&Code> {
+        if let Some(method) = self.get_method(name_index, descriptor_index) {
+            if let Some(Attribute::Code(code)) = method.attribute_info.iter().find(|attr| {
+                if let Attribute::Code(_) = attr {
+                    true
+                } else {
+                    false
+                }
+            }) {
+                Some(code)
+            } else {
+                None
+            }
+        } else {
+            unreachable!(
+                "method name: {}  descriptor: {} is not found",
+                name_index, descriptor_index
+            )
+        }
     }
 }
 
