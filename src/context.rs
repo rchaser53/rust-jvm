@@ -61,7 +61,6 @@ impl<'a> Context<'a> {
     }
 
     pub fn execute(&mut self, class_file: &Custom, instruction: &Instruction) -> bool {
-        //     // let order = &self.orders[self.program_count];
         match instruction {
             Instruction::Iadd => {
                 let item = self.operand_stack.iadd();
@@ -137,17 +136,44 @@ impl<'a> Context<'a> {
                 self.operand_stack.stack.pop();
             }
             Instruction::Invokevirtual(index) => {
+                let _method_ref = class_file.cp_info.get_method_ref(*index);
+            }
+            Instruction::Invokespecial(index) => {
+                let _method_ref = class_file.cp_info.get_method_ref(*index);
+            }
+            Instruction::Invokestatic(index) => {
                 let method_ref = class_file.cp_info.get_method_ref(*index);
                 let class_ref = class_file.cp_info.get_class_ref(method_ref.class_index);
-
                 let name_and_type = class_file
                     .cp_info
                     .get_name_and_type(method_ref.name_and_type_index);
-                let method_name = class_file.cp_info.get_utf8(name_and_type.name_index);
                 let class_name = class_file.cp_info.get_utf8(class_ref.name_index);
-            }
-            Instruction::Invokespecial(index) => {
-                let method_ref = class_file.cp_info.get_method_ref(*index);
+
+                if let Some(class) = self.class_map.get(&class_name) {
+                    match class {
+                        JavaClass::BuiltIn(_) => {}
+                        JavaClass::Custom(ref custom_class) => {
+                            if let Some(method_code) = custom_class.get_method_code(
+                                name_and_type.name_index,
+                                name_and_type.descriptor_index,
+                            ) {
+                                let local_variable_length = method_code.max_locals as usize;
+                                let mut new_stack_frame = Stackframe::new(local_variable_length);
+                                let stack_length = self.operand_stack.stack.len();
+                                let mut variables: Vec<_> = self
+                                    .operand_stack
+                                    .stack
+                                    .drain((stack_length - local_variable_length)..stack_length)
+                                    .into_iter()
+                                    .map(|operand_item| StarckframeItem::from(operand_item))
+                                    .collect();
+                                new_stack_frame.local_variables.append(&mut variables);
+                            }
+                        }
+                    }
+                } else {
+                    unreachable!("{} is not found in class_map", class_name)
+                }
             }
             _ => {}
         };
@@ -159,5 +185,4 @@ impl<'a> Context<'a> {
     // Instruction::Return => write!(f, "return"),
     // Instruction::Getfield(val) => write!(f, "getfield        #{}", val),
     // Instruction::Putfield(val) => write!(f, "putfield        #{}", val),
-    // Instruction::Invokespecial(val) => write!(f, "invokespecial   #{}", val),
 }
