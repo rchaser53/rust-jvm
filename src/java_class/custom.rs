@@ -121,6 +121,12 @@ impl Custom {
         let class_ref = self.cp_info.get_class_ref(self.this_class);
         self.cp_info.get_utf8(class_ref.name_index)
     }
+
+    pub fn get_method(&self, name_index: usize, descriptor_index: usize) -> Option<&Method> {
+        self.methods
+            .iter()
+            .find(|item| item.name_index == name_index && item.descriptor_index == descriptor_index)
+    }
 }
 
 impl fmt::Display for Custom {
