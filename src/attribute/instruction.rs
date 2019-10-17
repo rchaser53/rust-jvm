@@ -23,6 +23,7 @@ pub enum Instruction {
     Putfield(usize),        // 0xb5
     Invokevirtual(usize),   // 0xb6
     Invokespecial(usize),   // 0xb7
+    Invokestatic(usize),    // 0xb8
 }
 
 impl fmt::Display for Instruction {
@@ -48,6 +49,7 @@ impl fmt::Display for Instruction {
             Instruction::Putfield(val) => write!(f, "putfield        #{}", val),
             Instruction::Invokevirtual(val) => write!(f, "invokevirtual   #{}", val),
             Instruction::Invokespecial(val) => write!(f, "invokespecial   #{}", val),
+            Instruction::Invokestatic(val) => write!(f, "invokestatic   #{}", val),
         }
     }
 }
@@ -122,6 +124,11 @@ impl Instruction {
             0xb7 => {
                 let (val, index) = extract_x_byte_as_usize(inputs, index, 2);
                 (Instruction::Invokespecial(val), index, 3)
+            }
+            // invokestatic
+            0xb8 => {
+                let (val, index) = extract_x_byte_as_usize(inputs, index, 2);
+                (Instruction::Invokestatic(val), index, 3)
             }
             _ => unimplemented!("tag: {:x}", tag),
         }
