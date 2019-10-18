@@ -1,5 +1,4 @@
 use std::collections::HashMap;
-use std::fmt;
 
 use crate::operand::{OperandStack, OperandStackItem};
 

@@ -1,6 +1,6 @@
 use crate::attribute::code::Code;
 use crate::attribute::instruction::Instruction;
-use crate::constant::{ConstPoolItem, ConstantMethodref, ConstantPool};
+use crate::constant::ConstantNameAndType;
 use crate::java_class::{custom::Custom, JavaClass};
 use crate::method::Method;
 use crate::operand::{OperandStack, OperandStackItem};
@@ -143,13 +143,7 @@ impl<'a> Context<'a> {
                 let _method_ref = class_file.cp_info.get_method_ref(*index);
             }
             Instruction::Invokestatic(index) => {
-                let method_ref = class_file.cp_info.get_method_ref(*index);
-                let class_ref = class_file.cp_info.get_class_ref(method_ref.class_index);
-                let name_and_type = class_file
-                    .cp_info
-                    .get_name_and_type(method_ref.name_and_type_index);
-                let class_name = class_file.cp_info.get_utf8(class_ref.name_index);
-
+                let (class_name, name_and_type) = self.get_related_method_info(class_file, *index);
                 if let Some(class) = self.class_map.get(&class_name) {
                     match class {
                         JavaClass::BuiltIn(_) => {}
@@ -169,6 +163,20 @@ impl<'a> Context<'a> {
             _ => {}
         };
         false
+    }
+
+    fn get_related_method_info<'b>(
+        &mut self,
+        class_file: &'b Custom,
+        index: usize,
+    ) -> (String, &'b ConstantNameAndType) {
+        let method_ref = class_file.cp_info.get_method_ref(index);
+        let class_ref = class_file.cp_info.get_class_ref(method_ref.class_index);
+        let name_and_type = class_file
+            .cp_info
+            .get_name_and_type(method_ref.name_and_type_index);
+        let class_name = class_file.cp_info.get_utf8(class_ref.name_index);
+        (class_name, name_and_type)
     }
 
     fn create_new_stack_frame(&mut self, method_code: &Code) {
