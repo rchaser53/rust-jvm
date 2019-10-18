@@ -1,3 +1,4 @@
+use crate::attribute::code::Code;
 use crate::attribute::instruction::Instruction;
 use crate::constant::{ConstPoolItem, ConstantMethodref, ConstantPool};
 use crate::java_class::{custom::Custom, JavaClass};
@@ -157,17 +158,7 @@ impl<'a> Context<'a> {
                                 name_and_type.name_index,
                                 name_and_type.descriptor_index,
                             ) {
-                                let local_variable_length = method_code.max_locals as usize;
-                                let mut new_stack_frame = Stackframe::new(local_variable_length);
-                                let stack_length = self.operand_stack.stack.len();
-                                let mut variables: Vec<_> = self
-                                    .operand_stack
-                                    .stack
-                                    .drain((stack_length - local_variable_length)..stack_length)
-                                    .into_iter()
-                                    .map(|operand_item| StarckframeItem::from(operand_item))
-                                    .collect();
-                                new_stack_frame.local_variables.append(&mut variables);
+                                self.create_new_stack_frame(method_code);
                             }
                         }
                     }
@@ -178,6 +169,21 @@ impl<'a> Context<'a> {
             _ => {}
         };
         false
+    }
+
+    fn create_new_stack_frame(&mut self, method_code: &Code) {
+        let local_variable_length = method_code.max_locals as usize;
+        let mut new_stack_frame = Stackframe::new(local_variable_length);
+        let stack_length = self.operand_stack.stack.len();
+        let mut variables: Vec<_> = self
+            .operand_stack
+            .stack
+            .drain((stack_length - local_variable_length)..stack_length)
+            .into_iter()
+            .map(|operand_item| StarckframeItem::from(operand_item))
+            .collect();
+        new_stack_frame.local_variables.append(&mut variables);
+        self.stack_frames.push(new_stack_frame);
     }
 
     // Instruction::Ldc(val) => write!(f, "ldc             #{}", val),
