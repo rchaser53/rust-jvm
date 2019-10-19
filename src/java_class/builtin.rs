@@ -3,9 +3,18 @@ use std::collections::HashMap;
 use crate::operand::{OperandStack, OperandStackItem};
 
 #[derive(Debug)]
-pub struct BuiltIn<'a> {
-    pub class_name: &'a str,
-    pub methods: HashMap<&'a str, BuiltInMethod>,
+pub struct BuiltIn {
+    pub class_name: String,
+    pub methods: HashMap<String, BuiltInMethod>,
+}
+
+impl BuiltIn {
+    pub fn new(class_name: String) -> BuiltIn {
+        BuiltIn {
+            class_name,
+            methods: HashMap::new(),
+        }
+    }
 }
 
 #[derive(Debug)]
