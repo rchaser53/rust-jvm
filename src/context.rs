@@ -136,27 +136,38 @@ impl<'a> Context<'a> {
             Instruction::Pop => {
                 self.operand_stack.stack.pop();
             }
-            Instruction::Invokevirtual(index) => {
-                let _method_ref = class_file.cp_info.get_method_ref(*index);
-            }
-            Instruction::Invokespecial(index) => {
-                let _method_ref = class_file.cp_info.get_method_ref(*index);
-            }
-            Instruction::Invokestatic(index) => {
+            Instruction::Invokevirtual(index)
+            | Instruction::Invokespecial(index)
+            | Instruction::Invokestatic(index) => {
                 let (class_name, name_and_type) = self.get_related_method_info(class_file, *index);
                 if let Some(class) = self.class_map.get(&class_name) {
                     match class {
-                        JavaClass::BuiltIn(_) => {}
+                        JavaClass::BuiltIn(ref builtin_class) => {
+                            let method_name = class_file.cp_info.get_utf8(name_and_type.name_index);
+                            let _method_descriptor =
+                                class_file.cp_info.get_utf8(name_and_type.descriptor_index);
+                            // TBD: should use method_descriptor
+                            if let Some(method) = builtin_class.methods.get(&method_name) {
+                                self.create_new_stack_frame(method.max_locals);
+                            } else {
+                                unreachable!(
+                                    "{} is not found in {}",
+                                    method_name, builtin_class.class_name
+                                );
+                            }
+                        }
                         JavaClass::Custom(ref custom_class) => {
                             if let Some(method_code) = custom_class.get_method_code(
                                 name_and_type.name_index,
                                 name_and_type.descriptor_index,
                             ) {
-                                self.create_new_stack_frame(method_code);
+                                let local_variable_length = method_code.max_locals as usize;
+                                self.create_new_stack_frame(local_variable_length);
                             }
                         }
                     }
                 } else {
+                    // TBD: I guess need to read the new other.class
                     unreachable!("{} is not found in class_map", class_name)
                 }
             }
@@ -179,8 +190,7 @@ impl<'a> Context<'a> {
         (class_name, name_and_type)
     }
 
-    fn create_new_stack_frame(&mut self, method_code: &Code) {
-        let local_variable_length = method_code.max_locals as usize;
+    fn create_new_stack_frame(&mut self, local_variable_length: usize) {
         let mut new_stack_frame = Stackframe::new(local_variable_length);
         let stack_length = self.operand_stack.stack.len();
         let mut variables: Vec<_> = self
