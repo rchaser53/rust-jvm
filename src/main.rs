@@ -13,7 +13,7 @@ mod stackframe;
 mod utils;
 
 use crate::context::Context;
-use crate::java_class::{custom::Custom, JavaClass};
+use crate::java_class::{builtin::BuiltIn, custom::Custom, JavaClass};
 use crate::utils::read_file;
 
 #[macro_use]

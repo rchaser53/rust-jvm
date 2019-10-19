@@ -2,7 +2,7 @@ pub mod builtin;
 pub mod custom;
 
 #[derive(Debug)]
-pub enum JavaClass<'a> {
+pub enum JavaClass {
     Custom(custom::Custom),
-    BuiltIn(builtin::BuiltIn<'a>),
+    BuiltIn(builtin::BuiltIn),
 }

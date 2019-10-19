@@ -9,14 +9,14 @@ use std::collections::HashMap;
 
 #[derive(Debug)]
 pub struct Context<'a> {
-    pub class_map: HashMap<String, &'a JavaClass<'a>>,
+    pub class_map: HashMap<String, &'a JavaClass>,
     pub operand_stack: OperandStack,
     pub program_count: usize,
     pub stack_frames: Vec<Stackframe>,
 }
 
 impl<'a> Context<'a> {
-    pub fn new(class_map: HashMap<String, &'a JavaClass<'a>>) -> Context<'a> {
+    pub fn new(class_map: HashMap<String, &'a JavaClass>) -> Context<'a> {
         Context {
             class_map,
             operand_stack: OperandStack::new(),
