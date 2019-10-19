@@ -25,17 +25,20 @@ fn main() {
     let class_name = "HelloWorld.class";
     if let Ok(buffer) = read_file(class_name, &mut vec![]) {
         let (class_file, _pc_count) = Custom::new(buffer, 0);
-        let class_name = class_file.this_class_name();
-        let java_class_file = JavaClass::Custom(class_file);
-
-        let mut class_map = HashMap::new();
-        class_map.insert(class_name, &java_class_file);
+        let class_map = setup_class_map();
         let mut context = Context::new(class_map);
-
-        if let JavaClass::Custom(ref class_file) = java_class_file {
-            context.run_entry_file(&class_file);
-        }
+        context.run_entry_file(class_file);
     } else {
         unimplemented!("need to add handler for the case failed to find the class file")
     }
+}
+
+fn setup_class_map() -> HashMap<String, JavaClass> {
+    let mut class_map = HashMap::new();
+
+    let print_stream_name = String::from("java/io/PrintStream");
+    let print_stream = JavaClass::BuiltIn(BuiltIn::new(print_stream_name.clone()));
+
+    class_map.insert(print_stream_name, print_stream);
+    class_map
 }

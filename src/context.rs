@@ -8,15 +8,15 @@ use crate::stackframe::{Stackframe, StarckframeItem};
 use std::collections::HashMap;
 
 #[derive(Debug)]
-pub struct Context<'a> {
-    pub class_map: HashMap<String, &'a JavaClass>,
+pub struct Context {
+    pub class_map: HashMap<String, JavaClass>,
     pub operand_stack: OperandStack,
     pub program_count: usize,
     pub stack_frames: Vec<Stackframe>,
 }
 
-impl<'a> Context<'a> {
-    pub fn new(class_map: HashMap<String, &'a JavaClass>) -> Context<'a> {
+impl Context {
+    pub fn new(class_map: HashMap<String, JavaClass>) -> Context {
         Context {
             class_map,
             operand_stack: OperandStack::new(),
@@ -25,7 +25,7 @@ impl<'a> Context<'a> {
         }
     }
 
-    pub fn run_entry_file(&mut self, class_file: &Custom) {
+    pub fn run_entry_file(&mut self, class_file: Custom) {
         let entry_method = if let Some(entry_method) = class_file.get_entry_method() {
             entry_method
         } else {
@@ -35,10 +35,13 @@ impl<'a> Context<'a> {
         // TBD Perhaps this method is not invoked from super_class
         let super_class_index = class_file.super_class;
         let stack_frame_item_0 = StarckframeItem::Classref(super_class_index);
-        self.run_method(class_file, entry_method, stack_frame_item_0);
+        self.run_method(&class_file, entry_method, stack_frame_item_0);
+
+        self.class_map
+            .insert(class_file.this_class_name(), JavaClass::Custom(class_file));
     }
 
-    pub fn run_method(
+    fn run_method(
         &mut self,
         class_file: &Custom,
         method: &Method,
@@ -140,7 +143,7 @@ impl<'a> Context<'a> {
             | Instruction::Invokespecial(index)
             | Instruction::Invokestatic(index) => {
                 let (class_name, name_and_type) = self.get_related_method_info(class_file, *index);
-                if let Some(class) = self.class_map.get(&class_name) {
+                if let Some(class) = self.class_map.remove(&class_name) {
                     match class {
                         JavaClass::BuiltIn(ref builtin_class) => {
                             let method_name = class_file.cp_info.get_utf8(name_and_type.name_index);
@@ -166,6 +169,7 @@ impl<'a> Context<'a> {
                             }
                         }
                     }
+                    self.class_map.insert(class.this_class_name(), class);
                 } else {
                     // TBD: I guess need to read the new other.class
                     unreachable!("{} is not found in class_map", class_name)
