@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use crate::constant::ConstantPool;
 use crate::operand::OperandStack;
-use crate::stackframe::Stackframe;
+use crate::stackframe::{Stackframe, StarckframeItem};
 
 #[derive(Debug)]
 pub struct BuiltIn {
@@ -50,6 +50,14 @@ impl BuiltInMethod {
     ) {
         match self.code_type {
             BuitlInCodeType::Println => {
+                let mut param_iter = stackframe.local_variables.iter();
+                while let Some(item) = param_iter.next() {
+                    let print_string = match item {
+                        StarckframeItem::Fieldref(index) => constant_pool.get_fieldref_as_utf8(*index),
+                        _ => unimplemented!()
+                    };
+                    println!("{}", print_string);
+                }
                 if let Some(item) = stackframe.local_variables.last() {
                     println!("{:?}", item);
                 } else {
