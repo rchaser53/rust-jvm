@@ -101,6 +101,9 @@ impl Context {
                 self.operand_stack
                     .iconst(OperandStackItem::I32(*val as i32));
             }
+            Instruction::Goto(pointer) => {
+                return (false, *pointer);
+            }
             Instruction::Ificmple(if_val, else_val) => {
                 let left = self.operand_stack.stack.pop();
                 let right = self.operand_stack.stack.pop();
@@ -224,7 +227,6 @@ impl Context {
         new_stack_frame
     }
 
-    // Instruction::Ldc(val) => write!(f, "ldc             #{}", val),
     // Instruction::AloadN(val) => write!(f, "aload_{}", val),
     // Instruction::Return => write!(f, "return"),
     // Instruction::Getfield(val) => write!(f, "getfield        #{}", val),

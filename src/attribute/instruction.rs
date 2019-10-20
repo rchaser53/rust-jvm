@@ -16,6 +16,7 @@ pub enum Instruction {
     Idiv,                   // 0x6C
     Irem,                   // 0x70
     Ificmple(usize, usize), // 0xa4
+    Goto(usize),            // 0xa7
     Ireturn,                // 0xac
     Return,                 // 0xb1
     Getstatic(usize),       // 0xb2
@@ -43,6 +44,7 @@ impl fmt::Display for Instruction {
             Instruction::Idiv => write!(f, "idiv"),
             Instruction::Irem => write!(f, "irem"),
             Instruction::Ificmple(_, val) => write!(f, "if_icmple       {}", val),
+            Instruction::Goto(val) => write!(f, "goto          {}", val),
             Instruction::Ireturn => write!(f, "ireturn"),
             Instruction::Return => write!(f, "return"),
             Instruction::Getstatic(val) => write!(f, "getstatic       #{}", val),
@@ -132,6 +134,14 @@ impl Instruction {
             0xa4 => {
                 let (val, index) = extract_x_byte_as_vec(inputs, index, 2);
                 codes.push(Instruction::Ificmple(val[0] as usize, val[1] as usize));
+                codes.push(Instruction::Noope);
+                codes.push(Instruction::Noope);
+                (index, 3)
+            }
+            // goto
+            0xa7 => {
+                let (val, index) = extract_x_byte_as_usize(inputs, index, 2);
+                codes.push(Instruction::Goto(val));
                 codes.push(Instruction::Noope);
                 codes.push(Instruction::Noope);
                 (index, 3)
