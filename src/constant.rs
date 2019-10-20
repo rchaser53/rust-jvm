@@ -73,8 +73,8 @@ impl ConstantPool {
             // ConstPoolItem::ConstantClass(ConstantClass),
             // ConstPoolItem::ConstantMethodref(ConstantMethodref),
             // ConstPoolItem::ConstantInterfaceMethodref,
-            // ConstPoolItem::ConstantString(ConstantString),
             // ConstPoolItem::ConstantNameAndType(ConstantNameAndType),
+            ConstPoolItem::ConstantString(_) => OperandStackItem::String(index),
             ConstPoolItem::ConstantFieldref(_) => OperandStackItem::Fieldref(index),
             ConstPoolItem::ConstantUtf8(_) => OperandStackItem::Utf8(index),
             _ => unimplemented!("{:?}", self.0[index]),
@@ -116,7 +116,7 @@ impl ConstantPool {
             ConstPoolItem::ConstantFieldref(ref item) => {
                 let name_and_type = self.get_name_and_type(item.name_and_type_index);
                 self.get_utf8(name_and_type.name_index)
-            },
+            }
             _ => unreachable!("should be ConstantFieldRef. actual {:?}", self.0[index]),
         }
     }

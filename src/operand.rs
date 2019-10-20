@@ -8,6 +8,7 @@ pub enum OperandStackItem {
     Utf8(usize),
     Classref(usize),
     Fieldref(usize),
+    String(usize),
 }
 
 impl From<&StarckframeItem> for OperandStackItem {
@@ -17,6 +18,7 @@ impl From<&StarckframeItem> for OperandStackItem {
             StarckframeItem::Utf8(index) => OperandStackItem::Utf8(*index),
             StarckframeItem::Classref(index) => OperandStackItem::Classref(*index),
             StarckframeItem::Fieldref(index) => OperandStackItem::Fieldref(*index),
+            StarckframeItem::String(index) => OperandStackItem::String(*index),
             StarckframeItem::Null => OperandStackItem::Null,
         }
     }
@@ -32,6 +34,9 @@ impl PartialOrd for OperandStackItem {
                 Some(left.cmp(right))
             }
             (OperandStackItem::Fieldref(left), OperandStackItem::Fieldref(right)) => {
+                Some(left.cmp(right))
+            }
+            (OperandStackItem::String(left), OperandStackItem::String(right)) => {
                 Some(left.cmp(right))
             }
             _ => None,
