@@ -5,20 +5,20 @@ use std::cmp::{Ordering, PartialOrd};
 pub enum OperandStackItem {
     Null,
     I32(i32),
+    String(String),
     Utf8(usize),
     Classref(usize),
     Fieldref(usize),
-    String(usize),
 }
 
 impl From<&StarckframeItem> for OperandStackItem {
     fn from(item: &StarckframeItem) -> OperandStackItem {
         match item {
             StarckframeItem::I32(value) => OperandStackItem::I32(*value),
+            StarckframeItem::String(value) => OperandStackItem::String(value.clone()),
             StarckframeItem::Utf8(index) => OperandStackItem::Utf8(*index),
             StarckframeItem::Classref(index) => OperandStackItem::Classref(*index),
             StarckframeItem::Fieldref(index) => OperandStackItem::Fieldref(*index),
-            StarckframeItem::String(index) => OperandStackItem::String(*index),
             StarckframeItem::Null => OperandStackItem::Null,
         }
     }

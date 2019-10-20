@@ -74,7 +74,9 @@ impl ConstantPool {
             // ConstPoolItem::ConstantMethodref(ConstantMethodref),
             // ConstPoolItem::ConstantInterfaceMethodref,
             // ConstPoolItem::ConstantNameAndType(ConstantNameAndType),
-            ConstPoolItem::ConstantString(_) => OperandStackItem::String(index),
+            ConstPoolItem::ConstantString(ref item) => {
+                OperandStackItem::String(self.get_string(item.string_index))
+            }
             ConstPoolItem::ConstantFieldref(_) => OperandStackItem::Fieldref(index),
             ConstPoolItem::ConstantUtf8(_) => OperandStackItem::Utf8(index),
             _ => unimplemented!("{:?}", self.0[index]),
@@ -99,6 +101,13 @@ impl ConstantPool {
         match self.0[index] {
             ConstPoolItem::ConstantMethodref(ref item) => item,
             _ => unreachable!("should be ConstantMethodref. actual {:?}", self.0[index]),
+        }
+    }
+
+    pub fn get_string(&self, index: usize) -> String {
+        match self.0[index] {
+            ConstPoolItem::ConstantString(ref item) => self.get_utf8(item.string_index),
+            _ => unreachable!("should be ConstantString. actual {:?}", self.0[index]),
         }
     }
 
