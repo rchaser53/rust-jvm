@@ -104,11 +104,8 @@ impl Context {
             Instruction::Ificmple(if_val, else_val) => {
                 let left = self.operand_stack.stack.pop();
                 let right = self.operand_stack.stack.pop();
-                if left > right {
-                    self.program_count = *if_val;
-                } else {
-                    self.program_count = *else_val;
-                }
+                let jump_pointer = if left > right { *if_val } else { *else_val };
+                return (false, jump_pointer);
             }
             Instruction::IloadN(index) => {
                 if let Some(stack_frame) = self.stack_frames.last() {
