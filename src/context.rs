@@ -182,8 +182,11 @@ impl Context {
                     unreachable!("{} is not found in class_map", class_name)
                 }
             }
-            Instruction::Ldc(val) => {
-                dbg!(&self.operand_stack.stack);
+            Instruction::Ldc(index) => {
+                let string_val = class_file.cp_info.get_string(*index);
+                self.operand_stack
+                    .stack
+                    .push(OperandStackItem::String(string_val));
             }
             _ => {}
         };
