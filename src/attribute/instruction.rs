@@ -15,6 +15,11 @@ pub enum Instruction {
     Imul,                   // 0x68
     Idiv,                   // 0x6C
     Irem,                   // 0x70
+    Ificmpeq(usize, usize), // 0x9f
+    Ificmpne(usize, usize), // 0xa0
+    Ificmplt(usize, usize), // 0xa1
+    Ificmpge(usize, usize), // 0xa2
+    Ificmpgt(usize, usize), // 0xa3
     Ificmple(usize, usize), // 0xa4
     Goto(usize),            // 0xa7
     Ireturn,                // 0xac
@@ -43,6 +48,11 @@ impl fmt::Display for Instruction {
             Instruction::Imul => write!(f, "imul"),
             Instruction::Idiv => write!(f, "idiv"),
             Instruction::Irem => write!(f, "irem"),
+            Instruction::Ificmpeq(_, val) => write!(f, "if_icmpeq       {}", val),
+            Instruction::Ificmpne(_, val) => write!(f, "if_icmpne       {}", val),
+            Instruction::Ificmplt(_, val) => write!(f, "if_icmplt       {}", val),
+            Instruction::Ificmpge(_, val) => write!(f, "if_icmpge       {}", val),
+            Instruction::Ificmpgt(_, val) => write!(f, "if_icmpgt       {}", val),
             Instruction::Ificmple(_, val) => write!(f, "if_icmple       {}", val),
             Instruction::Goto(val) => write!(f, "goto          {}", val),
             Instruction::Ireturn => write!(f, "ireturn"),
@@ -129,6 +139,46 @@ impl Instruction {
             0x70 => {
                 codes.push(Instruction::Irem);
                 (index, 1)
+            }
+            // if_icmpeq
+            0x9f => {
+                let (val, index) = extract_x_byte_as_vec(inputs, index, 2);
+                codes.push(Instruction::Ificmpeq(val[0] as usize, val[1] as usize));
+                codes.push(Instruction::Noope);
+                codes.push(Instruction::Noope);
+                (index, 3)
+            }
+            // if_icmpne
+            0xa0 => {
+                let (val, index) = extract_x_byte_as_vec(inputs, index, 2);
+                codes.push(Instruction::Ificmpne(val[0] as usize, val[1] as usize));
+                codes.push(Instruction::Noope);
+                codes.push(Instruction::Noope);
+                (index, 3)
+            }
+            // if_icmplt
+            0xa1 => {
+                let (val, index) = extract_x_byte_as_vec(inputs, index, 2);
+                codes.push(Instruction::Ificmplt(val[0] as usize, val[1] as usize));
+                codes.push(Instruction::Noope);
+                codes.push(Instruction::Noope);
+                (index, 3)
+            }
+            // if_icmpge
+            0xa2 => {
+                let (val, index) = extract_x_byte_as_vec(inputs, index, 2);
+                codes.push(Instruction::Ificmpge(val[0] as usize, val[1] as usize));
+                codes.push(Instruction::Noope);
+                codes.push(Instruction::Noope);
+                (index, 3)
+            }
+            // if_icmpgt
+            0xa3 => {
+                let (val, index) = extract_x_byte_as_vec(inputs, index, 2);
+                codes.push(Instruction::Ificmpgt(val[0] as usize, val[1] as usize));
+                codes.push(Instruction::Noope);
+                codes.push(Instruction::Noope);
+                (index, 3)
             }
             // if_icmple
             0xa4 => {

@@ -104,10 +104,40 @@ impl Context {
             Instruction::Goto(pointer) => {
                 return (false, *pointer);
             }
-            Instruction::Ificmple(if_val, else_val) => {
+            Instruction::Ificmpeq(if_val, else_val) => {
+                let left = self.operand_stack.stack.pop();
+                let right = self.operand_stack.stack.pop();
+                let jump_pointer = if left == right { *if_val } else { *else_val };
+                return (false, jump_pointer);
+            }
+            Instruction::Ificmpne(if_val, else_val) => {
+                let left = self.operand_stack.stack.pop();
+                let right = self.operand_stack.stack.pop();
+                let jump_pointer = if left != right { *if_val } else { *else_val };
+                return (false, jump_pointer);
+            }
+            Instruction::Ificmplt(if_val, else_val) => {
                 let left = self.operand_stack.stack.pop();
                 let right = self.operand_stack.stack.pop();
                 let jump_pointer = if left > right { *if_val } else { *else_val };
+                return (false, jump_pointer);
+            }
+            Instruction::Ificmpge(if_val, else_val) => {
+                let left = self.operand_stack.stack.pop();
+                let right = self.operand_stack.stack.pop();
+                let jump_pointer = if left <= right { *if_val } else { *else_val };
+                return (false, jump_pointer);
+            }
+            Instruction::Ificmpgt(if_val, else_val) => {
+                let left = self.operand_stack.stack.pop();
+                let right = self.operand_stack.stack.pop();
+                let jump_pointer = if left < right { *if_val } else { *else_val };
+                return (false, jump_pointer);
+            }
+            Instruction::Ificmple(if_val, else_val) => {
+                let left = self.operand_stack.stack.pop();
+                let right = self.operand_stack.stack.pop();
+                let jump_pointer = if left >= right { *if_val } else { *else_val };
                 return (false, jump_pointer);
             }
             Instruction::IloadN(index) => {
