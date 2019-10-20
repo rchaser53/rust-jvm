@@ -143,15 +143,21 @@ impl Context {
             | Instruction::Invokespecial(index)
             | Instruction::Invokestatic(index) => {
                 let (class_name, name_and_type) = self.get_related_method_info(class_file, *index);
-                if let Some(class) = self.class_map.remove(&class_name) {
+                if let Some(mut class) = self.class_map.remove(&class_name) {
                     match class {
-                        JavaClass::BuiltIn(ref builtin_class) => {
+                        JavaClass::BuiltIn(ref mut builtin_class) => {
                             let method_name = class_file.cp_info.get_utf8(name_and_type.name_index);
                             let _method_descriptor =
                                 class_file.cp_info.get_utf8(name_and_type.descriptor_index);
                             // TBD: should use method_descriptor
-                            if let Some(method) = builtin_class.methods.get(&method_name) {
-                                self.create_new_stack_frame(method.max_locals);
+                            if let Some(method) = builtin_class.methods.get_mut(&method_name) {
+                                let mut stack_frame =
+                                    self.create_new_stack_frame(method.max_locals);
+                                method.execute(
+                                    &class_file.cp_info,
+                                    &mut stack_frame,
+                                    &mut self.operand_stack,
+                                );
                             } else {
                                 unreachable!(
                                     "{} is not found in {}",
@@ -165,7 +171,8 @@ impl Context {
                                 name_and_type.descriptor_index,
                             ) {
                                 let local_variable_length = method_code.max_locals as usize;
-                                self.create_new_stack_frame(local_variable_length);
+                                let mut _stack_frame =
+                                    self.create_new_stack_frame(local_variable_length);
                             }
                         }
                     }
@@ -174,6 +181,9 @@ impl Context {
                     // TBD: I guess need to read the new other.class
                     unreachable!("{} is not found in class_map", class_name)
                 }
+            }
+            Instruction::Ldc(val) => {
+                dbg!(&self.operand_stack.stack);
             }
             _ => {}
         };
@@ -194,7 +204,7 @@ impl Context {
         (class_name, name_and_type)
     }
 
-    fn create_new_stack_frame(&mut self, local_variable_length: usize) {
+    fn create_new_stack_frame(&mut self, local_variable_length: usize) -> Stackframe {
         let mut new_stack_frame = Stackframe::new(local_variable_length);
         let stack_length = self.operand_stack.stack.len();
         let mut variables: Vec<_> = self
@@ -205,7 +215,7 @@ impl Context {
             .map(|operand_item| StarckframeItem::from(operand_item))
             .collect();
         new_stack_frame.local_variables.append(&mut variables);
-        self.stack_frames.push(new_stack_frame);
+        new_stack_frame
     }
 
     // Instruction::Ldc(val) => write!(f, "ldc             #{}", val),

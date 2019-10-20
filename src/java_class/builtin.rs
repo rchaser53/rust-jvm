@@ -1,6 +1,8 @@
 use std::collections::HashMap;
 
-use crate::operand::{OperandStack, OperandStackItem};
+use crate::constant::ConstantPool;
+use crate::operand::OperandStack;
+use crate::stackframe::Stackframe;
 
 #[derive(Debug)]
 pub struct BuiltIn {
@@ -20,16 +22,39 @@ impl BuiltIn {
 #[derive(Debug)]
 pub struct BuiltInMethod {
     pub name: String,
-    pub descriptor_index: String,
-    pub code: BuitlInCodeType,
+    pub descriptor: String,
+    pub code_type: BuitlInCodeType,
     pub max_locals: usize,
 }
 
 impl BuiltInMethod {
-    pub fn execute(&mut self, operand_stack: &mut OperandStack) {
-        match self.code {
+    pub fn new(
+        name: String,
+        descriptor: String,
+        code_type: BuitlInCodeType,
+        max_locals: usize,
+    ) -> BuiltInMethod {
+        BuiltInMethod {
+            name,
+            descriptor,
+            code_type,
+            max_locals,
+        }
+    }
+
+    pub fn execute(
+        &mut self,
+        constant_pool: &ConstantPool,
+        stackframe: &mut Stackframe,
+        operand_stack: &mut OperandStack,
+    ) {
+        match self.code_type {
             BuitlInCodeType::Println => {
-                println!("test!");
+                if let Some(item) = stackframe.local_variables.last() {
+                    println!("{:?}", item);
+                } else {
+                    unreachable!("should exits some parameter to {:?}", self)
+                }
             }
         }
     }
