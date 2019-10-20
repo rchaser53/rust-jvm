@@ -52,13 +52,15 @@ impl BuiltInMethod {
             BuitlInCodeType::Println => {
                 let mut param_iter = stackframe.local_variables.iter();
                 while let Some(item) = param_iter.next() {
-                    let print_string = match item {
+                    match item {
                         StarckframeItem::Fieldref(index) => {
-                            constant_pool.get_fieldref_as_utf8(*index)
+                            println!("{}", constant_pool.get_fieldref_as_utf8(*index));
+                        }
+                        StarckframeItem::String(value) => {
+                            println!("{}", value);
                         }
                         _ => unimplemented!(),
                     };
-                    println!("{}", print_string);
                 }
             }
         }
