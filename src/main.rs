@@ -13,10 +13,12 @@ mod stackframe;
 mod utils;
 
 use crate::context::Context;
-use crate::java_class::{builtin::BuiltIn, custom::Custom, JavaClass};
+use crate::java_class::{
+    builtin::{BuiltIn, BuiltInMethod, BuitlInCodeType},
+    custom::Custom,
+    JavaClass,
+};
 use crate::utils::read_file;
-
-#[macro_use]
 extern crate lazy_static;
 
 use std::collections::HashMap;
@@ -37,8 +39,16 @@ fn setup_class_map() -> HashMap<String, JavaClass> {
     let mut class_map = HashMap::new();
 
     let print_stream_name = String::from("java/io/PrintStream");
-    let print_stream = JavaClass::BuiltIn(BuiltIn::new(print_stream_name.clone()));
+    let mut print_stream = BuiltIn::new(print_stream_name.clone());
+    let println_name = String::from("println");
+    let println = BuiltInMethod::new(
+        println_name.clone(),
+        String::from("templorary_descriptor"),
+        BuitlInCodeType::Println,
+        1,
+    );
+    print_stream.methods.insert(println_name, println);
 
-    class_map.insert(print_stream_name, print_stream);
+    class_map.insert(print_stream_name, JavaClass::BuiltIn(print_stream));
     class_map
 }
