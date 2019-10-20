@@ -1,4 +1,4 @@
-use crate::stackframe::StarckframeItem;
+use crate::stackframe::StackframeItem;
 use std::cmp::{Ordering, PartialOrd};
 
 #[derive(PartialEq, Clone, Debug)]
@@ -11,15 +11,15 @@ pub enum OperandStackItem {
     Fieldref(usize),
 }
 
-impl From<&StarckframeItem> for OperandStackItem {
-    fn from(item: &StarckframeItem) -> OperandStackItem {
+impl From<&StackframeItem> for OperandStackItem {
+    fn from(item: &StackframeItem) -> OperandStackItem {
         match item {
-            StarckframeItem::I32(value) => OperandStackItem::I32(*value),
-            StarckframeItem::String(value) => OperandStackItem::String(value.clone()),
-            StarckframeItem::Utf8(index) => OperandStackItem::Utf8(*index),
-            StarckframeItem::Classref(index) => OperandStackItem::Classref(*index),
-            StarckframeItem::Fieldref(index) => OperandStackItem::Fieldref(*index),
-            StarckframeItem::Null => OperandStackItem::Null,
+            StackframeItem::I32(value) => OperandStackItem::I32(*value),
+            StackframeItem::String(value) => OperandStackItem::String(value.clone()),
+            StackframeItem::Utf8(index) => OperandStackItem::Utf8(*index),
+            StackframeItem::Classref(index) => OperandStackItem::Classref(*index),
+            StackframeItem::Fieldref(index) => OperandStackItem::Fieldref(*index),
+            StackframeItem::Null => OperandStackItem::Null,
         }
     }
 }

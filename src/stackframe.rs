@@ -1,7 +1,7 @@
 use crate::operand::{OperandStack, OperandStackItem};
 
 #[derive(Debug)]
-pub enum StarckframeItem {
+pub enum StackframeItem {
     Null,
     I32(i32),
     String(String),
@@ -10,22 +10,22 @@ pub enum StarckframeItem {
     Fieldref(usize),
 }
 
-impl From<OperandStackItem> for StarckframeItem {
-    fn from(item: OperandStackItem) -> StarckframeItem {
+impl From<OperandStackItem> for StackframeItem {
+    fn from(item: OperandStackItem) -> StackframeItem {
         match item {
-            OperandStackItem::I32(value) => StarckframeItem::I32(value),
-            OperandStackItem::String(value) => StarckframeItem::String(value),
-            OperandStackItem::Utf8(index) => StarckframeItem::Utf8(index),
-            OperandStackItem::Classref(index) => StarckframeItem::Classref(index),
-            OperandStackItem::Fieldref(index) => StarckframeItem::Fieldref(index),
-            OperandStackItem::Null => StarckframeItem::Null,
+            OperandStackItem::I32(value) => StackframeItem::I32(value),
+            OperandStackItem::String(value) => StackframeItem::String(value),
+            OperandStackItem::Utf8(index) => StackframeItem::Utf8(index),
+            OperandStackItem::Classref(index) => StackframeItem::Classref(index),
+            OperandStackItem::Fieldref(index) => StackframeItem::Fieldref(index),
+            OperandStackItem::Null => StackframeItem::Null,
         }
     }
 }
 
 #[derive(Debug)]
 pub struct Stackframe {
-    pub local_variables: Vec<StarckframeItem>,
+    pub local_variables: Vec<StackframeItem>,
 }
 
 impl Stackframe {
@@ -38,7 +38,7 @@ impl Stackframe {
     pub fn istore(&mut self, operand_stack: &mut OperandStack, index: usize) {
         if let Some(val) = operand_stack.stack.pop() {
             self.local_variables
-                .insert(index, StarckframeItem::from(val));
+                .insert(index, StackframeItem::from(val));
         }
     }
 }

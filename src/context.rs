@@ -3,7 +3,7 @@ use crate::constant::ConstantNameAndType;
 use crate::java_class::{custom::Custom, JavaClass};
 use crate::method::Method;
 use crate::operand::{OperandStack, OperandStackItem};
-use crate::stackframe::{Stackframe, StarckframeItem};
+use crate::stackframe::{Stackframe, StackframeItem};
 use std::collections::HashMap;
 
 #[derive(Debug)]
@@ -33,7 +33,7 @@ impl Context {
 
         // TBD Perhaps this method is not invoked from super_class
         let super_class_index = class_file.super_class;
-        let stack_frame_item_0 = StarckframeItem::Classref(super_class_index);
+        let stack_frame_item_0 = StackframeItem::Classref(super_class_index);
         self.run_method(&class_file, entry_method, stack_frame_item_0);
 
         self.class_map
@@ -44,7 +44,7 @@ impl Context {
         &mut self,
         class_file: &Custom,
         method: &Method,
-        stack_frame_item: StarckframeItem,
+        stack_frame_item: StackframeItem,
     ) {
         let mut stack_frame = Stackframe::new(0);
         stack_frame.local_variables.push(stack_frame_item);
@@ -116,7 +116,7 @@ impl Context {
             Instruction::IstoreN(index) => {
                 if let Some(stack_frame) = self.stack_frames.last_mut() {
                     if let Some(item) = self.operand_stack.stack.pop() {
-                        stack_frame.local_variables[*index] = StarckframeItem::from(item);
+                        stack_frame.local_variables[*index] = StackframeItem::from(item);
                     }
                 }
             }
@@ -218,7 +218,7 @@ impl Context {
             .stack
             .drain((stack_length - local_variable_length)..stack_length)
             .into_iter()
-            .map(|operand_item| StarckframeItem::from(operand_item))
+            .map(|operand_item| StackframeItem::from(operand_item))
             .collect();
         new_stack_frame.local_variables.append(&mut variables);
         new_stack_frame
