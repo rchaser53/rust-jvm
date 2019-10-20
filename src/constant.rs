@@ -110,6 +110,16 @@ impl ConstantPool {
             _ => unreachable!("should be ConstantUtf8. actual {:?}", self.0[index]),
         }
     }
+
+    pub fn get_fieldref_as_utf8(&self, index: usize) -> String {
+        match self.0[index] {
+            ConstPoolItem::ConstantFieldref(ref item) => {
+                let name_and_type = self.get_name_and_type(item.name_and_type_index);
+                self.get_utf8(name_and_type.name_index)
+            },
+            _ => unreachable!("should be ConstantFieldRef. actual {:?}", self.0[index]),
+        }
+    }
 }
 
 impl fmt::Display for ConstantPool {
