@@ -46,7 +46,7 @@ impl BuiltInMethod {
         &mut self,
         constant_pool: &ConstantPool,
         stackframe: &mut Stackframe,
-        operand_stack: &mut OperandStack,
+        _operand_stack: &mut OperandStack,
     ) {
         match self.code_type {
             BuitlInCodeType::Println => {

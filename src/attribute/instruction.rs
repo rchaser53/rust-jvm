@@ -24,6 +24,7 @@ pub enum Instruction {
     Invokevirtual(usize),   // 0xb6
     Invokespecial(usize),   // 0xb7
     Invokestatic(usize),    // 0xb8
+    Noope,                  // custom command for Ificmple etc.
 }
 
 impl fmt::Display for Instruction {
@@ -50,85 +51,148 @@ impl fmt::Display for Instruction {
             Instruction::Invokevirtual(val) => write!(f, "invokevirtual   #{}", val),
             Instruction::Invokespecial(val) => write!(f, "invokespecial   #{}", val),
             Instruction::Invokestatic(val) => write!(f, "invokestatic   #{}", val),
+            Instruction::Noope => write!(f, "noope"),
         }
     }
 }
 
 impl Instruction {
-    pub fn new(inputs: &mut [u8], index: usize, tag: usize) -> (Instruction, usize, usize) {
+    pub fn create_and_push(
+        codes: &mut Vec<Instruction>,
+        inputs: &mut [u8],
+        index: usize,
+        tag: usize,
+    ) -> (usize, usize) {
         match tag {
             // iload_n
-            val @ 0x02..0x08 => (Instruction::IconstN(val - 0x03), index, 1),
+            val @ 0x02..0x08 => {
+                codes.push(Instruction::IconstN(val - 0x03));
+                (index, 1)
+            }
             // bipush
             0x10 => {
                 let (val, index) = extract_x_byte_as_usize(inputs, index, 1);
-                (Instruction::Bipush(val), index, 2)
+                codes.push(Instruction::Bipush(val));
+                codes.push(Instruction::Noope);
+                (index, 2)
             }
             // ldc
             0x12 => {
                 let (val, index) = extract_x_byte_as_usize(inputs, index, 1);
-                (Instruction::Ldc(val), index, 2)
+                codes.push(Instruction::Ldc(val));
+                codes.push(Instruction::Noope);
+                (index, 2)
             }
             // iload_n
-            val @ 0x1a..0x1d => (Instruction::IloadN(val - 0x1a), index, 1),
+            val @ 0x1a..0x1d => {
+                codes.push(Instruction::IloadN(val - 0x1a));
+                (index, 1)
+            }
             // aload_n
-            val @ 0x2a..0x2d => (Instruction::AloadN(val - 0x2a), index, 1),
+            val @ 0x2a..0x2d => {
+                codes.push(Instruction::AloadN(val - 0x2a));
+                (index, 1)
+            }
             // istore_n
-            val @ 0x3b..0x3e => (Instruction::IstoreN(val - 0x3b), index, 1),
+            val @ 0x3b..0x3e => {
+                codes.push(Instruction::IstoreN(val - 0x3b));
+                (index, 1)
+            }
             // pop
-            0x57 => (Instruction::Pop, index, 1),
+            0x57 => {
+                codes.push(Instruction::Pop);
+                (index, 1)
+            }
             // iadd
-            0x60 => (Instruction::Iadd, index, 1),
+            0x60 => {
+                codes.push(Instruction::Iadd);
+                (index, 1)
+            }
             // isub
-            0x64 => (Instruction::Isub, index, 1),
+            0x64 => {
+                codes.push(Instruction::Isub);
+                (index, 1)
+            }
             // imul
-            0x68 => (Instruction::Imul, index, 1),
+            0x68 => {
+                codes.push(Instruction::Imul);
+                (index, 1)
+            }
             // idiv
-            0x6c => (Instruction::Idiv, index, 1),
+            0x6c => {
+                codes.push(Instruction::Idiv);
+                (index, 1)
+            }
             // irem
-            0x70 => (Instruction::Irem, index, 1),
+            0x70 => {
+                codes.push(Instruction::Irem);
+                (index, 1)
+            }
             // if_icmple
             0xa4 => {
                 let (val, index) = extract_x_byte_as_vec(inputs, index, 2);
-                (
-                    Instruction::Ificmple(val[0] as usize, val[1] as usize),
-                    index,
-                    3,
-                )
+                codes.push(Instruction::Ificmple(val[0] as usize, val[1] as usize));
+                codes.push(Instruction::Noope);
+                codes.push(Instruction::Noope);
+                (index, 3)
             }
             // ireturn
-            0xac => (Instruction::Ireturn, index, 1),
+            0xac => {
+                codes.push(Instruction::Ireturn);
+                (index, 1)
+            }
             // return
-            0xb1 => (Instruction::Return, index, 1),
+            0xb1 => {
+                codes.push(Instruction::Return);
+                (index, 1)
+            }
             // getstatic
             0xb2 => {
                 let (val, index) = extract_x_byte_as_usize(inputs, index, 2);
-                (Instruction::Getstatic(val), index, 3)
+                codes.push(Instruction::Getstatic(val));
+                codes.push(Instruction::Noope);
+                codes.push(Instruction::Noope);
+                (index, 3)
             }
             // getfield
             0xb4 => {
                 let (val, index) = extract_x_byte_as_usize(inputs, index, 2);
-                (Instruction::Getfield(val), index, 3)
+                codes.push(Instruction::Getfield(val));
+                codes.push(Instruction::Noope);
+                codes.push(Instruction::Noope);
+                (index, 3)
             }
             // putfield
             0xb5 => {
                 let (val, index) = extract_x_byte_as_usize(inputs, index, 2);
-                (Instruction::Putfield(val), index, 3)
+                codes.push(Instruction::Putfield(val));
+                codes.push(Instruction::Noope);
+                codes.push(Instruction::Noope);
+                (index, 3)
             }
             // invokevirtual
             0xb6 => {
                 let (val, index) = extract_x_byte_as_usize(inputs, index, 2);
-                (Instruction::Invokevirtual(val), index, 3)
+                codes.push(Instruction::Invokevirtual(val));
+                codes.push(Instruction::Noope);
+                codes.push(Instruction::Noope);
+                (index, 3)
             }
             // invokespecial
             0xb7 => {
                 let (val, index) = extract_x_byte_as_usize(inputs, index, 2);
-                (Instruction::Invokespecial(val), index, 3)
+                codes.push(Instruction::Invokespecial(val));
+                codes.push(Instruction::Noope);
+                codes.push(Instruction::Noope);
+                (index, 3)
             }
             // invokestatic
             0xb8 => {
                 let (val, index) = extract_x_byte_as_usize(inputs, index, 2);
-                (Instruction::Invokestatic(val), index, 3)
+                codes.push(Instruction::Invokestatic(val));
+                codes.push(Instruction::Noope);
+                codes.push(Instruction::Noope);
+                (index, 3)
             }
             _ => unimplemented!("tag: {:x}", tag),
         }

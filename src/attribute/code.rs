@@ -40,11 +40,10 @@ impl Code {
 
         while code_length - code_loop_index > 0 {
             let (tag, update_index) = extract_x_byte_as_usize(inputs, index, 1);
-            let (instruction, update_index, consume_index) =
-                Instruction::new(inputs, update_index, tag);
+            let (update_index, consume_index) =
+                Instruction::create_and_push(&mut code, inputs, update_index, tag);
             code_loop_index += consume_index;
             index = update_index;
-            code.push(instruction);
         }
 
         let (exception_table_length, index) = extract_x_byte_as_usize(inputs, index, 2);

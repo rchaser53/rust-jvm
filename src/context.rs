@@ -1,4 +1,3 @@
-use crate::attribute::code::Code;
 use crate::attribute::instruction::Instruction;
 use crate::constant::ConstantNameAndType;
 use crate::java_class::{custom::Custom, JavaClass};
