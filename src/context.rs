@@ -51,19 +51,26 @@ impl Context {
         self.stack_frames.push(stack_frame);
 
         if let Some(code) = method.extract_code() {
-            for instruction in code.code.iter() {
+            let mut index = 0;
+            while let Some(instruction) = code.code.get(index) {
                 println!("{}", instruction);
-                let should_finish = self.execute(class_file, instruction);
+                let (should_finish, update_index) = self.execute(class_file, instruction, index);
                 if should_finish {
                     break;
                 }
+                index = update_index + 1;
             }
         }
 
         self.stack_frames.pop();
     }
 
-    pub fn execute(&mut self, class_file: &Custom, instruction: &Instruction) -> bool {
+    pub fn execute(
+        &mut self,
+        class_file: &Custom,
+        instruction: &Instruction,
+        index: usize,
+    ) -> (bool, usize) {
         match instruction {
             Instruction::Iadd => {
                 let item = self.operand_stack.iadd();
@@ -133,7 +140,7 @@ impl Context {
                 } else {
                     unreachable!("should exist return value on operand_stack");
                 }
-                return true;
+                return (true, index);
             }
             Instruction::Pop => {
                 self.operand_stack.stack.pop();
@@ -189,7 +196,7 @@ impl Context {
             }
             _ => {}
         };
-        false
+        (false, index + instruction.counsume_index())
     }
 
     fn get_related_method_info<'b>(

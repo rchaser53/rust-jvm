@@ -64,7 +64,7 @@ impl Instruction {
         tag: usize,
     ) -> (usize, usize) {
         match tag {
-            // iload_n
+            // iconst_n
             val @ 0x02..0x08 => {
                 codes.push(Instruction::IconstN(val - 0x03));
                 (index, 1)
@@ -195,6 +195,20 @@ impl Instruction {
                 (index, 3)
             }
             _ => unimplemented!("tag: {:x}", tag),
+        }
+    }
+
+    pub fn counsume_index(&self) -> usize {
+        match self {
+            Instruction::Bipush(_) | Instruction::Ldc(_) => 1,
+            Instruction::Ificmple(_, _)
+            | Instruction::Getstatic(_)
+            | Instruction::Getfield(_)
+            | Instruction::Putfield(_)
+            | Instruction::Invokevirtual(_)
+            | Instruction::Invokespecial(_)
+            | Instruction::Invokestatic(_) => 2,
+            _ => 0,
         }
     }
 }
