@@ -164,11 +164,11 @@ impl Instruction {
             }
             // ifeq
             0x99 => {
-                let (val, index) = extract_x_byte_as_vec(inputs, index, 2);
+                let (val, index) = extract_x_byte_as_usize(inputs, index, 2);
                 let code_length = codes.len();
                 codes.push(Instruction::Ifeq(
-                    val[0] as usize + code_length + 3,
-                    val[1] as usize + code_length,
+                    (val + code_length - 1) & 0xffff,
+                    code_length + 2,
                 ));
                 codes.push(Instruction::Noope);
                 codes.push(Instruction::Noope);
@@ -176,11 +176,11 @@ impl Instruction {
             }
             // ifne
             0x9a => {
-                let (val, index) = extract_x_byte_as_vec(inputs, index, 2);
+                let (val, index) = extract_x_byte_as_usize(inputs, index, 2);
                 let code_length = codes.len();
                 codes.push(Instruction::Ifne(
-                    val[0] as usize + code_length + 3,
-                    val[1] as usize + code_length,
+                    (val + code_length - 1) & 0xffff,
+                    code_length + 2,
                 ));
                 codes.push(Instruction::Noope);
                 codes.push(Instruction::Noope);
@@ -188,11 +188,11 @@ impl Instruction {
             }
             // iflt
             0x9b => {
-                let (val, index) = extract_x_byte_as_vec(inputs, index, 2);
+                let (val, index) = extract_x_byte_as_usize(inputs, index, 2);
                 let code_length = codes.len();
                 codes.push(Instruction::Iflt(
-                    val[0] as usize + code_length + 3,
-                    val[1] as usize + code_length,
+                    (val + code_length - 1) & 0xffff,
+                    code_length + 2,
                 ));
                 codes.push(Instruction::Noope);
                 codes.push(Instruction::Noope);
@@ -200,11 +200,11 @@ impl Instruction {
             }
             // ifge
             0x9c => {
-                let (val, index) = extract_x_byte_as_vec(inputs, index, 2);
+                let (val, index) = extract_x_byte_as_usize(inputs, index, 2);
                 let code_length = codes.len();
                 codes.push(Instruction::Ifge(
-                    val[0] as usize + code_length + 3,
-                    val[1] as usize + code_length,
+                    (val + code_length - 1) & 0xffff,
+                    code_length + 2,
                 ));
                 codes.push(Instruction::Noope);
                 codes.push(Instruction::Noope);
@@ -212,11 +212,11 @@ impl Instruction {
             }
             // ifgt
             0x9d => {
-                let (val, index) = extract_x_byte_as_vec(inputs, index, 2);
+                let (val, index) = extract_x_byte_as_usize(inputs, index, 2);
                 let code_length = codes.len();
                 codes.push(Instruction::Ifgt(
-                    val[0] as usize + code_length + 3,
-                    val[1] as usize + code_length,
+                    (val + code_length - 1) & 0xffff,
+                    code_length + 2,
                 ));
                 codes.push(Instruction::Noope);
                 codes.push(Instruction::Noope);
@@ -224,11 +224,11 @@ impl Instruction {
             }
             // ifle
             0x9e => {
-                let (val, index) = extract_x_byte_as_vec(inputs, index, 2);
+                let (val, index) = extract_x_byte_as_usize(inputs, index, 2);
                 let code_length = codes.len();
                 codes.push(Instruction::Ifle(
-                    val[0] as usize + code_length + 3,
-                    val[1] as usize + code_length,
+                    (val + code_length - 1) & 0xffff,
+                    code_length + 2,
                 ));
                 codes.push(Instruction::Noope);
                 codes.push(Instruction::Noope);
@@ -236,11 +236,11 @@ impl Instruction {
             }
             // if_icmpeq
             0x9f => {
-                let (val, index) = extract_x_byte_as_vec(inputs, index, 2);
+                let (val, index) = extract_x_byte_as_usize(inputs, index, 2);
                 let code_length = codes.len();
                 codes.push(Instruction::Ificmpeq(
-                    val[0] as usize + code_length + 3,
-                    val[1] as usize + code_length,
+                    (val + code_length - 1) & 0xffff,
+                    code_length + 2,
                 ));
                 codes.push(Instruction::Noope);
                 codes.push(Instruction::Noope);
@@ -248,11 +248,11 @@ impl Instruction {
             }
             // if_icmpne
             0xa0 => {
-                let (val, index) = extract_x_byte_as_vec(inputs, index, 2);
+                let (val, index) = extract_x_byte_as_usize(inputs, index, 2);
                 let code_length = codes.len();
                 codes.push(Instruction::Ificmpne(
-                    val[0] as usize + code_length + 3,
-                    val[1] as usize + code_length,
+                    (val + code_length - 1) & 0xffff,
+                    code_length + 2,
                 ));
                 codes.push(Instruction::Noope);
                 codes.push(Instruction::Noope);
@@ -260,11 +260,11 @@ impl Instruction {
             }
             // if_icmplt
             0xa1 => {
-                let (val, index) = extract_x_byte_as_vec(inputs, index, 2);
+                let (val, index) = extract_x_byte_as_usize(inputs, index, 2);
                 let code_length = codes.len();
                 codes.push(Instruction::Ificmplt(
-                    val[0] as usize + code_length + 3,
-                    val[1] as usize + code_length,
+                    (val + code_length - 1) & 0xffff,
+                    code_length + 2,
                 ));
                 codes.push(Instruction::Noope);
                 codes.push(Instruction::Noope);
@@ -272,11 +272,11 @@ impl Instruction {
             }
             // if_icmpge
             0xa2 => {
-                let (val, index) = extract_x_byte_as_vec(inputs, index, 2);
+                let (val, index) = extract_x_byte_as_usize(inputs, index, 2);
                 let code_length = codes.len();
                 codes.push(Instruction::Ificmpge(
-                    val[0] as usize + code_length + 3,
-                    val[1] as usize + code_length,
+                    (val + code_length - 1) & 0xffff,
+                    code_length + 2,
                 ));
                 codes.push(Instruction::Noope);
                 codes.push(Instruction::Noope);
@@ -284,11 +284,11 @@ impl Instruction {
             }
             // if_icmpgt
             0xa3 => {
-                let (val, index) = extract_x_byte_as_vec(inputs, index, 2);
+                let (val, index) = extract_x_byte_as_usize(inputs, index, 2);
                 let code_length = codes.len();
                 codes.push(Instruction::Ificmpgt(
-                    val[0] as usize + code_length + 3,
-                    val[1] as usize + code_length,
+                    (val + code_length - 1) & 0xffff,
+                    code_length + 2,
                 ));
                 codes.push(Instruction::Noope);
                 codes.push(Instruction::Noope);
@@ -296,11 +296,11 @@ impl Instruction {
             }
             // if_icmple
             0xa4 => {
-                let (val, index) = extract_x_byte_as_vec(inputs, index, 2);
+                let (val, index) = extract_x_byte_as_usize(inputs, index, 2);
                 let code_length = codes.len();
                 codes.push(Instruction::Ificmple(
-                    val[0] as usize + code_length + 3,
-                    val[1] as usize + code_length,
+                    (val + code_length - 1) & 0xffff,
+                    code_length + 2,
                 ));
                 codes.push(Instruction::Noope);
                 codes.push(Instruction::Noope);
@@ -310,7 +310,7 @@ impl Instruction {
             0xa7 => {
                 let (val, index) = extract_x_byte_as_usize(inputs, index, 2);
                 let code_length = codes.len();
-                codes.push(Instruction::Goto((val + code_length) & 0xffff));
+                codes.push(Instruction::Goto((val + code_length - 1) & 0xffff));
                 codes.push(Instruction::Noope);
                 codes.push(Instruction::Noope);
                 (index, 3)
@@ -386,8 +386,15 @@ impl Instruction {
             | Instruction::Putfield(_)
             | Instruction::Invokevirtual(_)
             | Instruction::Invokespecial(_)
+            | Instruction::Iinc(_, _)
             | Instruction::Invokestatic(_) => 2,
-            _ => 0,
+            Instruction::IconstN(_)
+            | Instruction::IstoreN(_)
+            | Instruction::IloadN(_)
+            | Instruction::Irem
+            | Instruction::Return
+            | Instruction::Iadd => 0,
+            a => unimplemented!("{}", a),
         }
     }
 }

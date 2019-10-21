@@ -56,95 +56,95 @@ impl OperandStack {
 
     pub fn iadd(&mut self) -> OperandStackItem {
         match (self.stack.pop(), self.stack.pop()) {
-            (Some(left), Some(right)) => OperandStack::add_two_item(left, right),
+            (Some(second), Some(first)) => OperandStack::add_two_item(first, second),
             _ => panic!("shortage item in OperandStack"),
         }
     }
 
     pub fn isub(&mut self) -> OperandStackItem {
         match (self.stack.pop(), self.stack.pop()) {
-            (Some(left), Some(right)) => OperandStack::sub_two_item(left, right),
+            (Some(second), Some(first)) => OperandStack::sub_two_item(first, second),
             _ => panic!("shortage item in OperandStack"),
         }
     }
 
     pub fn imul(&mut self) -> OperandStackItem {
         match (self.stack.pop(), self.stack.pop()) {
-            (Some(left), Some(right)) => OperandStack::mul_two_item(left, right),
+            (Some(second), Some(first)) => OperandStack::mul_two_item(first, second),
             _ => panic!("shortage item in OperandStack"),
         }
     }
 
     pub fn idiv(&mut self) -> OperandStackItem {
         match (self.stack.pop(), self.stack.pop()) {
-            (Some(left), Some(right)) => OperandStack::div_two_item(left, right),
+            (Some(second), Some(first)) => OperandStack::div_two_item(first, second),
             _ => panic!("shortage item in OperandStack"),
         }
     }
 
     pub fn irem(&mut self) -> OperandStackItem {
         match (self.stack.pop(), self.stack.pop()) {
-            (Some(left), Some(right)) => OperandStack::rem_two_item(left, right),
+            (Some(second), Some(first)) => OperandStack::rem_two_item(first, second),
             _ => panic!("shortage item in OperandStack"),
         }
     }
 
-    pub fn add_two_item(left: OperandStackItem, right: OperandStackItem) -> OperandStackItem {
-        match (&left, &right) {
-            (OperandStackItem::I32(left), OperandStackItem::I32(right)) => {
-                OperandStackItem::I32(left + right)
+    pub fn add_two_item(first: OperandStackItem, second: OperandStackItem) -> OperandStackItem {
+        match (&first, &second) {
+            (OperandStackItem::I32(first), OperandStackItem::I32(second)) => {
+                OperandStackItem::I32(first + second)
             }
             _ => panic!(
-                "left:{:?} and right:{:?} types are not matched",
-                left, right
+                "first:{:?} and second:{:?} types are not matched",
+                first, second
             ),
         }
     }
 
-    pub fn sub_two_item(left: OperandStackItem, right: OperandStackItem) -> OperandStackItem {
-        match (&left, &right) {
-            (OperandStackItem::I32(left), OperandStackItem::I32(right)) => {
-                OperandStackItem::I32(left - right)
+    pub fn sub_two_item(first: OperandStackItem, second: OperandStackItem) -> OperandStackItem {
+        match (&first, &second) {
+            (OperandStackItem::I32(first), OperandStackItem::I32(second)) => {
+                OperandStackItem::I32(first - second)
             }
             _ => panic!(
-                "left:{:?} and right:{:?} types are not matched",
-                left, right
+                "first:{:?} and second:{:?} types are not matched",
+                first, second
             ),
         }
     }
 
-    pub fn mul_two_item(left: OperandStackItem, right: OperandStackItem) -> OperandStackItem {
-        match (&left, &right) {
-            (OperandStackItem::I32(left), OperandStackItem::I32(right)) => {
-                OperandStackItem::I32(left * right)
+    pub fn mul_two_item(first: OperandStackItem, second: OperandStackItem) -> OperandStackItem {
+        match (&first, &second) {
+            (OperandStackItem::I32(first), OperandStackItem::I32(second)) => {
+                OperandStackItem::I32(first * second)
             }
             _ => panic!(
-                "left:{:?} and right:{:?} types are not matched",
-                left, right
+                "first:{:?} and second:{:?} types are not matched",
+                first, second
             ),
         }
     }
 
-    pub fn div_two_item(left: OperandStackItem, right: OperandStackItem) -> OperandStackItem {
-        match (&left, &right) {
-            (OperandStackItem::I32(left), OperandStackItem::I32(right)) => {
-                OperandStackItem::I32(left / right)
+    pub fn div_two_item(first: OperandStackItem, second: OperandStackItem) -> OperandStackItem {
+        match (&first, &second) {
+            (OperandStackItem::I32(first), OperandStackItem::I32(second)) => {
+                OperandStackItem::I32(first / second)
             }
             _ => panic!(
-                "left:{:?} and right:{:?} types are not matched",
-                left, right
+                "first:{:?} and second:{:?} types are not matched",
+                first, second
             ),
         }
     }
 
-    pub fn rem_two_item(left: OperandStackItem, right: OperandStackItem) -> OperandStackItem {
-        match (&left, &right) {
-            (OperandStackItem::I32(left), OperandStackItem::I32(right)) => {
-                OperandStackItem::I32(left & right)
+    pub fn rem_two_item(first: OperandStackItem, second: OperandStackItem) -> OperandStackItem {
+        match (&first, &second) {
+            (OperandStackItem::I32(first), OperandStackItem::I32(second)) => {
+                OperandStackItem::I32(first % second)
             }
             _ => panic!(
-                "left:{:?} and right:{:?} types are not matched",
-                left, right
+                "first:{:?} and second:{:?} types are not matched",
+                first, second
             ),
         }
     }
