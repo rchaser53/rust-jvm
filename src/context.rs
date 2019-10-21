@@ -47,11 +47,10 @@ impl Context {
         method: &Method,
         stack_frame_item: StackframeItem,
     ) {
-        let mut stack_frame = Stackframe::new(0);
-        stack_frame.local_variables.push(stack_frame_item);
-        self.stack_frames.push(stack_frame);
-
         if let Some(code) = method.extract_code() {
+            let mut stack_frame = Stackframe::new(code.max_locals as usize);
+            stack_frame.local_variables.push(stack_frame_item);
+            self.stack_frames.push(stack_frame);
             let mut index = 0;
             while let Some(instruction) = code.code.get(index) {
                 println!("{}", instruction);
