@@ -109,8 +109,7 @@ impl Context {
                 if let Some(stack_frame) = self.stack_frames.last_mut() {
                     if let Some(item) = stack_frame.local_variables.get_mut(*index) {
                         if let StackframeItem::I32(val) = item {
-                            let target = StackframeItem::I32(*val + *value as i32);
-                            mem::replace(item, target);
+                            mem::replace(val, *val + *value as i32);
                         }
                     }
                 }
