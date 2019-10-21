@@ -213,7 +213,11 @@ impl Context {
             Instruction::IstoreN(index) => {
                 if let Some(stack_frame) = self.stack_frames.last_mut() {
                     if let Some(item) = self.operand_stack.stack.pop() {
-                        stack_frame.local_variables[*index] = StackframeItem::from(item);
+                        if stack_frame.local_variables.get(*index).is_some() {
+                            stack_frame.local_variables[*index] = StackframeItem::from(item);
+                        } else {
+                            stack_frame.local_variables.insert(*index, StackframeItem::from(item));
+                        }
                     }
                 }
             }
