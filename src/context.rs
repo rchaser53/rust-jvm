@@ -216,7 +216,9 @@ impl Context {
                         if stack_frame.local_variables.get(*index).is_some() {
                             stack_frame.local_variables[*index] = StackframeItem::from(item);
                         } else {
-                            stack_frame.local_variables.insert(*index, StackframeItem::from(item));
+                            stack_frame
+                                .local_variables
+                                .insert(*index, StackframeItem::from(item));
                         }
                     }
                 }
