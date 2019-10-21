@@ -304,20 +304,60 @@ impl fmt::Display for StackMapTable {
 
 #[derive(Debug)]
 pub enum StackMapFrame {
-    SameFrame(usize),
+    SameFrame(SameFrame),
     SameLocals1StackItemFrame,
     SameLocals1StackItemFrameExtended,
-    ChopFrame,
+    ChopFrame(ChopFrame),
     SameFrameExtended,
-    AppendFrame,
+    AppendFrame(AppendFrame),
     FullFrame,
+}
+
+#[derive(Debug)]
+pub struct SameFrame {
+    frame_type: usize,
+}
+
+#[derive(Debug)]
+pub struct ChopFrame {
+    frame_type: usize,
+    offset_delta: usize,
+}
+
+#[derive(Debug)]
+pub struct AppendFrame {
+    frame_type: usize,
+    offset_delta: usize,
+    locals: Vec<usize>, // TBD need to search what I should imeplement(ex. locals = [ int ])
 }
 
 impl StackMapFrame {
     pub fn new(inputs: &mut [u8], index: usize) -> (StackMapFrame, usize) {
-        let (tag, index) = extract_x_byte_as_usize(inputs, index, 1);
-        match tag {
-            0..63 => (StackMapFrame::SameFrame(tag), index),
+        let (frame_type, index) = extract_x_byte_as_usize(inputs, index, 1);
+        match frame_type {
+            0..=63 => (StackMapFrame::SameFrame(SameFrame { frame_type }), index),
+            248..=250 => {
+                let (offset_delta, index) = extract_x_byte_as_usize(inputs, index, 2);
+                (
+                    StackMapFrame::ChopFrame(ChopFrame {
+                        frame_type,
+                        offset_delta,
+                    }),
+                    index,
+                )
+            }
+            252..=254 => {
+                let (offset_delta, index) = extract_x_byte_as_usize(inputs, index, 2);
+                let (_, index) = extract_x_byte_as_usize(inputs, index, 1); // maybe for local
+                (
+                    StackMapFrame::AppendFrame(AppendFrame {
+                        frame_type,
+                        offset_delta,
+                        locals: vec![], // locals[frame_type - 251];
+                    }),
+                    index,
+                )
+            }
             _ => unimplemented!(),
         }
     }
@@ -326,7 +366,28 @@ impl StackMapFrame {
 impl fmt::Display for StackMapFrame {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            StackMapFrame::SameFrame(val) => write!(f, "{}   /* same */", val),
+            StackMapFrame::SameFrame(SameFrame { frame_type }) => {
+                write!(f, "{}   /* same */", frame_type)
+            }
+            StackMapFrame::ChopFrame(ChopFrame {
+                frame_type,
+                offset_delta,
+            }) => write!(
+                f,
+                "{}   /* chop */
+  offset_delta = {}",
+                frame_type, offset_delta
+            ),
+            StackMapFrame::AppendFrame(AppendFrame {
+                frame_type,
+                offset_delta,
+                locals: _,
+            }) => write!(
+                f,
+                "{}   /* append */
+  offset_delta = {}",
+                frame_type, offset_delta
+            ),
             _ => unimplemented!(),
         }
     }
