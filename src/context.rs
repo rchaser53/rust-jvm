@@ -5,6 +5,7 @@ use crate::method::Method;
 use crate::operand::{OperandStack, OperandStackItem};
 use crate::stackframe::{Stackframe, StackframeItem};
 use std::collections::HashMap;
+use std::mem;
 
 #[derive(Debug)]
 pub struct Context {
@@ -104,7 +105,14 @@ impl Context {
             Instruction::Goto(pointer) => {
                 return (false, *pointer);
             }
-
+            Instruction::Iinc => {
+                if let Some(item) = self.operand_stack.stack.last_mut() {
+                    if let OperandStackItem::I32(val) = item {
+                        let target = OperandStackItem::I32(*val + 1);
+                        mem::replace(item, target);
+                    }
+                }
+            }
             Instruction::Ifeq(if_val, else_val) => {
                 let val = self.operand_stack.stack.pop().unwrap();
                 let jump_pointer = if val == OperandStackItem::I32(0) {
