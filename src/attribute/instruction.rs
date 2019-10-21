@@ -15,7 +15,7 @@ pub enum Instruction {
     Imul,                   // 0x68
     Idiv,                   // 0x6C
     Irem,                   // 0x70
-    Iinc,                   // 0x84
+    Iinc(usize, usize),     // 0x84
     Ifeq(usize, usize),     // 0x99
     Ifne(usize, usize),     // 0x9a
     Iflt(usize, usize),     // 0x9b
@@ -55,7 +55,7 @@ impl fmt::Display for Instruction {
             Instruction::Imul => write!(f, "imul"),
             Instruction::Idiv => write!(f, "idiv"),
             Instruction::Irem => write!(f, "irem"),
-            Instruction::Iinc => write!(f, "iinc"),
+            Instruction::Iinc(a, b) => write!(f, "iinc        {}, {}", a, b),
             Instruction::Ifeq(_, val) => write!(f, "if_eq           {}", val),
             Instruction::Ifne(_, val) => write!(f, "if_ne           {}", val),
             Instruction::Iflt(_, val) => write!(f, "if_lt           {}", val),
@@ -156,8 +156,11 @@ impl Instruction {
             }
             // iinc
             0x84 => {
-                codes.push(Instruction::Iinc);
-                (index, 1)
+                let (val, index) = extract_x_byte_as_vec(inputs, index, 2);
+                codes.push(Instruction::Iinc(val[0] as usize, val[1] as usize));
+                codes.push(Instruction::Noope);
+                codes.push(Instruction::Noope);
+                (index, 3)
             }
             // ifeq
             0x99 => {
