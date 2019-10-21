@@ -133,7 +133,7 @@ impl Context {
             }
             Instruction::Iflt(if_val, else_val) => {
                 let val = self.operand_stack.stack.pop().unwrap();
-                let jump_pointer = if val > OperandStackItem::I32(0) {
+                let jump_pointer = if val < OperandStackItem::I32(0) {
                     *if_val
                 } else {
                     *else_val
@@ -142,7 +142,7 @@ impl Context {
             }
             Instruction::Ifge(if_val, else_val) => {
                 let val = self.operand_stack.stack.pop().unwrap();
-                let jump_pointer = if val <= OperandStackItem::I32(0) {
+                let jump_pointer = if val >= OperandStackItem::I32(0) {
                     *if_val
                 } else {
                     *else_val
@@ -151,7 +151,7 @@ impl Context {
             }
             Instruction::Ifgt(if_val, else_val) => {
                 let val = self.operand_stack.stack.pop().unwrap();
-                let jump_pointer = if val < OperandStackItem::I32(0) {
+                let jump_pointer = if val > OperandStackItem::I32(0) {
                     *if_val
                 } else {
                     *else_val
@@ -160,7 +160,7 @@ impl Context {
             }
             Instruction::Ifle(if_val, else_val) => {
                 let val = self.operand_stack.stack.pop().unwrap();
-                let jump_pointer = if val >= OperandStackItem::I32(0) {
+                let jump_pointer = if val <= OperandStackItem::I32(0) {
                     *if_val
                 } else {
                     *else_val
@@ -183,25 +183,25 @@ impl Context {
             Instruction::Ificmplt(if_val, else_val) => {
                 let left = self.operand_stack.stack.pop();
                 let right = self.operand_stack.stack.pop();
-                let jump_pointer = if left > right { *if_val } else { *else_val };
+                let jump_pointer = if left < right { *if_val } else { *else_val };
                 return (false, jump_pointer);
             }
             Instruction::Ificmpge(if_val, else_val) => {
                 let left = self.operand_stack.stack.pop();
                 let right = self.operand_stack.stack.pop();
-                let jump_pointer = if left <= right { *if_val } else { *else_val };
+                let jump_pointer = if left >= right { *if_val } else { *else_val };
                 return (false, jump_pointer);
             }
             Instruction::Ificmpgt(if_val, else_val) => {
                 let left = self.operand_stack.stack.pop();
                 let right = self.operand_stack.stack.pop();
-                let jump_pointer = if left < right { *if_val } else { *else_val };
+                let jump_pointer = if left > right { *if_val } else { *else_val };
                 return (false, jump_pointer);
             }
             Instruction::Ificmple(if_val, else_val) => {
                 let left = self.operand_stack.stack.pop();
                 let right = self.operand_stack.stack.pop();
-                let jump_pointer = if left >= right { *if_val } else { *else_val };
+                let jump_pointer = if left <= right { *if_val } else { *else_val };
                 return (false, jump_pointer);
             }
             Instruction::IloadN(index) => {
