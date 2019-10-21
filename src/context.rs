@@ -104,6 +104,62 @@ impl Context {
             Instruction::Goto(pointer) => {
                 return (false, *pointer);
             }
+
+            Instruction::Ifeq(if_val, else_val) => {
+                let val = self.operand_stack.stack.pop().unwrap();
+                let jump_pointer = if val == OperandStackItem::I32(0) {
+                    *if_val
+                } else {
+                    *else_val
+                };
+                return (false, jump_pointer);
+            }
+            Instruction::Ifne(if_val, else_val) => {
+                let val = self.operand_stack.stack.pop().unwrap();
+                let jump_pointer = if val != OperandStackItem::I32(0) {
+                    *if_val
+                } else {
+                    *else_val
+                };
+                return (false, jump_pointer);
+            }
+            Instruction::Iflt(if_val, else_val) => {
+                let val = self.operand_stack.stack.pop().unwrap();
+                let jump_pointer = if val > OperandStackItem::I32(0) {
+                    *if_val
+                } else {
+                    *else_val
+                };
+                return (false, jump_pointer);
+            }
+            Instruction::Ifge(if_val, else_val) => {
+                let val = self.operand_stack.stack.pop().unwrap();
+                let jump_pointer = if val <= OperandStackItem::I32(0) {
+                    *if_val
+                } else {
+                    *else_val
+                };
+                return (false, jump_pointer);
+            }
+            Instruction::Ifgt(if_val, else_val) => {
+                let val = self.operand_stack.stack.pop().unwrap();
+                let jump_pointer = if val < OperandStackItem::I32(0) {
+                    *if_val
+                } else {
+                    *else_val
+                };
+                return (false, jump_pointer);
+            }
+            Instruction::Ifle(if_val, else_val) => {
+                let val = self.operand_stack.stack.pop().unwrap();
+                let jump_pointer = if val >= OperandStackItem::I32(0) {
+                    *if_val
+                } else {
+                    *else_val
+                };
+                return (false, jump_pointer);
+            }
+
             Instruction::Ificmpeq(if_val, else_val) => {
                 let left = self.operand_stack.stack.pop();
                 let right = self.operand_stack.stack.pop();
