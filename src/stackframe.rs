@@ -25,6 +25,20 @@ impl From<OperandStackItem> for StackframeItem {
     }
 }
 
+impl From<&OperandStackItem> for StackframeItem {
+    fn from(item: &OperandStackItem) -> StackframeItem {
+        match item {
+            OperandStackItem::Int(value) => StackframeItem::Int(*value),
+            OperandStackItem::Long(value) => StackframeItem::Long(*value),
+            OperandStackItem::String(value) => StackframeItem::String(value.clone()),
+            OperandStackItem::Utf8(index) => StackframeItem::Utf8(*index),
+            OperandStackItem::Classref(index) => StackframeItem::Classref(*index),
+            OperandStackItem::Fieldref(index) => StackframeItem::Fieldref(*index),
+            OperandStackItem::Null => StackframeItem::Null,
+        }
+    }
+}
+
 #[derive(Debug)]
 pub struct Stackframe {
     pub local_variables: Vec<StackframeItem>,

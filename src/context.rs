@@ -359,14 +359,13 @@ impl Context {
 
     fn create_new_stack_frame(&mut self, local_variable_length: usize) -> Stackframe {
         let mut new_stack_frame = Stackframe::new(local_variable_length);
-        let stack_length = self.operand_stack.stack.len();
         let mut variables: Vec<_> = self
             .operand_stack
             .stack
-            .drain((stack_length - local_variable_length)..stack_length)
-            .into_iter()
+            .iter()
             .map(|operand_item| StackframeItem::from(operand_item))
             .collect();
+        self.operand_stack.stack.clear();
         new_stack_frame.local_variables.append(&mut variables);
         new_stack_frame
     }

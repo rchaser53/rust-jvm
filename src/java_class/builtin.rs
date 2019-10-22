@@ -52,8 +52,7 @@ impl BuiltInMethod {
     ) {
         match self.code_type {
             BuitlInCodeType::Println => {
-                let mut param_iter = stackframe.local_variables.iter();
-                while let Some(item) = param_iter.next() {
+                if let Some(item) = stackframe.local_variables.get(1) {
                     match item {
                         StackframeItem::Fieldref(index) => {
                             println!("{}", constant_pool.get_fieldref_as_utf8(*index));
@@ -65,7 +64,9 @@ impl BuiltInMethod {
                             println!("{}", value);
                         }
                         StackframeItem::Long(first) => {
-                            if let Some(StackframeItem::Long(second)) = param_iter.next() {
+                            if let Some(StackframeItem::Long(second)) =
+                                stackframe.local_variables.get(2)
+                            {
                                 println!("{}", (first << 8 | second) & 0xFFFF as i64);
                             } else {
                                 unreachable!("should exist long second item")
@@ -73,6 +74,8 @@ impl BuiltInMethod {
                         }
                         _ => unimplemented!(),
                     };
+                } else {
+                    unreachable!("should have a argument for println")
                 }
             }
         }
