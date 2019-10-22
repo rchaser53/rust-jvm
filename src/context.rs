@@ -293,6 +293,12 @@ impl Context {
                     .stack
                     .push(OperandStackItem::String(string_val));
             }
+            Instruction::Ldc2W(first, second) => {
+                let item = class_file
+                    .cp_info
+                    .get_operand_stack_item((*first << 8 | *second) & 0xFFFF);
+                self.operand_stack.stack.push(item);
+            }
             _ => {}
         };
         (false, index + instruction.counsume_index())

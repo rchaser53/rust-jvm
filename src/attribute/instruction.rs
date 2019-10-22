@@ -6,6 +6,7 @@ pub enum Instruction {
     IconstN(usize),         // 0x02(-1) - 0x08(5)
     Bipush(usize),          // 0x10
     Ldc(usize),             // 0x12
+    Ldc2W(usize, usize),    // 0x14
     IloadN(usize),          // 0x1a(0) - 0x1d(3)
     AloadN(usize),          // 0x2a(0) - 0x2d(3)
     IstoreN(usize),         // 0x3b(0) - 0x3e(3)
@@ -46,6 +47,7 @@ impl fmt::Display for Instruction {
             Instruction::IconstN(val) => write!(f, "iconst_{}", val),
             Instruction::Bipush(val) => write!(f, "bipush         {}", val),
             Instruction::Ldc(val) => write!(f, "ldc             #{}", val),
+            Instruction::Ldc2W(a, b) => write!(f, "ldc2_w         #{},{}", a, b),
             Instruction::IloadN(val) => write!(f, "iload_{}", val),
             Instruction::AloadN(val) => write!(f, "aload_{}", val),
             Instruction::IstoreN(val) => write!(f, "istore_{}", val),
@@ -108,6 +110,14 @@ impl Instruction {
                 codes.push(Instruction::Ldc(val));
                 codes.push(Instruction::Noope);
                 (index, 2)
+            }
+            // ldc2_w
+            0x14 => {
+                let (val, index) = extract_x_byte_as_vec(inputs, index, 2);
+                codes.push(Instruction::Ldc2W(val[0] as usize, val[1] as usize));
+                codes.push(Instruction::Noope);
+                codes.push(Instruction::Noope);
+                (index, 3)
             }
             // iload_n
             val @ 0x1a..=0x1d => {
