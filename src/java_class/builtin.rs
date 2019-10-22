@@ -59,7 +59,7 @@ impl BuiltInMethod {
                         StackframeItem::String(value) => {
                             println!("{}", value);
                         }
-                        StackframeItem::I32(value) => {
+                        StackframeItem::Int(value) => {
                             println!("{}", value);
                         }
                         _ => unimplemented!(),

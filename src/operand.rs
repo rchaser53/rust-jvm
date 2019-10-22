@@ -4,7 +4,7 @@ use std::cmp::{Ordering, PartialOrd};
 #[derive(PartialEq, Clone, Debug)]
 pub enum OperandStackItem {
     Null,
-    I32(i32),
+    Int(i32),
     Long(i64),
     String(String),
     Utf8(usize),
@@ -15,7 +15,7 @@ pub enum OperandStackItem {
 impl From<&StackframeItem> for OperandStackItem {
     fn from(item: &StackframeItem) -> OperandStackItem {
         match item {
-            StackframeItem::I32(value) => OperandStackItem::I32(*value),
+            StackframeItem::Int(value) => OperandStackItem::Int(*value),
             StackframeItem::Long(value) => OperandStackItem::Long(*value),
             StackframeItem::String(value) => OperandStackItem::String(value.clone()),
             StackframeItem::Utf8(index) => OperandStackItem::Utf8(*index),
@@ -30,7 +30,7 @@ impl PartialOrd for OperandStackItem {
     fn partial_cmp(&self, other: &OperandStackItem) -> Option<Ordering> {
         match (self, other) {
             (OperandStackItem::Null, OperandStackItem::Null) => Some(Ordering::Equal),
-            (OperandStackItem::I32(left), OperandStackItem::I32(right)) => Some(left.cmp(right)),
+            (OperandStackItem::Int(left), OperandStackItem::Int(right)) => Some(left.cmp(right)),
             (OperandStackItem::Long(left), OperandStackItem::Long(right)) => Some(left.cmp(right)),
             (OperandStackItem::Utf8(left), OperandStackItem::Utf8(right)) => Some(left.cmp(right)),
             (OperandStackItem::Classref(left), OperandStackItem::Classref(right)) => {
@@ -94,8 +94,8 @@ impl OperandStack {
 
     pub fn add_two_item(first: OperandStackItem, second: OperandStackItem) -> OperandStackItem {
         match (&first, &second) {
-            (OperandStackItem::I32(first), OperandStackItem::I32(second)) => {
-                OperandStackItem::I32(first + second)
+            (OperandStackItem::Int(first), OperandStackItem::Int(second)) => {
+                OperandStackItem::Int(first + second)
             }
             _ => panic!(
                 "first:{:?} and second:{:?} types are not matched",
@@ -106,8 +106,8 @@ impl OperandStack {
 
     pub fn sub_two_item(first: OperandStackItem, second: OperandStackItem) -> OperandStackItem {
         match (&first, &second) {
-            (OperandStackItem::I32(first), OperandStackItem::I32(second)) => {
-                OperandStackItem::I32(first - second)
+            (OperandStackItem::Int(first), OperandStackItem::Int(second)) => {
+                OperandStackItem::Int(first - second)
             }
             _ => panic!(
                 "first:{:?} and second:{:?} types are not matched",
@@ -118,8 +118,8 @@ impl OperandStack {
 
     pub fn mul_two_item(first: OperandStackItem, second: OperandStackItem) -> OperandStackItem {
         match (&first, &second) {
-            (OperandStackItem::I32(first), OperandStackItem::I32(second)) => {
-                OperandStackItem::I32(first * second)
+            (OperandStackItem::Int(first), OperandStackItem::Int(second)) => {
+                OperandStackItem::Int(first * second)
             }
             _ => panic!(
                 "first:{:?} and second:{:?} types are not matched",
@@ -130,8 +130,8 @@ impl OperandStack {
 
     pub fn div_two_item(first: OperandStackItem, second: OperandStackItem) -> OperandStackItem {
         match (&first, &second) {
-            (OperandStackItem::I32(first), OperandStackItem::I32(second)) => {
-                OperandStackItem::I32(first / second)
+            (OperandStackItem::Int(first), OperandStackItem::Int(second)) => {
+                OperandStackItem::Int(first / second)
             }
             _ => panic!(
                 "first:{:?} and second:{:?} types are not matched",
@@ -142,8 +142,8 @@ impl OperandStack {
 
     pub fn rem_two_item(first: OperandStackItem, second: OperandStackItem) -> OperandStackItem {
         match (&first, &second) {
-            (OperandStackItem::I32(first), OperandStackItem::I32(second)) => {
-                OperandStackItem::I32(first % second)
+            (OperandStackItem::Int(first), OperandStackItem::Int(second)) => {
+                OperandStackItem::Int(first % second)
             }
             _ => panic!(
                 "first:{:?} and second:{:?} types are not matched",

@@ -94,12 +94,12 @@ impl Context {
             }
             Instruction::IconstN(val) => {
                 self.operand_stack
-                    .iconst(OperandStackItem::I32(*val as i32));
+                    .iconst(OperandStackItem::Int(*val as i32));
             }
             // maybe need to fix for float or something like that
             Instruction::Bipush(val) => {
                 self.operand_stack
-                    .iconst(OperandStackItem::I32(*val as i32));
+                    .iconst(OperandStackItem::Int(*val as i32));
             }
             Instruction::Goto(pointer) => {
                 return (false, *pointer);
@@ -107,7 +107,7 @@ impl Context {
             Instruction::Iinc(index, value) => {
                 if let Some(stack_frame) = self.stack_frames.last_mut() {
                     if let Some(item) = stack_frame.local_variables.get_mut(*index) {
-                        if let StackframeItem::I32(val) = item {
+                        if let StackframeItem::Int(val) = item {
                             mem::replace(val, *val + *value as i32);
                         }
                     }
@@ -115,7 +115,7 @@ impl Context {
             }
             Instruction::Ifeq(if_val, else_val) => {
                 let val = self.operand_stack.stack.pop().unwrap();
-                let jump_pointer = if val == OperandStackItem::I32(0) {
+                let jump_pointer = if val == OperandStackItem::Int(0) {
                     *if_val
                 } else {
                     *else_val
@@ -124,7 +124,7 @@ impl Context {
             }
             Instruction::Ifne(if_val, else_val) => {
                 let val = self.operand_stack.stack.pop().unwrap();
-                let jump_pointer = if val != OperandStackItem::I32(0) {
+                let jump_pointer = if val != OperandStackItem::Int(0) {
                     *if_val
                 } else {
                     *else_val
@@ -133,7 +133,7 @@ impl Context {
             }
             Instruction::Iflt(if_val, else_val) => {
                 let val = self.operand_stack.stack.pop().unwrap();
-                let jump_pointer = if val < OperandStackItem::I32(0) {
+                let jump_pointer = if val < OperandStackItem::Int(0) {
                     *if_val
                 } else {
                     *else_val
@@ -142,7 +142,7 @@ impl Context {
             }
             Instruction::Ifge(if_val, else_val) => {
                 let val = self.operand_stack.stack.pop().unwrap();
-                let jump_pointer = if val >= OperandStackItem::I32(0) {
+                let jump_pointer = if val >= OperandStackItem::Int(0) {
                     *if_val
                 } else {
                     *else_val
@@ -151,7 +151,7 @@ impl Context {
             }
             Instruction::Ifgt(if_val, else_val) => {
                 let val = self.operand_stack.stack.pop().unwrap();
-                let jump_pointer = if val > OperandStackItem::I32(0) {
+                let jump_pointer = if val > OperandStackItem::Int(0) {
                     *if_val
                 } else {
                     *else_val
@@ -160,7 +160,7 @@ impl Context {
             }
             Instruction::Ifle(if_val, else_val) => {
                 let val = self.operand_stack.stack.pop().unwrap();
-                let jump_pointer = if val <= OperandStackItem::I32(0) {
+                let jump_pointer = if val <= OperandStackItem::Int(0) {
                     *if_val
                 } else {
                     *else_val
