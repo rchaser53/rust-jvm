@@ -250,12 +250,12 @@ impl Context {
                     match class {
                         JavaClass::BuiltIn(ref mut builtin_class) => {
                             let method_name = class_file.cp_info.get_utf8(name_and_type.name_index);
-                            let _method_descriptor =
+                            let method_descriptor =
                                 class_file.cp_info.get_utf8(name_and_type.descriptor_index);
                             // TBD: should use method_descriptor
                             if let Some(method) = builtin_class.methods.get_mut(&method_name) {
-                                let mut stack_frame =
-                                    self.create_new_stack_frame(method.max_locals);
+                                let mut stack_frame = self
+                                    .create_new_stack_frame(method.max_locals(&method_descriptor));
                                 method.execute(
                                     &class_file.cp_info,
                                     &mut stack_frame,

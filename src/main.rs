@@ -37,18 +37,16 @@ fn main() {
 
 fn setup_class_map() -> HashMap<String, JavaClass> {
     let mut class_map = HashMap::new();
+    let (print_stream_name, print_stream) = create_print_stream();
+    class_map.insert(print_stream_name, print_stream);
+    class_map
+}
 
+fn create_print_stream() -> (String, JavaClass) {
     let print_stream_name = String::from("java/io/PrintStream");
     let mut print_stream = BuiltIn::new(print_stream_name.clone());
     let println_name = String::from("println");
-    let println = BuiltInMethod::new(
-        println_name.clone(),
-        String::from("templorary_descriptor"),
-        BuitlInCodeType::Println,
-        1,
-    );
+    let println = BuiltInMethod::new(println_name.clone(), BuitlInCodeType::Println);
     print_stream.methods.insert(println_name, println);
-
-    class_map.insert(print_stream_name, JavaClass::BuiltIn(print_stream));
-    class_map
+    (print_stream_name, JavaClass::BuiltIn(print_stream))
 }

@@ -20,25 +20,27 @@ impl BuiltIn {
 }
 
 #[derive(Debug)]
+pub enum BuiltInLocal {
+    Println,
+}
+
+#[derive(Debug)]
 pub struct BuiltInMethod {
     pub name: String,
-    pub descriptor: String,
     pub code_type: BuitlInCodeType,
-    pub max_locals: usize,
 }
 
 impl BuiltInMethod {
-    pub fn new(
-        name: String,
-        descriptor: String,
-        code_type: BuitlInCodeType,
-        max_locals: usize,
-    ) -> BuiltInMethod {
-        BuiltInMethod {
-            name,
-            descriptor,
-            code_type,
-            max_locals,
+    pub fn new(name: String, code_type: BuitlInCodeType) -> BuiltInMethod {
+        BuiltInMethod { name, code_type }
+    }
+
+    pub fn max_locals(&self, descriptor: &str) -> usize {
+        match self.code_type {
+            BuitlInCodeType::Println => match descriptor {
+                "(J)V" | "(D)V" => 2,
+                _ => 1,
+            },
         }
     }
 
