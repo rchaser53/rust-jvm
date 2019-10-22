@@ -4,6 +4,7 @@ use crate::java_class::{custom::Custom, JavaClass};
 use crate::method::Method;
 use crate::operand::{OperandStack, OperandStackItem};
 use crate::stackframe::{Stackframe, StackframeItem};
+use std::cmp::Ordering;
 use std::collections::HashMap;
 use std::mem;
 
@@ -204,10 +205,8 @@ impl Context {
                 return (false, jump_pointer);
             }
             Instruction::IloadN(index) => {
-                if let Some(stack_frame) = self.stack_frames.last() {
-                    let value = &stack_frame.local_variables[*index];
-                    self.operand_stack.stack.push(OperandStackItem::from(value));
-                }
+                self.load_n(instruction, *index);
+            }
             }
             Instruction::IstoreN(index) => {
                 self.store_n(&[*index]);
@@ -293,6 +292,15 @@ impl Context {
             _ => {}
         };
         (false, index + instruction.counsume_index())
+    }
+
+    fn load_n(&mut self, instruction: &Instruction, index: usize) {
+        if let Some(stack_frame) = self.stack_frames.last() {
+            let value = &stack_frame.local_variables[index];
+            self.operand_stack.stack.push(OperandStackItem::from(value));
+        } else {
+            unreachable!("order: {}, should find item in {}", instruction, index);
+        }
     }
 
     fn store_n(&mut self, indexs: &[usize]) {
