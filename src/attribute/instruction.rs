@@ -91,7 +91,7 @@ impl Instruction {
     ) -> (usize, usize) {
         match tag {
             // iconst_n
-            val @ 0x02..0x08 => {
+            val @ 0x02..=0x08 => {
                 codes.push(Instruction::IconstN(val - 0x03));
                 (index, 1)
             }
@@ -110,17 +110,17 @@ impl Instruction {
                 (index, 2)
             }
             // iload_n
-            val @ 0x1a..0x1d => {
+            val @ 0x1a..=0x1d => {
                 codes.push(Instruction::IloadN(val - 0x1a));
                 (index, 1)
             }
             // aload_n
-            val @ 0x2a..0x2d => {
+            val @ 0x2a..=0x2d => {
                 codes.push(Instruction::AloadN(val - 0x2a));
                 (index, 1)
             }
             // istore_n
-            val @ 0x3b..0x3e => {
+            val @ 0x3b..=0x3e => {
                 codes.push(Instruction::IstoreN(val - 0x3b));
                 (index, 1)
             }
