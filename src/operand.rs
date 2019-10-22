@@ -5,6 +5,7 @@ use std::cmp::{Ordering, PartialOrd};
 pub enum OperandStackItem {
     Null,
     I32(i32),
+    Long(i64),
     String(String),
     Utf8(usize),
     Classref(usize),
@@ -15,6 +16,7 @@ impl From<&StackframeItem> for OperandStackItem {
     fn from(item: &StackframeItem) -> OperandStackItem {
         match item {
             StackframeItem::I32(value) => OperandStackItem::I32(*value),
+            StackframeItem::Long(value) => OperandStackItem::Long(*value),
             StackframeItem::String(value) => OperandStackItem::String(value.clone()),
             StackframeItem::Utf8(index) => OperandStackItem::Utf8(*index),
             StackframeItem::Classref(index) => OperandStackItem::Classref(*index),
@@ -29,6 +31,7 @@ impl PartialOrd for OperandStackItem {
         match (self, other) {
             (OperandStackItem::Null, OperandStackItem::Null) => Some(Ordering::Equal),
             (OperandStackItem::I32(left), OperandStackItem::I32(right)) => Some(left.cmp(right)),
+            (OperandStackItem::Long(left), OperandStackItem::Long(right)) => Some(left.cmp(right)),
             (OperandStackItem::Utf8(left), OperandStackItem::Utf8(right)) => Some(left.cmp(right)),
             (OperandStackItem::Classref(left), OperandStackItem::Classref(right)) => {
                 Some(left.cmp(right))

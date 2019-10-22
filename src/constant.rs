@@ -101,6 +101,9 @@ next tag: {}",
             }
             ConstPoolItem::ConstantFieldref(_) => OperandStackItem::Fieldref(index),
             ConstPoolItem::ConstantUtf8(_) => OperandStackItem::Utf8(index),
+            ConstPoolItem::ConstantLong(ref item) => {
+                OperandStackItem::Long(((item.high_bytes << 8 | item.low_bytes) & 0xFFFF) as i64)
+            }
             _ => unimplemented!("{:?}", self.0[index]),
         }
     }

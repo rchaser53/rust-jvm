@@ -4,6 +4,7 @@ use crate::operand::{OperandStack, OperandStackItem};
 pub enum StackframeItem {
     Null,
     I32(i32),
+    Long(i64),
     String(String),
     Utf8(usize),
     Classref(usize),
@@ -14,6 +15,7 @@ impl From<OperandStackItem> for StackframeItem {
     fn from(item: OperandStackItem) -> StackframeItem {
         match item {
             OperandStackItem::I32(value) => StackframeItem::I32(value),
+            OperandStackItem::Long(value) => StackframeItem::Long(value),
             OperandStackItem::String(value) => StackframeItem::String(value),
             OperandStackItem::Utf8(index) => StackframeItem::Utf8(index),
             OperandStackItem::Classref(index) => StackframeItem::Classref(index),
