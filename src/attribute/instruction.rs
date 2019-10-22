@@ -402,7 +402,6 @@ impl Instruction {
 
     pub fn counsume_index(&self) -> usize {
         match self {
-            Instruction::Bipush(_) | Instruction::Ldc(_) => 1,
             Instruction::Ificmple(_, _)
             | Instruction::Getstatic(_)
             | Instruction::Getfield(_)
@@ -411,12 +410,13 @@ impl Instruction {
             | Instruction::Invokespecial(_)
             | Instruction::Iinc(_, _)
             | Instruction::Ldc2W(_, _)
-            | Instruction::LstoreN(_)
-            | Instruction::LloadN(_)
             | Instruction::Invokestatic(_) => 2,
+            Instruction::Bipush(_) | Instruction::Ldc(_) => 1,
             Instruction::IconstN(_)
             | Instruction::IstoreN(_)
             | Instruction::IloadN(_)
+            | Instruction::LstoreN(_)
+            | Instruction::LloadN(_)
             | Instruction::Irem
             | Instruction::Return
             | Instruction::Iadd => 0,
