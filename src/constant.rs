@@ -7,7 +7,9 @@ pub struct ConstantPool(pub Vec<ConstPoolItem>);
 impl ConstantPool {
     pub fn new(inputs: &mut [u8], mut index: usize, length: usize) -> (ConstantPool, usize) {
         let mut items = vec![ConstPoolItem::ConstantNull];
-        for _ in 0..length - 1 {
+        let mut constant_index = 0;
+        let constant_pool_length = length - 1;
+        while constant_pool_length > constant_index {
             let (tag, update_index) = extract_x_byte_as_usize(inputs, index, 1);
 
             let (item, update_index) = match ConstPoolTag::from(tag) {
@@ -44,22 +46,32 @@ impl ConstantPool {
                 ConstPoolTag::ConstantLong => {
                     let (item, update_index) =
                         ConstantLong::create_and_update_index(inputs, update_index);
-                    (ConstPoolItem::ConstantLong(item), update_index)
+                    constant_index += 2;
+                    index = update_index;
+                    items.push(ConstPoolItem::ConstantLong(item));
+                    items.push(ConstPoolItem::ConstantNull);
+                    continue;
                 }
                 ConstPoolTag::ConstantDouble => {
                     let (item, update_index) =
                         ConstantDouble::create_and_update_index(inputs, update_index);
-                    (ConstPoolItem::ConstantDouble(item), update_index)
+                    constant_index += 2;
+                    index = update_index;
+                    items.push(ConstPoolItem::ConstantDouble(item));
+                    items.push(ConstPoolItem::ConstantNull);
+                    continue;
                 }
-                _ => {
-                    println!(
-                        "failed. current constant pool {}. next tag: {}",
-                        ConstantPool(items),
-                        tag
-                    );
-                    unimplemented!()
-                }
+                _ => unimplemented!(
+                    "
+constant pool purse failed.
+current constant pool
+{}.
+next tag: {}",
+                    ConstantPool(items),
+                    tag
+                ),
             };
+            constant_index += 1;
             index = update_index;
             items.push(item);
         }
@@ -173,7 +185,7 @@ impl fmt::Display for ConstantPool {
                     index, item.name_index, item.descriptor_index
                 ),
                 ConstPoolItem::ConstantLong(item) => format!(
-                    "  #{} = Long             {}",
+                    "  #{} = Long             {}l",
                     index,
                     ((item.high_bytes << 8) | item.low_bytes) & 0xFFFF
                 ),
