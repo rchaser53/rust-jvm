@@ -310,7 +310,7 @@ impl Instruction {
             0xa7 => {
                 let (val, index) = extract_x_byte_as_usize(inputs, index, 2);
                 let code_length = codes.len();
-                codes.push(Instruction::Goto((val + code_length - 1) & 0xffff));
+                codes.push(Instruction::Goto((val + code_length - 1) & 0xFFFF));
                 codes.push(Instruction::Noope);
                 codes.push(Instruction::Noope);
                 (index, 3)

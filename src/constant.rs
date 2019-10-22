@@ -41,6 +41,16 @@ impl ConstantPool {
                         ConstantFieldref::create_and_update_index(inputs, update_index);
                     (ConstPoolItem::ConstantFieldref(item), update_index)
                 }
+                ConstPoolTag::ConstantLong => {
+                    let (item, update_index) =
+                        ConstantLong::create_and_update_index(inputs, update_index);
+                    (ConstPoolItem::ConstantLong(item), update_index)
+                }
+                ConstPoolTag::ConstantDouble => {
+                    let (item, update_index) =
+                        ConstantDouble::create_and_update_index(inputs, update_index);
+                    (ConstPoolItem::ConstantDouble(item), update_index)
+                }
                 _ => {
                     println!(
                         "failed. current constant pool {}. next tag: {}",
@@ -140,27 +150,37 @@ impl fmt::Display for ConstantPool {
                     continue;
                 }
                 ConstPoolItem::ConstantMethodref(item) => format!(
-                    "  #{} = Methodref    #{}.#{}",
+                    "  #{} = Methodref        #{}.#{}",
                     index, item.class_index, item.name_and_type_index,
                 ),
                 ConstPoolItem::ConstantFieldref(item) => format!(
-                    "  #{} = Fieldref     #{}.#{}",
+                    "  #{} = Fieldref         #{}.#{}",
                     index, item.class_index, item.name_and_type_index
                 ),
                 ConstPoolItem::ConstantString(item) => {
-                    format!("  #{} = String       #{}", index, item.string_index)
+                    format!("  #{} = String           #{}", index, item.string_index)
                 }
                 ConstPoolItem::ConstantClass(item) => {
-                    format!("  #{} = Class        #{}", index, item.name_index)
+                    format!("  #{} = Class            #{}", index, item.name_index)
                 }
                 ConstPoolItem::ConstantUtf8(item) => format!(
-                    "  #{} = Utf8         {}",
+                    "  #{} = Utf8             {}",
                     index,
                     String::from_utf8_lossy(item.bytes.as_slice())
                 ),
                 ConstPoolItem::ConstantNameAndType(item) => format!(
-                    "  #{} = NameAndType  #{}:#{}",
+                    "  #{} = NameAndType      #{}:#{}",
                     index, item.name_index, item.descriptor_index
+                ),
+                ConstPoolItem::ConstantLong(item) => format!(
+                    "  #{} = Long             {}",
+                    index,
+                    ((item.high_bytes << 8) | item.low_bytes) & 0xFFFF
+                ),
+                ConstPoolItem::ConstantDouble(item) => format!(
+                    "  #{} = Double           {}",
+                    index,
+                    ((item.high_bytes << 8) | item.low_bytes) & 0xFFFF
                 ),
                 _ => unimplemented!(),
             };
@@ -222,13 +242,57 @@ pub enum ConstPoolItem {
     ConstantString(ConstantString),
     ConstantInteger,
     ConstantFloat,
-    ConstantLong,
-    ConstantDouble,
+    ConstantLong(ConstantLong),
+    ConstantDouble(ConstantDouble),
     ConstantNameAndType(ConstantNameAndType),
     ConstantUtf8(ConstantUtf8),
     ConstantMethodHandle,
     ConstantMethodType,
     ConstantInvokeDynamic,
+}
+
+#[derive(Debug, PartialEq)]
+pub struct ConstantLong {
+    pub tag: ConstPoolTag,
+    pub high_bytes: usize, // u4
+    pub low_bytes: usize,  // u4
+}
+
+impl ConstantLong {
+    pub fn create_and_update_index(inputs: &mut [u8], index: usize) -> (ConstantLong, usize) {
+        let (high_bytes, index) = extract_x_byte_as_usize(inputs, index, 4);
+        let (low_bytes, index) = extract_x_byte_as_usize(inputs, index, 4);
+        (
+            ConstantLong {
+                tag: ConstPoolTag::ConstantString,
+                high_bytes,
+                low_bytes,
+            },
+            index,
+        )
+    }
+}
+
+#[derive(Debug, PartialEq)]
+pub struct ConstantDouble {
+    pub tag: ConstPoolTag,
+    pub high_bytes: usize, // u4
+    pub low_bytes: usize,  // u4
+}
+
+impl ConstantDouble {
+    pub fn create_and_update_index(inputs: &mut [u8], index: usize) -> (ConstantDouble, usize) {
+        let (high_bytes, index) = extract_x_byte_as_usize(inputs, index, 4);
+        let (low_bytes, index) = extract_x_byte_as_usize(inputs, index, 4);
+        (
+            ConstantDouble {
+                tag: ConstPoolTag::ConstantString,
+                high_bytes,
+                low_bytes,
+            },
+            index,
+        )
+    }
 }
 
 #[derive(Debug, PartialEq)]
