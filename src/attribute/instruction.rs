@@ -8,8 +8,10 @@ pub enum Instruction {
     Ldc(usize),             // 0x12
     Ldc2W(usize, usize),    // 0x14
     IloadN(usize),          // 0x1a(0) - 0x1d(3)
+    LloadN(usize),          // 0x1e(0) - 0x21(3)
     AloadN(usize),          // 0x2a(0) - 0x2d(3)
     IstoreN(usize),         // 0x3b(0) - 0x3e(3)
+    LstoreN(usize),         // 0x3f(0) - 0x42(3)
     Pop,                    // 0x57
     Iadd,                   // 0x60
     Isub,                   // 0x64
@@ -49,8 +51,10 @@ impl fmt::Display for Instruction {
             Instruction::Ldc(val) => write!(f, "ldc             #{}", val),
             Instruction::Ldc2W(a, b) => write!(f, "ldc2_w         #{},{}", a, b),
             Instruction::IloadN(val) => write!(f, "iload_{}", val),
+            Instruction::LloadN(val) => write!(f, "lload_{}", val),
             Instruction::AloadN(val) => write!(f, "aload_{}", val),
             Instruction::IstoreN(val) => write!(f, "istore_{}", val),
+            Instruction::LstoreN(val) => write!(f, "lstore_{}", val),
             Instruction::Pop => write!(f, "pop"),
             Instruction::Iadd => write!(f, "iadd"),
             Instruction::Isub => write!(f, "isub"),
@@ -124,6 +128,11 @@ impl Instruction {
                 codes.push(Instruction::IloadN(val - 0x1a));
                 (index, 1)
             }
+            // lload_n
+            val @ 0x1e..=0x21 => {
+                codes.push(Instruction::LloadN(val - 0x1e));
+                (index, 1)
+            }
             // aload_n
             val @ 0x2a..=0x2d => {
                 codes.push(Instruction::AloadN(val - 0x2a));
@@ -132,6 +141,10 @@ impl Instruction {
             // istore_n
             val @ 0x3b..=0x3e => {
                 codes.push(Instruction::IstoreN(val - 0x3b));
+                (index, 1)
+            }
+            val @ 0x3f..=0x42 => {
+                codes.push(Instruction::LstoreN(val - 0x3f));
                 (index, 1)
             }
             // pop
@@ -397,6 +410,9 @@ impl Instruction {
             | Instruction::Invokevirtual(_)
             | Instruction::Invokespecial(_)
             | Instruction::Iinc(_, _)
+            | Instruction::Ldc2W(_, _)
+            | Instruction::LstoreN(_)
+            | Instruction::LloadN(_)
             | Instruction::Invokestatic(_) => 2,
             Instruction::IconstN(_)
             | Instruction::IstoreN(_)

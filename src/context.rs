@@ -54,7 +54,7 @@ impl Context {
             self.stack_frames.push(stack_frame);
             let mut index = 0;
             while let Some(instruction) = code.code.get(index) {
-                println!("{}", instruction);
+                // println!("{}", instruction);
                 let (should_finish, update_index) = self.execute(class_file, instruction, index);
                 if should_finish {
                     break;
@@ -207,10 +207,17 @@ impl Context {
             Instruction::IloadN(index) => {
                 self.load_n(instruction, *index);
             }
+            Instruction::LloadN(index) => {
+                let base_index = *index;
+                self.load_n(instruction, base_index);
+                self.load_n(instruction, base_index + 1);
             }
             Instruction::IstoreN(index) => {
                 self.store_n(&[*index]);
             }
+            Instruction::LstoreN(index) => {
+                let base_index = *index;
+                self.store_n(&[base_index + 1, base_index]);
             }
             Instruction::AloadN(index) => {
                 if let Some(stack_frame) = self.stack_frames.last() {
