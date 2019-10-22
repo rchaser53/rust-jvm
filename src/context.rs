@@ -210,17 +210,8 @@ impl Context {
                 }
             }
             Instruction::IstoreN(index) => {
-                if let Some(stack_frame) = self.stack_frames.last_mut() {
-                    if let Some(item) = self.operand_stack.stack.pop() {
-                        if stack_frame.local_variables.get(*index).is_some() {
-                            stack_frame.local_variables[*index] = StackframeItem::from(item);
-                        } else {
-                            stack_frame
-                                .local_variables
-                                .insert(*index, StackframeItem::from(item));
-                        }
-                    }
-                }
+                self.store_n(&[*index]);
+            }
             }
             Instruction::AloadN(index) => {
                 if let Some(stack_frame) = self.stack_frames.last() {
@@ -302,6 +293,38 @@ impl Context {
             _ => {}
         };
         (false, index + instruction.counsume_index())
+    }
+
+    fn store_n(&mut self, indexs: &[usize]) {
+        let index_size = indexs.len();
+        let mut item_vec = Vec::with_capacity(index_size);
+        if let Some(stack_frame) = self.stack_frames.last_mut() {
+            for i in 0..index_size {
+                let item = if let Some(item) = self.operand_stack.stack.pop() {
+                    item
+                } else {
+                    unreachable!("should have item in operand_stack")
+                };
+                item_vec.push((indexs[i], item));
+            }
+            item_vec.sort_by(|before, after| {
+                if before.0 > after.0 {
+                    Ordering::Greater
+                } else {
+                    Ordering::Less
+                }
+            });
+
+            for (index, item) in item_vec.into_iter() {
+                if stack_frame.local_variables.get(index).is_some() {
+                    stack_frame.local_variables[index] = StackframeItem::from(item);
+                } else {
+                    stack_frame
+                        .local_variables
+                        .insert(index, StackframeItem::from(item));
+                }
+            }
+        }
     }
 
     fn get_related_method_info<'b>(
