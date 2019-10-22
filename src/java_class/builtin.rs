@@ -62,6 +62,13 @@ impl BuiltInMethod {
                         StackframeItem::Int(value) => {
                             println!("{}", value);
                         }
+                        StackframeItem::Long(first) => {
+                            if let Some(StackframeItem::Long(second)) = param_iter.next() {
+                                println!("{}", (first << 8 | second) & 0xFFFF as i64);
+                            } else {
+                                unreachable!("should exist long second item")
+                            }
+                        }
                         _ => unimplemented!(),
                     };
                 }
