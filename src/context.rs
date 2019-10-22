@@ -226,8 +226,9 @@ impl Context {
                 }
             }
             Instruction::Getstatic(index) => {
-                let item = class_file.cp_info.get_operand_stack_item(*index);
-                self.operand_stack.stack.push(item);
+                class_file
+                    .cp_info
+                    .create_and_set_operand_stack_item(&mut self.operand_stack.stack, *index);
             }
             Instruction::Ireturn => {
                 if let Some(item) = self.operand_stack.stack.pop() {
@@ -291,10 +292,10 @@ impl Context {
                     .push(OperandStackItem::String(string_val));
             }
             Instruction::Ldc2W(first, second) => {
-                let item = class_file
-                    .cp_info
-                    .get_operand_stack_item((*first << 8 | *second) & 0xFFFF);
-                self.operand_stack.stack.push(item);
+                class_file.cp_info.create_and_set_operand_stack_item(
+                    &mut self.operand_stack.stack,
+                    (*first << 8 | *second) & 0xFFFF,
+                );
             }
             _ => {}
         };

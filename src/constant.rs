@@ -89,23 +89,35 @@ next tag: {}",
         })
     }
 
-    pub fn get_operand_stack_item(&self, index: usize) -> OperandStackItem {
-        match self.0[index] {
-            // ConstPoolItem::ConstantNull,
-            // ConstPoolItem::ConstantClass(ConstantClass),
-            // ConstPoolItem::ConstantMethodref(ConstantMethodref),
-            // ConstPoolItem::ConstantInterfaceMethodref,
-            // ConstPoolItem::ConstantNameAndType(ConstantNameAndType),
-            ConstPoolItem::ConstantString(ref item) => {
-                OperandStackItem::String(self.get_string(item.string_index))
-            }
-            ConstPoolItem::ConstantFieldref(_) => OperandStackItem::Fieldref(index),
-            ConstPoolItem::ConstantUtf8(_) => OperandStackItem::Utf8(index),
-            ConstPoolItem::ConstantLong(ref item) => {
-                OperandStackItem::Long(((item.high_bytes << 8 | item.low_bytes) & 0xFFFF) as i64)
-            }
-            _ => unimplemented!("{:?}", self.0[index]),
-        }
+    pub fn create_and_set_operand_stack_item(
+        &self,
+        stack: &mut Vec<OperandStackItem>,
+        index: usize,
+    ) {
+        match self.0.get(index) {
+            Some(ref item) => match item {
+                // ConstPoolItem::ConstantClass(ConstantClass),
+                // ConstPoolItem::ConstantMethodref(ConstantMethodref),
+                // ConstPoolItem::ConstantInterfaceMethodref,
+                // ConstPoolItem::ConstantNameAndType(ConstantNameAndType),
+                ConstPoolItem::ConstantString(ref item) => {
+                    stack.push(OperandStackItem::String(self.get_string(item.string_index)));
+                }
+                ConstPoolItem::ConstantFieldref(_) => stack.push(OperandStackItem::Fieldref(index)),
+                ConstPoolItem::ConstantUtf8(_) => stack.push(OperandStackItem::Utf8(index)),
+                ConstPoolItem::ConstantLong(ref item) => {
+                    stack.push(OperandStackItem::Long(
+                        ((item.high_bytes << 8) & 0xFFFF) as i64,
+                    ));
+                    stack.push(OperandStackItem::Long(item.low_bytes as i64));
+                }
+                ConstPoolItem::ConstantNull => {
+                    unreachable!("index: {}. should not come ConstantNull", index)
+                }
+                _ => unimplemented!("{:?}", item),
+            },
+            _ => unreachable!("index: {} is not found", index),
+        };
     }
 
     pub fn get_name_and_type(&self, index: usize) -> &ConstantNameAndType {
