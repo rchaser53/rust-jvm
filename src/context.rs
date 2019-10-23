@@ -3,6 +3,7 @@ use crate::constant::ConstantNameAndType;
 use crate::java_class::{custom::Custom, JavaClass};
 use crate::method::Method;
 use crate::operand::{OperandStack, OperandStackItem};
+use crate::option::RJ_OPTION;
 use crate::stackframe::{Stackframe, StackframeItem};
 use std::cmp::Ordering;
 use std::collections::HashMap;
@@ -54,7 +55,9 @@ impl Context {
             self.stack_frames.push(stack_frame);
             let mut index = 0;
             while let Some(instruction) = code.code.get(index) {
-                // println!("{}", instruction);
+                if RJ_OPTION.lock().unwrap().is_debug {
+                    println!("{}", instruction);
+                }
                 let (should_finish, update_index) = self.execute(class_file, instruction, index);
                 if should_finish {
                     break;
