@@ -5,6 +5,7 @@ use std::fmt;
 pub enum Instruction {
     IconstN(usize),         // 0x02(-1) - 0x08(5)
     Bipush(usize),          // 0x10
+    Sipush(usize),          // 0x11
     Ldc(usize),             // 0x12
     Ldc2W(usize, usize),    // 0x14
     IloadN(usize),          // 0x1a(0) - 0x1d(3)
@@ -48,6 +49,7 @@ impl fmt::Display for Instruction {
         match self {
             Instruction::IconstN(val) => write!(f, "iconst_{}", val),
             Instruction::Bipush(val) => write!(f, "bipush         {}", val),
+            Instruction::Sipush(val) => write!(f, "sipush         {}", val),
             Instruction::Ldc(val) => write!(f, "ldc             #{}", val),
             Instruction::Ldc2W(a, b) => write!(f, "ldc2_w         #{},{}", a, b),
             Instruction::IloadN(val) => write!(f, "iload_{}", val),
@@ -107,6 +109,14 @@ impl Instruction {
                 codes.push(Instruction::Bipush(val));
                 codes.push(Instruction::Noope);
                 (index, 2)
+            }
+            // sipush
+            0x11 => {
+                let (val, index) = extract_x_byte_as_usize(inputs, index, 2);
+                codes.push(Instruction::Sipush(val));
+                codes.push(Instruction::Noope);
+                codes.push(Instruction::Noope);
+                (index, 3)
             }
             // ldc
             0x12 => {
@@ -409,6 +419,7 @@ impl Instruction {
             | Instruction::Invokevirtual(_)
             | Instruction::Invokespecial(_)
             | Instruction::Iinc(_, _)
+            | Instruction::Sipush(_)
             | Instruction::Ldc2W(_, _)
             | Instruction::Invokestatic(_) => 2,
             Instruction::Bipush(_) | Instruction::Ldc(_) => 1,
