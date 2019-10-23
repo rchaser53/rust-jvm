@@ -1,10 +1,11 @@
+use crate::attribute::code::Code;
 use crate::attribute::instruction::Instruction;
-use crate::constant::ConstantNameAndType;
+use crate::constant::{ConstantNameAndType, ConstantPool};
 use crate::java_class::{custom::Custom, JavaClass};
-use crate::method::Method;
 use crate::operand::{OperandStack, OperandStackItem};
 use crate::option::RJ_OPTION;
 use crate::stackframe::{Stackframe, StackframeItem};
+use crate::utils::read_file;
 use std::cmp::Ordering;
 use std::collections::HashMap;
 use std::mem;
@@ -37,35 +38,32 @@ impl Context {
         // TBD Perhaps this method is not invoked from super_class
         let super_class_index = class_file.super_class;
         let stack_frame_item_0 = StackframeItem::Classref(super_class_index);
-        self.run_method(&class_file, entry_method, stack_frame_item_0);
+
+        if let Some(code) = entry_method.extract_code() {
+            let mut stack_frame = Stackframe::new(code.max_locals as usize);
+            stack_frame.local_variables.push(stack_frame_item_0);
+            self.stack_frames.push(stack_frame);
+            self.run_method(&class_file, code);
+        } else {
+            unreachable!("should exist code in method");
+        }
 
         self.class_map
             .insert(class_file.this_class_name(), JavaClass::Custom(class_file));
     }
 
-    fn run_method(
-        &mut self,
-        class_file: &Custom,
-        method: &Method,
-        stack_frame_item: StackframeItem,
-    ) {
-        if let Some(code) = method.extract_code() {
-            let mut stack_frame = Stackframe::new(code.max_locals as usize);
-            stack_frame.local_variables.push(stack_frame_item);
-            self.stack_frames.push(stack_frame);
-            let mut index = 0;
-            while let Some(instruction) = code.code.get(index) {
-                if RJ_OPTION.lock().unwrap().is_debug {
-                    println!("{}", instruction);
-                }
-                let (should_finish, update_index) = self.execute(class_file, instruction, index);
-                if should_finish {
-                    break;
-                }
-                index = update_index + 1;
+    fn run_method(&mut self, class_file: &Custom, code: &Code) {
+        let mut index = 0;
+        while let Some(instruction) = code.code.get(index) {
+            if RJ_OPTION.lock().unwrap().is_debug {
+                println!("{}", instruction);
             }
+            let (should_finish, update_index) = self.execute(class_file, instruction, index);
+            if should_finish {
+                break;
+            }
+            index = update_index + 1;
         }
-
         self.stack_frames.pop();
     }
 
@@ -102,6 +100,10 @@ impl Context {
             }
             // maybe need to fix for float or something like that
             Instruction::Bipush(val) => {
+                self.operand_stack
+                    .iconst(OperandStackItem::Int(*val as i32));
+            }
+            Instruction::Sipush(val) => {
                 self.operand_stack
                     .iconst(OperandStackItem::Int(*val as i32));
             }
@@ -249,43 +251,36 @@ impl Context {
             | Instruction::Invokespecial(index)
             | Instruction::Invokestatic(index) => {
                 let (class_name, name_and_type) = self.get_related_method_info(class_file, *index);
+                let method_name = class_file.cp_info.get_utf8(name_and_type.name_index);
+                let method_descriptor = class_file.cp_info.get_utf8(name_and_type.descriptor_index);
+
                 if let Some(mut class) = self.class_map.remove(&class_name) {
-                    match class {
-                        JavaClass::BuiltIn(ref mut builtin_class) => {
-                            let method_name = class_file.cp_info.get_utf8(name_and_type.name_index);
-                            let method_descriptor =
-                                class_file.cp_info.get_utf8(name_and_type.descriptor_index);
-                            // TBD: should use method_descriptor
-                            if let Some(method) = builtin_class.methods.get_mut(&method_name) {
-                                let mut stack_frame = self
-                                    .create_new_stack_frame(method.max_locals(&method_descriptor));
-                                method.execute(
-                                    &class_file.cp_info,
-                                    &mut stack_frame,
-                                    &mut self.operand_stack,
-                                );
-                            } else {
-                                unreachable!(
-                                    "{} is not found in {}",
-                                    method_name, builtin_class.class_name
-                                );
-                            }
-                        }
-                        JavaClass::Custom(ref custom_class) => {
-                            if let Some(method_code) = custom_class.get_method_code(
-                                name_and_type.name_index,
-                                name_and_type.descriptor_index,
-                            ) {
-                                let local_variable_length = method_code.max_locals as usize;
-                                let mut _stack_frame =
-                                    self.create_new_stack_frame(local_variable_length);
-                            }
-                        }
-                    }
+                    self.call_other_class_method(
+                        &mut class,
+                        &class_file.cp_info,
+                        &method_name,
+                        &method_descriptor,
+                    );
                     self.class_map.insert(class.this_class_name(), class);
                 } else {
-                    // TBD: I guess need to read the new other.class
-                    unreachable!("{} is not found in class_map", class_name)
+                    let class_name = class_name.to_string() + ".class";
+                    if let Ok(buffer) = read_file(&class_name, &mut vec![]) {
+                        let (new_class_file, _pc_count) = Custom::new(buffer, 0);
+                        let mut new_class_file = JavaClass::Custom(new_class_file);
+
+                        self.call_other_class_method(
+                            &mut new_class_file,
+                            &class_file.cp_info,
+                            &method_name,
+                            &method_descriptor,
+                        );
+                        self.class_map
+                            .insert(class_name.to_string(), new_class_file);
+                    } else {
+                        unimplemented!(
+                            "need to add handler for the case failed to find the class file"
+                        )
+                    }
                 }
             }
             Instruction::Ldc(index) => {
@@ -303,6 +298,39 @@ impl Context {
             _ => {}
         };
         (false, index + instruction.counsume_index())
+    }
+
+    fn call_other_class_method(
+        &mut self,
+        class_file: &mut JavaClass,
+        caller_cp_info: &ConstantPool,
+        method_name: &str,
+        method_descriptor: &str,
+    ) {
+        match class_file {
+            JavaClass::BuiltIn(ref mut builtin_class) => {
+                if let Some(method) = builtin_class.methods.get_mut(method_name) {
+                    let mut stack_frame =
+                        self.create_new_stack_frame(method.max_locals(&method_descriptor));
+                    method.execute(&caller_cp_info, &mut stack_frame, &mut self.operand_stack);
+                } else {
+                    unreachable!(
+                        "{} is not found in {}",
+                        method_name, builtin_class.class_name
+                    );
+                }
+            }
+            JavaClass::Custom(ref custom_class) => {
+                if let Some(method_code) =
+                    custom_class.get_method_code_by_string(method_name, method_descriptor)
+                {
+                    let local_variable_length = method_code.max_locals as usize;
+                    let stack_frame = self.create_new_stack_frame(local_variable_length);
+                    self.stack_frames.push(stack_frame);
+                    self.run_method(custom_class, method_code);
+                }
+            }
+        }
     }
 
     fn load_n(&mut self, instruction: &Instruction, index: usize) {

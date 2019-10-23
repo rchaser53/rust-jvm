@@ -129,6 +129,13 @@ impl Custom {
             .find(|item| item.name_index == name_index && item.descriptor_index == descriptor_index)
     }
 
+    pub fn get_method_by_string(&self, name: &str, descriptor: &str) -> Option<&Method> {
+        self.methods.iter().find(|item| {
+            (&self.cp_info.get_utf8(item.name_index) == name)
+                && (&self.cp_info.get_utf8(item.descriptor_index) == descriptor)
+        })
+    }
+
     pub fn get_method_code(&self, name_index: usize, descriptor_index: usize) -> Option<&Code> {
         if let Some(method) = self.get_method(name_index, descriptor_index) {
             if let Some(Attribute::Code(code)) = method.attribute_info.iter().find(|attr| {
@@ -146,6 +153,27 @@ impl Custom {
             unreachable!(
                 "method name: {}  descriptor: {} is not found",
                 name_index, descriptor_index
+            )
+        }
+    }
+
+    pub fn get_method_code_by_string(&self, name: &str, descriptor: &str) -> Option<&Code> {
+        if let Some(method) = self.get_method_by_string(name, descriptor) {
+            if let Some(Attribute::Code(code)) = method.attribute_info.iter().find(|attr| {
+                if let Attribute::Code(_) = attr {
+                    true
+                } else {
+                    false
+                }
+            }) {
+                Some(code)
+            } else {
+                None
+            }
+        } else {
+            unreachable!(
+                "method name: {}  descriptor: {} is not found",
+                name, descriptor
             )
         }
     }
