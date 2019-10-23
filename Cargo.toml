@@ -6,3 +6,4 @@ edition = "2018"
 
 [dependencies]
 lazy_static = "1.4.0"
+clap = "2.33.0"
