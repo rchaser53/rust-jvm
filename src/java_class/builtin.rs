@@ -35,7 +35,7 @@ impl BuiltInMethod {
         BuiltInMethod { name, code_type }
     }
 
-    pub fn max_locals(&self, descriptor: &str) -> usize {
+    pub fn parameter_length(&self, descriptor: &str) -> usize {
         match self.code_type {
             BuitlInCodeType::Println => match descriptor {
                 "(J)V" | "(D)V" => 2,
@@ -49,7 +49,7 @@ impl BuiltInMethod {
         &mut self,
         constant_pool: &ConstantPool,
         stackframe: &mut Stackframe,
-        _operand_stack: &mut OperandStack,
+        operand_stack: &mut OperandStack,
     ) {
         match self.code_type {
             BuitlInCodeType::Println => {
@@ -72,9 +72,11 @@ impl BuiltInMethod {
                             } else {
                                 unreachable!("should exist long second item")
                             }
+                            let _ = operand_stack.stack.pop();
                         }
                         _ => unimplemented!(),
                     };
+                    let _ = operand_stack.stack.pop();
                 } else {
                     unreachable!("should have a argument for println")
                 }
