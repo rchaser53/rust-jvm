@@ -41,6 +41,7 @@ impl BuiltInMethod {
                 "(J)V" | "(D)V" => 2,
                 _ => 1,
             },
+            BuitlInCodeType::JavaLangObjectInit => 1,
         }
     }
 
@@ -78,6 +79,7 @@ impl BuiltInMethod {
                     unreachable!("should have a argument for println")
                 }
             }
+            BuitlInCodeType::JavaLangObjectInit => {}
         }
     }
 }
@@ -85,4 +87,5 @@ impl BuiltInMethod {
 #[derive(Debug)]
 pub enum BuitlInCodeType {
     Println,
+    JavaLangObjectInit,
 }
