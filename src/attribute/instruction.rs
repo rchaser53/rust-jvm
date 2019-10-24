@@ -428,9 +428,12 @@ impl Instruction {
             | Instruction::IloadN(_)
             | Instruction::LstoreN(_)
             | Instruction::LloadN(_)
+            | Instruction::Iadd
+            | Instruction::Isub
+            | Instruction::Imul
+            | Instruction::Idiv
             | Instruction::Irem
-            | Instruction::Return
-            | Instruction::Iadd => 0,
+            | Instruction::Return => 0,
             a => unimplemented!("{}", a),
         }
     }
