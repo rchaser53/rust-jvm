@@ -36,6 +36,7 @@ pub enum Instruction {
     Ificmple(usize, usize), // 0xa4
     Goto(usize),            // 0xa7
     Ireturn,                // 0xac
+    Areturn,                // 0xb0
     Return,                 // 0xb1
     Getstatic(usize),       // 0xb2
     Getfield(usize),        // 0xb4
@@ -83,6 +84,7 @@ impl fmt::Display for Instruction {
             Instruction::Ificmple(a, b) => write!(f, "if_icmple   {}, {}", a, b),
             Instruction::Goto(val) => write!(f, "goto          {}", val),
             Instruction::Ireturn => write!(f, "ireturn"),
+            Instruction::Areturn => write!(f, "areturn"),
             Instruction::Return => write!(f, "return"),
             Instruction::Getstatic(val) => write!(f, "getstatic       #{}", val),
             Instruction::Getfield(val) => write!(f, "getfield        #{}", val),
@@ -370,6 +372,11 @@ impl Instruction {
                 codes.push(Instruction::Ireturn);
                 (index, 1)
             }
+            // areturn
+            0xb0 => {
+                codes.push(Instruction::Areturn);
+                (index, 1)
+            }
             // return
             0xb1 => {
                 codes.push(Instruction::Return);
@@ -463,6 +470,8 @@ impl Instruction {
             | Instruction::Imul
             | Instruction::Idiv
             | Instruction::Irem
+            | Instruction::Ireturn
+            | Instruction::Areturn
             | Instruction::Return => 0,
             a => unimplemented!("{}", a),
         }

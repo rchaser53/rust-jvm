@@ -238,7 +238,7 @@ impl Context {
                     .cp_info
                     .create_and_set_operand_stack_item(&mut self.operand_stack.stack, *index);
             }
-            Instruction::Ireturn => {
+            Instruction::Areturn | Instruction::Ireturn => {
                 if let Some(item) = self.operand_stack.stack.pop() {
                     self.operand_stack.stack.clear();
                     self.operand_stack.stack.push(item);
