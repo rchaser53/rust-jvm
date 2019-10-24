@@ -14,6 +14,7 @@ pub enum Instruction {
     IstoreN(usize),         // 0x3b(0) - 0x3e(3)
     LstoreN(usize),         // 0x3f(0) - 0x42(3)
     Pop,                    // 0x57
+    Dup,                    // 0x59
     Iadd,                   // 0x60
     Isub,                   // 0x64
     Imul,                   // 0x68
@@ -58,6 +59,7 @@ impl fmt::Display for Instruction {
             Instruction::IstoreN(val) => write!(f, "istore_{}", val),
             Instruction::LstoreN(val) => write!(f, "lstore_{}", val),
             Instruction::Pop => write!(f, "pop"),
+            Instruction::Dup => write!(f, "dup"),
             Instruction::Iadd => write!(f, "iadd"),
             Instruction::Isub => write!(f, "isub"),
             Instruction::Imul => write!(f, "imul"),
@@ -153,6 +155,7 @@ impl Instruction {
                 codes.push(Instruction::IstoreN(val - 0x3b));
                 (index, 1)
             }
+            // lstore_n
             val @ 0x3f..=0x42 => {
                 codes.push(Instruction::LstoreN(val - 0x3f));
                 (index, 1)
@@ -160,6 +163,11 @@ impl Instruction {
             // pop
             0x57 => {
                 codes.push(Instruction::Pop);
+                (index, 1)
+            }
+            // dup
+            0x59 => {
+                codes.push(Instruction::Dup);
                 (index, 1)
             }
             // iadd
@@ -416,18 +424,19 @@ impl Instruction {
             | Instruction::Getstatic(_)
             | Instruction::Getfield(_)
             | Instruction::Putfield(_)
-            | Instruction::Invokevirtual(_)
-            | Instruction::Invokespecial(_)
             | Instruction::Iinc(_, _)
             | Instruction::Sipush(_)
             | Instruction::Ldc2W(_, _)
-            | Instruction::Invokestatic(_) => 2,
+            | Instruction::Invokevirtual(_)
+            | Instruction::Invokespecial(_)
+            | Instruction::Invokestatic(_)
             Instruction::Bipush(_) | Instruction::Ldc(_) => 1,
             Instruction::IconstN(_)
             | Instruction::IstoreN(_)
             | Instruction::IloadN(_)
             | Instruction::LstoreN(_)
             | Instruction::LloadN(_)
+            | Instruction::Dup
             | Instruction::Iadd
             | Instruction::Isub
             | Instruction::Imul

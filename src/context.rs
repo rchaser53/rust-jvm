@@ -247,6 +247,14 @@ impl Context {
             Instruction::Pop => {
                 self.operand_stack.stack.pop();
             }
+            Instruction::Dup => {
+                let last = if let Some(last) = self.operand_stack.stack.last() {
+                    last.clone()
+                } else {
+                    unreachable!("should have an item at least");
+                };
+                self.operand_stack.stack.push(last);
+            }
             Instruction::Invokevirtual(index)
             | Instruction::Invokespecial(index)
             | Instruction::Invokestatic(index) => {
