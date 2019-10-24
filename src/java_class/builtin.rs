@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use crate::constant::ConstantPool;
-use crate::operand::OperandStack;
+use crate::operand::{OperandStack, OperandStackItem};
 use crate::stackframe::{Stackframe, StackframeItem};
 
 #[derive(Debug)]
@@ -42,6 +42,7 @@ impl BuiltInMethod {
                 _ => 1,
             },
             BuitlInCodeType::JavaLangObjectInit => 1,
+            BuitlInCodeType::JavaLangObjectToString => 1,
         }
     }
 
@@ -82,6 +83,17 @@ impl BuiltInMethod {
                 }
             }
             BuitlInCodeType::JavaLangObjectInit => {}
+            BuitlInCodeType::JavaLangObjectToString => {
+                let val = if let Some(StackframeItem::Int(val)) = stackframe.local_variables.get(0)
+                {
+                    val
+                } else {
+                    unreachable!("should have a argument for toString")
+                };
+                operand_stack
+                    .stack
+                    .push(OperandStackItem::String(format!("{}", val)));
+            }
         }
     }
 }
@@ -90,4 +102,5 @@ impl BuiltInMethod {
 pub enum BuitlInCodeType {
     Println,
     JavaLangObjectInit,
+    JavaLangObjectToString,
 }
