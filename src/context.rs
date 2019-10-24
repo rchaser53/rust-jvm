@@ -230,6 +230,9 @@ impl Context {
                     self.operand_stack.stack.push(OperandStackItem::from(value));
                 }
             }
+            Instruction::AstoreN(index) => {
+                self.store_n(&[*index]);
+            }
             Instruction::Getstatic(index) => {
                 class_file
                     .cp_info
@@ -286,7 +289,8 @@ impl Context {
                             .insert(class_name.to_string(), new_class_file);
                     } else {
                         unimplemented!(
-                            "need to add handler for the case failed to find the class file"
+                            "need to add handler for the case failed to find the class file: {}",
+                            class_name
                         )
                     }
                 }
@@ -318,8 +322,8 @@ impl Context {
         match class_file {
             JavaClass::BuiltIn(ref mut builtin_class) => {
                 if let Some(method) = builtin_class.methods.get_mut(method_name) {
-                    let mut stack_frame =
-                        self.create_new_stack_frame(method.max_locals(&method_descriptor));
+                    let parameter_length = method.parameter_length(&method_descriptor);
+                    let mut stack_frame = self.create_new_stack_frame(parameter_length);
                     method.execute(&caller_cp_info, &mut stack_frame, &mut self.operand_stack);
                 } else {
                     unreachable!(
@@ -409,8 +413,6 @@ impl Context {
         new_stack_frame
     }
 
-    // Instruction::AloadN(val) => write!(f, "aload_{}", val),
-    // Instruction::Return => write!(f, "return"),
     // Instruction::Getfield(val) => write!(f, "getfield        #{}", val),
     // Instruction::Putfield(val) => write!(f, "putfield        #{}", val),
 }
