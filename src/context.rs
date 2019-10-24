@@ -413,6 +413,7 @@ impl Context {
             .operand_stack
             .stack
             .iter()
+            .rev()
             .map(|operand_item| StackframeItem::from(operand_item))
             .collect();
         self.operand_stack.stack.clear();

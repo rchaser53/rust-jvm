@@ -54,7 +54,7 @@ impl BuiltInMethod {
     ) {
         match self.code_type {
             BuitlInCodeType::Println => {
-                if let Some(item) = stackframe.local_variables.get(1) {
+                if let Some(item) = stackframe.local_variables.get(0) {
                     match item {
                         StackframeItem::Fieldref(index) => {
                             println!("{}", constant_pool.get_fieldref_as_utf8(*index));
@@ -65,9 +65,9 @@ impl BuiltInMethod {
                         StackframeItem::Int(value) => {
                             println!("{}", value);
                         }
-                        StackframeItem::Long(first) => {
-                            if let Some(StackframeItem::Long(second)) =
-                                stackframe.local_variables.get(2)
+                        StackframeItem::Long(second) => {
+                            if let Some(StackframeItem::Long(first)) =
+                                stackframe.local_variables.get(1)
                             {
                                 println!("{}", (first << 8 | second) & 0xFFFF as i64);
                             } else {
