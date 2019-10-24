@@ -307,6 +307,13 @@ impl Context {
                     (*first << 8 | *second) & 0xFFFF,
                 );
             }
+            Instruction::New(index) => {
+                // TBD need to implement correctly
+                self.operand_stack
+                    .stack
+                    .push(OperandStackItem::Objectref(*index));
+            }
+            Instruction::Return => {}
             _ => {}
         };
         (false, index + instruction.counsume_index())

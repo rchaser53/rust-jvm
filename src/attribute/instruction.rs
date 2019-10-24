@@ -43,6 +43,7 @@ pub enum Instruction {
     Invokevirtual(usize),   // 0xb6
     Invokespecial(usize),   // 0xb7
     Invokestatic(usize),    // 0xb8
+    New(usize),             // 0xbb
     Noope,                  // custom command for Ificmple etc.
 }
 
@@ -89,6 +90,7 @@ impl fmt::Display for Instruction {
             Instruction::Invokevirtual(val) => write!(f, "invokevirtual   #{}", val),
             Instruction::Invokespecial(val) => write!(f, "invokespecial   #{}", val),
             Instruction::Invokestatic(val) => write!(f, "invokestatic   #{}", val),
+            Instruction::New(val) => write!(f, "new            #{}", val),
             Instruction::Noope => write!(f, "noope"),
         }
     }
@@ -421,6 +423,14 @@ impl Instruction {
                 codes.push(Instruction::Noope);
                 (index, 3)
             }
+            // new
+            0xbb => {
+                let (val, index) = extract_x_byte_as_usize(inputs, index, 2);
+                codes.push(Instruction::New(val));
+                codes.push(Instruction::Noope);
+                codes.push(Instruction::Noope);
+                (index, 3)
+            }
             _ => unimplemented!("tag: {:x}", tag),
         }
     }
@@ -437,6 +447,7 @@ impl Instruction {
             | Instruction::Invokevirtual(_)
             | Instruction::Invokespecial(_)
             | Instruction::Invokestatic(_)
+            | Instruction::New(_) => 2,
             Instruction::Bipush(_) | Instruction::Ldc(_) => 1,
             Instruction::IconstN(_)
             | Instruction::IstoreN(_)
