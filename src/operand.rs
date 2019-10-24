@@ -10,6 +10,7 @@ pub enum OperandStackItem {
     Utf8(usize),
     Classref(usize),
     Fieldref(usize),
+    Objectref(usize),
 }
 
 impl From<&StackframeItem> for OperandStackItem {
@@ -21,6 +22,7 @@ impl From<&StackframeItem> for OperandStackItem {
             StackframeItem::Utf8(index) => OperandStackItem::Utf8(*index),
             StackframeItem::Classref(index) => OperandStackItem::Classref(*index),
             StackframeItem::Fieldref(index) => OperandStackItem::Fieldref(*index),
+            StackframeItem::Objectref(index) => OperandStackItem::Objectref(*index),
             StackframeItem::Null => OperandStackItem::Null,
         }
     }
@@ -37,6 +39,9 @@ impl PartialOrd for OperandStackItem {
                 Some(left.cmp(right))
             }
             (OperandStackItem::Fieldref(left), OperandStackItem::Fieldref(right)) => {
+                Some(left.cmp(right))
+            }
+            (OperandStackItem::Objectref(left), OperandStackItem::Objectref(right)) => {
                 Some(left.cmp(right))
             }
             (OperandStackItem::String(left), OperandStackItem::String(right)) => {
