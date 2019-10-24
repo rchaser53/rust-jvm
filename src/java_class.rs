@@ -1,5 +1,6 @@
 pub mod builtin;
 pub mod custom;
+pub mod default;
 
 #[derive(Debug)]
 pub enum JavaClass {
