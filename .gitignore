@@ -2,3 +2,4 @@
 **/*.rs.bk
 *.java
 *.class
+!tests/class/*.class
