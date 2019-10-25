@@ -11,3 +11,7 @@ clap = "2.33.0"
 [[bin]]
 name = "rj"
 path = "src/bin/main.rs"
+
+[[test]]
+name = "test"
+harness = false
