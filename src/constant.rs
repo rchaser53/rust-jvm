@@ -564,6 +564,9 @@ mod test {
         ];
         let (constant_pool, _) = ConstantPool::new(&mut inputs, 0, 2);
 
-        assert_eq!(format!("{}", constant_pool), "  #1 = NameAndType  #10:#11");
+        assert_eq!(
+            format!("{}", constant_pool),
+            "  #1 = NameAndType      #10:#11"
+        );
     }
 }
