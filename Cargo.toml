@@ -10,4 +10,4 @@ clap = "2.33.0"
 
 [[bin]]
 name = "rj"
-path = "src/main.rs"
+path = "src/bin/main.rs"
