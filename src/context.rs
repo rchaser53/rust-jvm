@@ -2,7 +2,7 @@ use crate::attribute::code::Code;
 use crate::attribute::instruction::Instruction;
 use crate::constant::{ConstantNameAndType, ConstantPool};
 use crate::java_class::{custom::Custom, JavaClass};
-use crate::operand::{OperandStack, OperandStackItem};
+use crate::operand::OperandStackItem;
 use crate::option::RJ_OPTION;
 use crate::stackframe::{Stackframe, StackframeItem};
 use crate::utils::read_file;
@@ -13,7 +13,6 @@ use std::mem;
 #[derive(Debug)]
 pub struct Context {
     pub class_map: HashMap<String, JavaClass>,
-    pub operand_stack: OperandStack,
     pub program_count: usize,
     pub stack_frames: Vec<Stackframe>,
 }
@@ -22,7 +21,6 @@ impl Context {
     pub fn new(class_map: HashMap<String, JavaClass>) -> Context {
         Context {
             class_map,
-            operand_stack: OperandStack::new(),
             program_count: 0,
             stack_frames: vec![],
         }
@@ -75,57 +73,88 @@ impl Context {
     ) -> (bool, usize) {
         match instruction {
             Instruction::Iadd => {
-                let item = self.operand_stack.iadd();
-                self.operand_stack.stack.push(item);
+                if let Some(stackframe) = self.stack_frames.last_mut() {
+                    let item = stackframe.operand_stack.iadd();
+                    stackframe.operand_stack.stack.push(item);
+                }
             }
             Instruction::Ladd => {
-                if let OperandStackItem::Long(val) = self.operand_stack.ladd() {
-                    // TBD should fix this
-                    let first = 0;
-                    let second = val & 0xFFFFFFFF;
-                    self.operand_stack.stack.push(OperandStackItem::Long(first));
-                    self.operand_stack
-                        .stack
-                        .push(OperandStackItem::Long(second));
+                if let Some(stackframe) = self.stack_frames.last_mut() {
+                    if let OperandStackItem::Long(val) = stackframe.operand_stack.ladd() {
+                        // TBD should fix this
+                        let first = 0;
+                        let second = val & 0xFFFFFFFF;
+                        stackframe
+                            .operand_stack
+                            .stack
+                            .push(OperandStackItem::Long(first));
+                        stackframe
+                            .operand_stack
+                            .stack
+                            .push(OperandStackItem::Long(second));
+                    }
                 }
             }
             Instruction::Isub => {
-                let item = self.operand_stack.isub();
-                self.operand_stack.stack.push(item);
+                if let Some(stackframe) = self.stack_frames.last_mut() {
+                    let item = stackframe.operand_stack.isub();
+                    stackframe.operand_stack.stack.push(item);
+                }
             }
             Instruction::Imul => {
-                let item = self.operand_stack.imul();
-                self.operand_stack.stack.push(item);
+                if let Some(stackframe) = self.stack_frames.last_mut() {
+                    let item = stackframe.operand_stack.imul();
+                    stackframe.operand_stack.stack.push(item);
+                }
             }
             Instruction::Idiv => {
-                let item = self.operand_stack.idiv();
-                self.operand_stack.stack.push(item);
+                if let Some(stackframe) = self.stack_frames.last_mut() {
+                    let item = stackframe.operand_stack.idiv();
+                    stackframe.operand_stack.stack.push(item);
+                }
             }
             Instruction::Irem => {
-                let item = self.operand_stack.irem();
-                self.operand_stack.stack.push(item);
+                if let Some(stackframe) = self.stack_frames.last_mut() {
+                    let item = stackframe.operand_stack.irem();
+                    stackframe.operand_stack.stack.push(item);
+                }
             }
             Instruction::IconstN(val) => {
-                self.operand_stack
-                    .stack
-                    .push(OperandStackItem::Int(*val as i32));
+                if let Some(stackframe) = self.stack_frames.last_mut() {
+                    stackframe
+                        .operand_stack
+                        .stack
+                        .push(OperandStackItem::Int(*val as i32));
+                }
             }
             Instruction::LconstN(val) => {
-                self.operand_stack.stack.push(OperandStackItem::Long(0));
-                self.operand_stack
-                    .stack
-                    .push(OperandStackItem::Long(*val as i64));
+                if let Some(stackframe) = self.stack_frames.last_mut() {
+                    stackframe
+                        .operand_stack
+                        .stack
+                        .push(OperandStackItem::Long(0));
+                    stackframe
+                        .operand_stack
+                        .stack
+                        .push(OperandStackItem::Long(*val as i64));
+                }
             }
             // maybe need to fix for float or something like that
             Instruction::Bipush(val) => {
-                self.operand_stack
-                    .stack
-                    .push(OperandStackItem::Int(*val as i32));
+                if let Some(stackframe) = self.stack_frames.last_mut() {
+                    stackframe
+                        .operand_stack
+                        .stack
+                        .push(OperandStackItem::Int(*val as i32));
+                }
             }
             Instruction::Sipush(val) => {
-                self.operand_stack
-                    .stack
-                    .push(OperandStackItem::Int(*val as i32));
+                if let Some(stackframe) = self.stack_frames.last_mut() {
+                    stackframe
+                        .operand_stack
+                        .stack
+                        .push(OperandStackItem::Int(*val as i32));
+                }
             }
             Instruction::Goto(pointer) => {
                 return (false, *pointer);
@@ -140,94 +169,118 @@ impl Context {
                 }
             }
             Instruction::Ifeq(if_val, else_val) => {
-                let val = self.operand_stack.stack.pop().unwrap();
-                let jump_pointer = if val == OperandStackItem::Int(0) {
-                    *if_val
-                } else {
-                    *else_val
-                };
-                return (false, jump_pointer);
+                if let Some(stackframe) = self.stack_frames.last_mut() {
+                    let val = stackframe.operand_stack.stack.pop().unwrap();
+                    let jump_pointer = if val == OperandStackItem::Int(0) {
+                        *if_val
+                    } else {
+                        *else_val
+                    };
+                    return (false, jump_pointer);
+                }
             }
             Instruction::Ifne(if_val, else_val) => {
-                let val = self.operand_stack.stack.pop().unwrap();
-                let jump_pointer = if val != OperandStackItem::Int(0) {
-                    *if_val
-                } else {
-                    *else_val
-                };
-                return (false, jump_pointer);
+                if let Some(stackframe) = self.stack_frames.last_mut() {
+                    let val = stackframe.operand_stack.stack.pop().unwrap();
+                    let jump_pointer = if val != OperandStackItem::Int(0) {
+                        *if_val
+                    } else {
+                        *else_val
+                    };
+                    return (false, jump_pointer);
+                }
             }
             Instruction::Iflt(if_val, else_val) => {
-                let val = self.operand_stack.stack.pop().unwrap();
-                let jump_pointer = if val < OperandStackItem::Int(0) {
-                    *if_val
-                } else {
-                    *else_val
-                };
-                return (false, jump_pointer);
+                if let Some(stackframe) = self.stack_frames.last_mut() {
+                    let val = stackframe.operand_stack.stack.pop().unwrap();
+                    let jump_pointer = if val < OperandStackItem::Int(0) {
+                        *if_val
+                    } else {
+                        *else_val
+                    };
+                    return (false, jump_pointer);
+                }
             }
             Instruction::Ifge(if_val, else_val) => {
-                let val = self.operand_stack.stack.pop().unwrap();
-                let jump_pointer = if val >= OperandStackItem::Int(0) {
-                    *if_val
-                } else {
-                    *else_val
-                };
-                return (false, jump_pointer);
+                if let Some(stackframe) = self.stack_frames.last_mut() {
+                    let val = stackframe.operand_stack.stack.pop().unwrap();
+                    let jump_pointer = if val >= OperandStackItem::Int(0) {
+                        *if_val
+                    } else {
+                        *else_val
+                    };
+                    return (false, jump_pointer);
+                }
             }
             Instruction::Ifgt(if_val, else_val) => {
-                let val = self.operand_stack.stack.pop().unwrap();
-                let jump_pointer = if val > OperandStackItem::Int(0) {
-                    *if_val
-                } else {
-                    *else_val
-                };
-                return (false, jump_pointer);
+                if let Some(stackframe) = self.stack_frames.last_mut() {
+                    let val = stackframe.operand_stack.stack.pop().unwrap();
+                    let jump_pointer = if val > OperandStackItem::Int(0) {
+                        *if_val
+                    } else {
+                        *else_val
+                    };
+                    return (false, jump_pointer);
+                }
             }
             Instruction::Ifle(if_val, else_val) => {
-                let val = self.operand_stack.stack.pop().unwrap();
-                let jump_pointer = if val <= OperandStackItem::Int(0) {
-                    *if_val
-                } else {
-                    *else_val
-                };
-                return (false, jump_pointer);
+                if let Some(stackframe) = self.stack_frames.last_mut() {
+                    let val = stackframe.operand_stack.stack.pop().unwrap();
+                    let jump_pointer = if val <= OperandStackItem::Int(0) {
+                        *if_val
+                    } else {
+                        *else_val
+                    };
+                    return (false, jump_pointer);
+                }
             }
             Instruction::Ificmpeq(if_val, else_val) => {
-                let second = self.operand_stack.stack.pop();
-                let first = self.operand_stack.stack.pop();
-                let jump_pointer = if first == second { *if_val } else { *else_val };
-                return (false, jump_pointer);
+                if let Some(stackframe) = self.stack_frames.last_mut() {
+                    let second = stackframe.operand_stack.stack.pop();
+                    let first = stackframe.operand_stack.stack.pop();
+                    let jump_pointer = if first == second { *if_val } else { *else_val };
+                    return (false, jump_pointer);
+                }
             }
             Instruction::Ificmpne(if_val, else_val) => {
-                let second = self.operand_stack.stack.pop();
-                let first = self.operand_stack.stack.pop();
-                let jump_pointer = if first != second { *if_val } else { *else_val };
-                return (false, jump_pointer);
+                if let Some(stackframe) = self.stack_frames.last_mut() {
+                    let second = stackframe.operand_stack.stack.pop();
+                    let first = stackframe.operand_stack.stack.pop();
+                    let jump_pointer = if first != second { *if_val } else { *else_val };
+                    return (false, jump_pointer);
+                }
             }
             Instruction::Ificmplt(if_val, else_val) => {
-                let second = self.operand_stack.stack.pop();
-                let first = self.operand_stack.stack.pop();
-                let jump_pointer = if first < second { *if_val } else { *else_val };
-                return (false, jump_pointer);
+                if let Some(stackframe) = self.stack_frames.last_mut() {
+                    let second = stackframe.operand_stack.stack.pop();
+                    let first = stackframe.operand_stack.stack.pop();
+                    let jump_pointer = if first < second { *if_val } else { *else_val };
+                    return (false, jump_pointer);
+                }
             }
             Instruction::Ificmpge(if_val, else_val) => {
-                let second = self.operand_stack.stack.pop();
-                let first = self.operand_stack.stack.pop();
-                let jump_pointer = if first >= second { *if_val } else { *else_val };
-                return (false, jump_pointer);
+                if let Some(stackframe) = self.stack_frames.last_mut() {
+                    let second = stackframe.operand_stack.stack.pop();
+                    let first = stackframe.operand_stack.stack.pop();
+                    let jump_pointer = if first >= second { *if_val } else { *else_val };
+                    return (false, jump_pointer);
+                }
             }
             Instruction::Ificmpgt(if_val, else_val) => {
-                let second = self.operand_stack.stack.pop();
-                let first = self.operand_stack.stack.pop();
-                let jump_pointer = if first > second { *if_val } else { *else_val };
-                return (false, jump_pointer);
+                if let Some(stackframe) = self.stack_frames.last_mut() {
+                    let second = stackframe.operand_stack.stack.pop();
+                    let first = stackframe.operand_stack.stack.pop();
+                    let jump_pointer = if first > second { *if_val } else { *else_val };
+                    return (false, jump_pointer);
+                }
             }
             Instruction::Ificmple(if_val, else_val) => {
-                let second = self.operand_stack.stack.pop();
-                let first = self.operand_stack.stack.pop();
-                let jump_pointer = if first <= second { *if_val } else { *else_val };
-                return (false, jump_pointer);
+                if let Some(stackframe) = self.stack_frames.last_mut() {
+                    let second = stackframe.operand_stack.stack.pop();
+                    let first = stackframe.operand_stack.stack.pop();
+                    let jump_pointer = if first <= second { *if_val } else { *else_val };
+                    return (false, jump_pointer);
+                }
             }
             Instruction::IloadN(index) => {
                 self.load_n(instruction, *index);
@@ -245,38 +298,58 @@ impl Context {
                 self.store_n(&[base_index + 1, base_index]);
             }
             Instruction::AloadN(index) => {
-                if let Some(stack_frame) = self.stack_frames.last() {
-                    let value = &stack_frame.local_variables[*index];
-                    self.operand_stack.stack.push(OperandStackItem::from(value));
+                if let Some(stackframe) = self.stack_frames.last_mut() {
+                    let value = &stackframe.local_variables[*index];
+                    stackframe
+                        .operand_stack
+                        .stack
+                        .push(OperandStackItem::from(value));
                 }
             }
             Instruction::AstoreN(index) => {
                 self.store_n(&[*index]);
             }
             Instruction::Getstatic(index) => {
-                class_file
-                    .cp_info
-                    .create_and_set_operand_stack_item(&mut self.operand_stack.stack, *index);
+                if let Some(stackframe) = self.stack_frames.last_mut() {
+                    class_file.cp_info.create_and_set_operand_stack_item(
+                        &mut stackframe.operand_stack.stack,
+                        *index,
+                    );
+                }
             }
             Instruction::Areturn | Instruction::Ireturn => {
-                if let Some(item) = self.operand_stack.stack.pop() {
-                    self.operand_stack.stack.clear();
-                    self.operand_stack.stack.push(item);
+                let item = if let Some(stackframe) = self.stack_frames.last_mut() {
+                    if let Some(item) = stackframe.operand_stack.stack.pop() {
+                        stackframe.operand_stack.stack.clear();
+                        item
+                    } else {
+                        unreachable!("should exist return value on operand_stack")
+                    }
                 } else {
-                    unreachable!("should exist return value on operand_stack");
+                    unreachable!("should exist stack_frame");
+                };
+                let length = self.stack_frames.len();
+                if let Some(stackframe) = self.stack_frames.get_mut(length - 2) {
+                    stackframe.operand_stack.stack.push(item);
+                } else {
+                    unreachable!("should exist over two stack_frame");
                 }
                 return (true, index);
             }
             Instruction::Pop => {
-                self.operand_stack.stack.pop();
+                if let Some(stackframe) = self.stack_frames.last_mut() {
+                    stackframe.operand_stack.stack.pop();
+                }
             }
             Instruction::Dup => {
-                let last = if let Some(last) = self.operand_stack.stack.last() {
-                    last.clone()
-                } else {
-                    unreachable!("should have an item at least");
-                };
-                self.operand_stack.stack.push(last);
+                if let Some(stackframe) = self.stack_frames.last_mut() {
+                    let last = if let Some(last) = stackframe.operand_stack.stack.last() {
+                        last.clone()
+                    } else {
+                        unreachable!("should have an item at least");
+                    };
+                    stackframe.operand_stack.stack.push(last);
+                }
             }
             Instruction::Invokevirtual(index)
             | Instruction::Invokespecial(index)
@@ -317,21 +390,29 @@ impl Context {
             }
             Instruction::Ldc(index) => {
                 let string_val = class_file.cp_info.get_string(*index);
-                self.operand_stack
-                    .stack
-                    .push(OperandStackItem::String(string_val));
+                if let Some(stackframe) = self.stack_frames.last_mut() {
+                    stackframe
+                        .operand_stack
+                        .stack
+                        .push(OperandStackItem::String(string_val));
+                }
             }
             Instruction::Ldc2W(first, second) => {
-                class_file.cp_info.create_and_set_operand_stack_item(
-                    &mut self.operand_stack.stack,
-                    (*first << 8 | *second) & 0xFFFF,
-                );
+                if let Some(stackframe) = self.stack_frames.last_mut() {
+                    class_file.cp_info.create_and_set_operand_stack_item(
+                        &mut stackframe.operand_stack.stack,
+                        (*first << 8 | *second) & 0xFFFF,
+                    );
+                }
             }
             Instruction::New(index) => {
-                // TBD need to implement correctly
-                self.operand_stack
-                    .stack
-                    .push(OperandStackItem::Objectref(*index));
+                if let Some(stackframe) = self.stack_frames.last_mut() {
+                    // TBD need to implement correctly
+                    stackframe
+                        .operand_stack
+                        .stack
+                        .push(OperandStackItem::Objectref(*index));
+                }
             }
             Instruction::Return => {}
             _ => {}
@@ -348,16 +429,14 @@ impl Context {
     ) {
         match class_file {
             JavaClass::BuiltIn(ref mut builtin_class) => {
-                if let Some(method) = builtin_class.methods.get_mut(method_name) {
-                    let parameter_length = method.parameter_length(&method_descriptor);
-                    let mut stack_frame = self.create_new_stack_frame(parameter_length);
-                    method.execute(&caller_cp_info, &mut stack_frame, &mut self.operand_stack);
-                } else {
-                    unreachable!(
-                        "{} is not found in {}",
-                        method_name, builtin_class.class_name
-                    );
-                }
+                let method = builtin_class.methods.get_mut(method_name).expect(&format!(
+                    "{} is not found in {}",
+                    method_name, builtin_class.class_name
+                ));
+                let parameter_length = method.parameter_length(&method_descriptor);
+                let stack_frame = self.create_new_stack_frame(parameter_length);
+                self.stack_frames.push(stack_frame);
+                method.execute(&caller_cp_info, &mut self.stack_frames);
             }
             JavaClass::Custom(ref custom_class) => {
                 if let Some(method_code) =
@@ -373,9 +452,12 @@ impl Context {
     }
 
     fn load_n(&mut self, instruction: &Instruction, index: usize) {
-        if let Some(stack_frame) = self.stack_frames.last() {
+        if let Some(stack_frame) = self.stack_frames.last_mut() {
             let value = &stack_frame.local_variables[index];
-            self.operand_stack.stack.push(OperandStackItem::from(value));
+            stack_frame
+                .operand_stack
+                .stack
+                .push(OperandStackItem::from(value));
         } else {
             unreachable!("order: {}, should find item in {}", instruction, index);
         }
@@ -386,7 +468,7 @@ impl Context {
         let mut item_vec = Vec::with_capacity(index_size);
         if let Some(stack_frame) = self.stack_frames.last_mut() {
             for i in 0..index_size {
-                let item = if let Some(item) = self.operand_stack.stack.pop() {
+                let item = if let Some(item) = stack_frame.operand_stack.stack.pop() {
                     item
                 } else {
                     unreachable!("should have item in operand_stack")
@@ -429,15 +511,17 @@ impl Context {
 
     fn create_new_stack_frame(&mut self, local_variable_length: usize) -> Stackframe {
         let mut new_stack_frame = Stackframe::new(local_variable_length);
-        let mut variables: Vec<_> = self
-            .operand_stack
-            .stack
-            .iter()
-            .rev()
-            .map(|operand_item| StackframeItem::from(operand_item))
-            .collect();
-        self.operand_stack.stack.clear();
-        new_stack_frame.local_variables.append(&mut variables);
+        if let Some(stack_frame) = self.stack_frames.last_mut() {
+            let mut variables: Vec<_> = stack_frame
+                .operand_stack
+                .stack
+                .iter()
+                .rev()
+                .map(|operand_item| StackframeItem::from(operand_item))
+                .collect();
+            stack_frame.operand_stack.stack.clear();
+            new_stack_frame.local_variables.append(&mut variables);
+        }
         new_stack_frame
     }
 

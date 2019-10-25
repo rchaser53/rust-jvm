@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use crate::constant::ConstantPool;
-use crate::operand::{OperandStack, OperandStackItem};
+use crate::operand::OperandStackItem;
 use crate::stackframe::{Stackframe, StackframeItem};
 
 #[derive(Debug)]
@@ -46,12 +46,8 @@ impl BuiltInMethod {
         }
     }
 
-    pub fn execute(
-        &mut self,
-        constant_pool: &ConstantPool,
-        stackframe: &mut Stackframe,
-        operand_stack: &mut OperandStack,
-    ) {
+    pub fn execute(&mut self, constant_pool: &ConstantPool, stackframes: &mut Vec<Stackframe>) {
+        let mut stackframe = stackframes.pop().expect("should has stack_frame");
         match self.code_type {
             BuitlInCodeType::Println => {
                 if let Some(item) = stackframe.local_variables.get(0) {
@@ -73,11 +69,11 @@ impl BuiltInMethod {
                             } else {
                                 unreachable!("should exist long second item")
                             }
-                            let _ = operand_stack.stack.pop();
+                            let _ = stackframe.operand_stack.stack.pop();
                         }
                         _ => unimplemented!(),
                     };
-                    let _ = operand_stack.stack.pop();
+                    let _ = stackframe.operand_stack.stack.pop();
                 } else {
                     unreachable!("should have a argument for println")
                 }
@@ -90,7 +86,9 @@ impl BuiltInMethod {
                 } else {
                     unreachable!("should have a argument for toString")
                 };
-                operand_stack
+                let stackframe = stackframes.last_mut().expect("should exist stackframe");
+                stackframe
+                    .operand_stack
                     .stack
                     .push(OperandStackItem::String(format!("{}", val)));
             }
