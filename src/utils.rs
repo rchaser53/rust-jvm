@@ -1,8 +1,12 @@
 use std::fs::File;
 use std::io::prelude::*;
 use std::io::Result;
+use std::path::Path;
 
-pub fn read_file<'a>(input: &'a str, buffer: &'a mut Vec<u8>) -> Result<&'a mut [u8]> {
+pub fn read_file<'a, P: AsRef<Path>>(
+    input: &'a P,
+    buffer: &'a mut Vec<u8>,
+) -> Result<&'a mut [u8]> {
     let mut f = File::open(input)?;
     f.read_to_end(buffer)?;
     Ok(buffer.as_mut_slice())

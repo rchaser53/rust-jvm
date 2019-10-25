@@ -9,20 +9,23 @@ use crate::utils::read_file;
 use std::cmp::Ordering;
 use std::collections::HashMap;
 use std::mem;
+use std::path::Path;
 
 #[derive(Debug)]
-pub struct Context {
+pub struct Context<'a> {
     pub class_map: HashMap<String, JavaClass>,
     pub program_count: usize,
     pub stack_frames: Vec<Stackframe>,
+    pub root_path: &'a str,
 }
 
-impl Context {
-    pub fn new(class_map: HashMap<String, JavaClass>) -> Context {
+impl<'a> Context<'a> {
+    pub fn new(class_map: HashMap<String, JavaClass>, root_path: &'a str) -> Context {
         Context {
             class_map,
             program_count: 0,
             stack_frames: vec![],
+            root_path,
         }
     }
 
@@ -416,7 +419,8 @@ impl Context {
                     self.class_map.insert(class.this_class_name(), class);
                 } else {
                     let class_name = class_name.to_string() + ".class";
-                    if let Ok(buffer) = read_file(&class_name, &mut vec![]) {
+                    let class_path = Path::new(self.root_path).join(&class_name);
+                    if let Ok(buffer) = read_file(&class_path, &mut vec![]) {
                         let (new_class_file, _pc_count) = Custom::new(buffer, 0);
                         let mut new_class_file = JavaClass::Custom(new_class_file);
 
