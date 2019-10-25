@@ -107,7 +107,7 @@ next tag: {}",
                 ConstPoolItem::ConstantUtf8(_) => stack.push(OperandStackItem::Utf8(index)),
                 ConstPoolItem::ConstantLong(ref item) => {
                     stack.push(OperandStackItem::Long(
-                        ((item.high_bytes << 8) & 0xFFFF) as i64,
+                        ((item.high_bytes << 16) & 0xFFFFFFFF) as i64,
                     ));
                     stack.push(OperandStackItem::Long(item.low_bytes as i64));
                 }
@@ -202,7 +202,7 @@ impl fmt::Display for ConstantPool {
                 ConstPoolItem::ConstantLong(item) => format!(
                     "  #{} = Long             {}l",
                     index,
-                    ((item.high_bytes << 8) | item.low_bytes) & 0xFFFF
+                    ((item.high_bytes << 16) | item.low_bytes) & 0xFFFFFFFF
                 ),
                 ConstPoolItem::ConstantDouble(item) => format!(
                     "  #{} = Double           {}",

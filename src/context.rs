@@ -78,6 +78,17 @@ impl Context {
                 let item = self.operand_stack.iadd();
                 self.operand_stack.stack.push(item);
             }
+            Instruction::Ladd => {
+                if let OperandStackItem::Long(val) = self.operand_stack.ladd() {
+                    // TBD should fix this
+                    let first = 0;
+                    let second = val & 0xFFFFFFFF;
+                    self.operand_stack.stack.push(OperandStackItem::Long(first));
+                    self.operand_stack
+                        .stack
+                        .push(OperandStackItem::Long(second));
+                }
+            }
             Instruction::Isub => {
                 let item = self.operand_stack.isub();
                 self.operand_stack.stack.push(item);

@@ -69,6 +69,30 @@ impl OperandStack {
         }
     }
 
+    pub fn ladd(&mut self) -> OperandStackItem {
+        match (
+            self.stack.pop(),
+            self.stack.pop(),
+            self.stack.pop(),
+            self.stack.pop(),
+        ) {
+            (
+                Some(OperandStackItem::Long(second_2)),
+                Some(OperandStackItem::Long(second_1)),
+                Some(OperandStackItem::Long(first_2)),
+                Some(OperandStackItem::Long(first_1)),
+            ) => {
+                let second = (second_1 << 16 | second_2) & 0xFFFFFFFF;
+                let first = (first_1 << 16 | first_2) & 0xFFFFFFFF;
+                OperandStack::add_two_item(
+                    OperandStackItem::Long(first),
+                    OperandStackItem::Long(second),
+                )
+            }
+            _ => panic!("shortage item in OperandStack"),
+        }
+    }
+
     pub fn isub(&mut self) -> OperandStackItem {
         match (self.stack.pop(), self.stack.pop()) {
             (Some(second), Some(first)) => OperandStack::sub_two_item(first, second),
@@ -101,6 +125,9 @@ impl OperandStack {
         match (&first, &second) {
             (OperandStackItem::Int(first), OperandStackItem::Int(second)) => {
                 OperandStackItem::Int(first + second)
+            }
+            (OperandStackItem::Long(first), OperandStackItem::Long(second)) => {
+                OperandStackItem::Long(first + second)
             }
             _ => panic!(
                 "first:{:?} and second:{:?} types are not matched",
