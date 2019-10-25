@@ -156,12 +156,4 @@ impl OperandStack {
             ),
         }
     }
-
-    pub fn bipush(&mut self, item: OperandStackItem) {
-        self.stack.push(item);
-    }
-
-    pub fn iconst(&mut self, item: OperandStackItem) {
-        self.stack.push(item);
-    }
 }

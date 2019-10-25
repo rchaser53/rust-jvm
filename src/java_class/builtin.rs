@@ -69,7 +69,7 @@ impl BuiltInMethod {
                             if let Some(StackframeItem::Long(first)) =
                                 stackframe.local_variables.get(1)
                             {
-                                println!("{}", (first << 8 | second) & 0xFFFF as i64);
+                                println!("{}", (first << 16 | second) & 0xFFFFFFFF as i64);
                             } else {
                                 unreachable!("should exist long second item")
                             }

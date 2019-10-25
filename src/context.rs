@@ -96,16 +96,25 @@ impl Context {
             }
             Instruction::IconstN(val) => {
                 self.operand_stack
-                    .iconst(OperandStackItem::Int(*val as i32));
+                    .stack
+                    .push(OperandStackItem::Int(*val as i32));
+            }
+            Instruction::LconstN(val) => {
+                self.operand_stack.stack.push(OperandStackItem::Long(0));
+                self.operand_stack
+                    .stack
+                    .push(OperandStackItem::Long(*val as i64));
             }
             // maybe need to fix for float or something like that
             Instruction::Bipush(val) => {
                 self.operand_stack
-                    .iconst(OperandStackItem::Int(*val as i32));
+                    .stack
+                    .push(OperandStackItem::Int(*val as i32));
             }
             Instruction::Sipush(val) => {
                 self.operand_stack
-                    .iconst(OperandStackItem::Int(*val as i32));
+                    .stack
+                    .push(OperandStackItem::Int(*val as i32));
             }
             Instruction::Goto(pointer) => {
                 return (false, *pointer);
