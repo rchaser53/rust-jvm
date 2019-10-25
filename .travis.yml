@@ -1,0 +1,21 @@
+language: rust
+cache: cargo
+
+matrix:
+  include:
+    - os: linux
+      rust: nightly
+
+    - os: osx
+      rust: nightly
+
+script:
+  - cargo check
+  - cargo test -- --test-threads=1
+
+branches:
+  only:
+    - master
+
+notifications:
+  email: false
