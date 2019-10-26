@@ -348,11 +348,14 @@ impl<'a> Context<'a> {
                     .stack_frames
                     .last_mut()
                     .expect("should exist stack_frame");
-                let value = &stackframe.local_variables[*index];
+                let value = &stackframe
+                    .local_variables
+                    .get(*index)
+                    .expect("should exsit local variable");
                 stackframe
                     .operand_stack
                     .stack
-                    .push(OperandStackItem::from(value));
+                    .push(OperandStackItem::from(*value));
             }
             Instruction::AstoreN(index) => {
                 self.store_n(&[*index]);
@@ -514,7 +517,10 @@ impl<'a> Context<'a> {
             .stack_frames
             .last_mut()
             .expect("should exist stack_frame");
-        let value = &stackframe.local_variables[index];
+        let value = *&stackframe
+            .local_variables
+            .get(index)
+            .expect("should exist local variable");
         stackframe
             .operand_stack
             .stack

@@ -121,49 +121,55 @@ next tag: {}",
     }
 
     pub fn get_name_and_type(&self, index: usize) -> &ConstantNameAndType {
-        match self.0[index] {
-            ConstPoolItem::ConstantNameAndType(ref item) => item,
-            _ => unreachable!("should be ConstantNameAndType. actual {:?}", self.0[index]),
+        match self.0.get(index) {
+            Some(ConstPoolItem::ConstantNameAndType(ref item)) => item,
+            _ => unreachable!(
+                "should be ConstantNameAndType. actual {:?}",
+                self.0.get(index)
+            ),
         }
     }
 
     pub fn get_class_ref(&self, index: usize) -> &ConstantClass {
-        match self.0[index] {
-            ConstPoolItem::ConstantClass(ref item) => item,
-            _ => unreachable!("should be ConstantClass. actual {:?}", self.0[index]),
+        match self.0.get(index) {
+            Some(ConstPoolItem::ConstantClass(ref item)) => item,
+            _ => unreachable!("should be ConstantClass. actual {:?}", self.0.get(index)),
         }
     }
 
     pub fn get_method_ref(&self, index: usize) -> &ConstantMethodref {
-        match self.0[index] {
-            ConstPoolItem::ConstantMethodref(ref item) => item,
-            _ => unreachable!("should be ConstantMethodref. actual {:?}", self.0[index]),
+        match self.0.get(index) {
+            Some(ConstPoolItem::ConstantMethodref(ref item)) => item,
+            _ => unreachable!(
+                "should be ConstantMethodref. actual {:?}",
+                self.0.get(index)
+            ),
         }
     }
 
     pub fn get_string(&self, index: usize) -> String {
-        match self.0[index] {
-            ConstPoolItem::ConstantString(ref item) => self.get_utf8(item.string_index),
-            _ => unreachable!("should be ConstantString. actual {:?}", self.0[index]),
+        match self.0.get(index) {
+            Some(ConstPoolItem::ConstantString(ref item)) => self.get_utf8(item.string_index),
+            _ => unreachable!("should be ConstantString. actual {:?}", self.0.get(index)),
         }
     }
 
     pub fn get_utf8(&self, index: usize) -> String {
-        match self.0[index] {
-            ConstPoolItem::ConstantUtf8(ref item) => {
+        match self.0.get(index) {
+            Some(ConstPoolItem::ConstantUtf8(ref item)) => {
                 String::from_utf8_lossy(item.bytes.as_slice()).to_string()
             }
-            _ => unreachable!("should be ConstantUtf8. actual {:?}", self.0[index]),
+            _ => unreachable!("should be ConstantUtf8. actual {:?}", self.0.get(index)),
         }
     }
 
     pub fn get_fieldref_as_utf8(&self, index: usize) -> String {
-        match self.0[index] {
-            ConstPoolItem::ConstantFieldref(ref item) => {
+        match self.0.get(index) {
+            Some(ConstPoolItem::ConstantFieldref(ref item)) => {
                 let name_and_type = self.get_name_and_type(item.name_and_type_index);
                 self.get_utf8(name_and_type.name_index)
             }
-            _ => unreachable!("should be ConstantFieldRef. actual {:?}", self.0[index]),
+            _ => unreachable!("should be ConstantFieldRef. actual {:?}", self.0.get(index)),
         }
     }
 }
