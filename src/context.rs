@@ -216,6 +216,14 @@ impl<'a> Context<'a> {
                     }
                 }
             }
+            Instruction::Lcmp => {
+                let stackframe = self
+                    .stack_frames
+                    .last_mut()
+                    .expect("should exist stack_frame");
+                let val = stackframe.operand_stack.lcmp();
+                stackframe.operand_stack.stack.push(val);
+            }
             Instruction::Ifeq(if_val, else_val) => {
                 let stackframe = self
                     .stack_frames

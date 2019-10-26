@@ -162,4 +162,15 @@ impl OperandStack {
             OperandStackItem::Long(second),
         )
     }
+
+    pub fn lcmp(&mut self) -> OperandStackItem {
+        let (first, second) = self.extract_long_values();
+        if first > second {
+            OperandStackItem::Int(1)
+        } else if first == second {
+            OperandStackItem::Int(0)
+        } else {
+            OperandStackItem::Int(-1)
+        }
+    }
 }
