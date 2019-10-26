@@ -20,9 +20,13 @@ pub enum Instruction {
     Iadd,                   // 0x60
     Ladd,                   // 0x61
     Isub,                   // 0x64
+    Lsub,                   // 0x65
     Imul,                   // 0x68
-    Idiv,                   // 0x6C
+    Lmul,                   // 0x69
+    Idiv,                   // 0x6c
+    Ldiv,                   // 0x6d
     Irem,                   // 0x70
+    Lrem,                   // 0x71
     Iinc(usize, usize),     // 0x84
     Ifeq(usize, usize),     // 0x99
     Ifne(usize, usize),     // 0x9a
@@ -70,9 +74,13 @@ impl fmt::Display for Instruction {
             Instruction::Iadd => write!(f, "iadd"),
             Instruction::Ladd => write!(f, "ladd"),
             Instruction::Isub => write!(f, "isub"),
+            Instruction::Lsub => write!(f, "lsub"),
             Instruction::Imul => write!(f, "imul"),
+            Instruction::Lmul => write!(f, "lmul"),
             Instruction::Idiv => write!(f, "idiv"),
+            Instruction::Ldiv => write!(f, "ldiv"),
             Instruction::Irem => write!(f, "irem"),
+            Instruction::Lrem => write!(f, "lrem"),
             Instruction::Iinc(a, b) => write!(f, "iinc        {}, {}", a, b),
             Instruction::Ifeq(a, b) => write!(f, "if_eq       {}, {}", a, b),
             Instruction::Ifne(a, b) => write!(f, "if_ne       {}, {}", a, b),
@@ -205,9 +213,19 @@ impl Instruction {
                 codes.push(Instruction::Isub);
                 (index, 1)
             }
+            // lsub
+            0x65 => {
+                codes.push(Instruction::Lsub);
+                (index, 1)
+            }
             // imul
             0x68 => {
                 codes.push(Instruction::Imul);
+                (index, 1)
+            }
+            // lmul
+            0x69 => {
+                codes.push(Instruction::Lmul);
                 (index, 1)
             }
             // idiv
@@ -215,9 +233,19 @@ impl Instruction {
                 codes.push(Instruction::Idiv);
                 (index, 1)
             }
+            // ldiv
+            0x6d => {
+                codes.push(Instruction::Ldiv);
+                (index, 1)
+            }
             // irem
             0x70 => {
                 codes.push(Instruction::Irem);
+                (index, 1)
+            }
+            // lrem
+            0x71 => {
+                codes.push(Instruction::Lrem);
                 (index, 1)
             }
             // iinc
@@ -483,9 +511,13 @@ impl Instruction {
             | Instruction::Iadd
             | Instruction::Ladd
             | Instruction::Isub
+            | Instruction::Lsub
             | Instruction::Imul
+            | Instruction::Lmul
             | Instruction::Idiv
+            | Instruction::Ldiv
             | Instruction::Irem
+            | Instruction::Lrem
             | Instruction::Ireturn
             | Instruction::Areturn
             | Instruction::Return => 0,

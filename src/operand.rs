@@ -1,4 +1,5 @@
 use crate::stackframe::StackframeItem;
+use crate::utils::devide_i64_to_two_i32;
 use std::cmp::{Ordering, PartialOrd};
 
 #[derive(PartialEq, Clone, Debug)]
@@ -62,14 +63,7 @@ impl OperandStack {
         OperandStack { stack: vec![] }
     }
 
-    pub fn iadd(&mut self) -> OperandStackItem {
-        match (self.stack.pop(), self.stack.pop()) {
-            (Some(second), Some(first)) => OperandStack::add_two_item(first, second),
-            _ => panic!("shortage item in OperandStack"),
-        }
-    }
-
-    pub fn ladd(&mut self) -> (i32, i32) {
+    fn extract_long_values(&mut self) -> (i64, i64) {
         match (
             self.stack.pop(),
             self.stack.pop(),
@@ -84,99 +78,88 @@ impl OperandStack {
             ) => {
                 let second: i64 = (((second_1 as i64) << 32) as i64) | second_2 as i64;
                 let first: i64 = (((first_1 as i64) << 32) as i64) | first_2 as i64;
-                let result = second + first;
-
-                (((result >> 32) << 32) as i32, (result & 0xFFFFFFFF) as i32)
+                (first, second)
             }
             _ => panic!("shortage item in OperandStack"),
         }
+    }
+
+    fn extract_int_values(&mut self) -> (i32, i32) {
+        match (self.stack.pop(), self.stack.pop()) {
+            (Some(OperandStackItem::Int(second)), Some(OperandStackItem::Int(first))) => {
+                (first, second)
+            }
+            _ => panic!("shortage item in OperandStack"),
+        }
+    }
+
+    pub fn iadd(&mut self) -> OperandStackItem {
+        let (first, second) = self.extract_int_values();
+        OperandStackItem::Int(first + second)
+    }
+
+    pub fn ladd(&mut self) -> (OperandStackItem, OperandStackItem) {
+        let (first, second) = self.extract_long_values();
+        let (first, second) = devide_i64_to_two_i32(first + second);
+        (
+            OperandStackItem::Long(first),
+            OperandStackItem::Long(second),
+        )
     }
 
     pub fn isub(&mut self) -> OperandStackItem {
-        match (self.stack.pop(), self.stack.pop()) {
-            (Some(second), Some(first)) => OperandStack::sub_two_item(first, second),
-            _ => panic!("shortage item in OperandStack"),
-        }
+        let (first, second) = self.extract_int_values();
+        OperandStackItem::Int(first - second)
+    }
+
+    pub fn lsub(&mut self) -> (OperandStackItem, OperandStackItem) {
+        let (first, second) = self.extract_long_values();
+        let (first, second) = devide_i64_to_two_i32(first + second);
+        (
+            OperandStackItem::Long(first),
+            OperandStackItem::Long(second),
+        )
     }
 
     pub fn imul(&mut self) -> OperandStackItem {
-        match (self.stack.pop(), self.stack.pop()) {
-            (Some(second), Some(first)) => OperandStack::mul_two_item(first, second),
-            _ => panic!("shortage item in OperandStack"),
-        }
+        let (first, second) = self.extract_int_values();
+        OperandStackItem::Int(first * second)
+    }
+
+    pub fn lmul(&mut self) -> (OperandStackItem, OperandStackItem) {
+        let (first, second) = self.extract_long_values();
+        let (first, second) = devide_i64_to_two_i32(first * second);
+        (
+            OperandStackItem::Long(first),
+            OperandStackItem::Long(second),
+        )
     }
 
     pub fn idiv(&mut self) -> OperandStackItem {
-        match (self.stack.pop(), self.stack.pop()) {
-            (Some(second), Some(first)) => OperandStack::div_two_item(first, second),
-            _ => panic!("shortage item in OperandStack"),
-        }
+        let (first, second) = self.extract_int_values();
+        OperandStackItem::Int(first / second)
+    }
+
+    pub fn ldiv(&mut self) -> (OperandStackItem, OperandStackItem) {
+        let (first, second) = self.extract_long_values();
+        let (first, second) = devide_i64_to_two_i32(first / second);
+        (
+            OperandStackItem::Long(first),
+            OperandStackItem::Long(second),
+        )
     }
 
     pub fn irem(&mut self) -> OperandStackItem {
-        match (self.stack.pop(), self.stack.pop()) {
-            (Some(second), Some(first)) => OperandStack::rem_two_item(first, second),
-            _ => panic!("shortage item in OperandStack"),
-        }
+        let (first, second) = self.extract_int_values();
+        OperandStackItem::Int(first % second)
     }
 
-    pub fn add_two_item(first: OperandStackItem, second: OperandStackItem) -> OperandStackItem {
-        match (&first, &second) {
-            (OperandStackItem::Int(first), OperandStackItem::Int(second)) => {
-                OperandStackItem::Int(first + second)
-            }
-            _ => panic!(
-                "first:{:?} and second:{:?} types are not matched",
-                first, second
-            ),
-        }
-    }
-
-    pub fn sub_two_item(first: OperandStackItem, second: OperandStackItem) -> OperandStackItem {
-        match (&first, &second) {
-            (OperandStackItem::Int(first), OperandStackItem::Int(second)) => {
-                OperandStackItem::Int(first - second)
-            }
-            _ => panic!(
-                "first:{:?} and second:{:?} types are not matched",
-                first, second
-            ),
-        }
-    }
-
-    pub fn mul_two_item(first: OperandStackItem, second: OperandStackItem) -> OperandStackItem {
-        match (&first, &second) {
-            (OperandStackItem::Int(first), OperandStackItem::Int(second)) => {
-                OperandStackItem::Int(first * second)
-            }
-            _ => panic!(
-                "first:{:?} and second:{:?} types are not matched",
-                first, second
-            ),
-        }
-    }
-
-    pub fn div_two_item(first: OperandStackItem, second: OperandStackItem) -> OperandStackItem {
-        match (&first, &second) {
-            (OperandStackItem::Int(first), OperandStackItem::Int(second)) => {
-                OperandStackItem::Int(first / second)
-            }
-            _ => panic!(
-                "first:{:?} and second:{:?} types are not matched",
-                first, second
-            ),
-        }
-    }
-
-    pub fn rem_two_item(first: OperandStackItem, second: OperandStackItem) -> OperandStackItem {
-        match (&first, &second) {
-            (OperandStackItem::Int(first), OperandStackItem::Int(second)) => {
-                OperandStackItem::Int(first % second)
-            }
-            _ => panic!(
-                "first:{:?} and second:{:?} types are not matched",
-                first, second
-            ),
-        }
+    pub fn lrem(&mut self) -> (OperandStackItem, OperandStackItem) {
+        let (first, second) = self.extract_long_values();
+        let (first, second) = devide_i64_to_two_i32(first % second);
+        (
+            OperandStackItem::Long(first),
+            OperandStackItem::Long(second),
+        )
     }
 }

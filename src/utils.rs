@@ -28,6 +28,10 @@ pub fn extract_x_byte_as_usize(input: &mut [u8], index: usize, x: usize) -> (usi
     (result, index + x)
 }
 
+pub fn devide_i64_to_two_i32(input: i64) -> (i32, i32) {
+    (((input >> 32) << 32) as i32, (input & 0xFFFFFFFF) as i32)
+}
+
 #[macro_export]
 macro_rules! add_flags {
     ($flags:expr, $num:expr, $flag:expr) => {

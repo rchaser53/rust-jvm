@@ -86,14 +86,8 @@ impl<'a> Context<'a> {
                     .last_mut()
                     .expect("should exist stack_frame");
                 let (first, second) = stackframe.operand_stack.ladd();
-                stackframe
-                    .operand_stack
-                    .stack
-                    .push(OperandStackItem::Long(first));
-                stackframe
-                    .operand_stack
-                    .stack
-                    .push(OperandStackItem::Long(second));
+                stackframe.operand_stack.stack.push(first);
+                stackframe.operand_stack.stack.push(second);
             }
             Instruction::Isub => {
                 let stackframe = self
@@ -103,6 +97,15 @@ impl<'a> Context<'a> {
                 let item = stackframe.operand_stack.isub();
                 stackframe.operand_stack.stack.push(item);
             }
+            Instruction::Lsub => {
+                let stackframe = self
+                    .stack_frames
+                    .last_mut()
+                    .expect("should exist stack_frame");
+                let (first, second) = stackframe.operand_stack.lsub();
+                stackframe.operand_stack.stack.push(first);
+                stackframe.operand_stack.stack.push(second);
+            }
             Instruction::Imul => {
                 let stackframe = self
                     .stack_frames
@@ -110,6 +113,15 @@ impl<'a> Context<'a> {
                     .expect("should exist stack_frame");
                 let item = stackframe.operand_stack.imul();
                 stackframe.operand_stack.stack.push(item);
+            }
+            Instruction::Lmul => {
+                let stackframe = self
+                    .stack_frames
+                    .last_mut()
+                    .expect("should exist stack_frame");
+                let (first, second) = stackframe.operand_stack.lmul();
+                stackframe.operand_stack.stack.push(first);
+                stackframe.operand_stack.stack.push(second);
             }
             Instruction::Idiv => {
                 let stackframe = self
@@ -119,6 +131,15 @@ impl<'a> Context<'a> {
                 let item = stackframe.operand_stack.idiv();
                 stackframe.operand_stack.stack.push(item);
             }
+            Instruction::Ldiv => {
+                let stackframe = self
+                    .stack_frames
+                    .last_mut()
+                    .expect("should exist stack_frame");
+                let (first, second) = stackframe.operand_stack.ldiv();
+                stackframe.operand_stack.stack.push(first);
+                stackframe.operand_stack.stack.push(second);
+            }
             Instruction::Irem => {
                 let stackframe = self
                     .stack_frames
@@ -126,6 +147,15 @@ impl<'a> Context<'a> {
                     .expect("should exist stack_frame");
                 let item = stackframe.operand_stack.irem();
                 stackframe.operand_stack.stack.push(item);
+            }
+            Instruction::Lrem => {
+                let stackframe = self
+                    .stack_frames
+                    .last_mut()
+                    .expect("should exist stack_frame");
+                let (first, second) = stackframe.operand_stack.lrem();
+                stackframe.operand_stack.stack.push(first);
+                stackframe.operand_stack.stack.push(second);
             }
             Instruction::IconstN(val) => {
                 let stackframe = self
