@@ -614,7 +614,6 @@ impl<'a> Context<'a> {
             .rev()
             .map(|operand_item| StackframeItem::from(operand_item))
             .collect();
-        stackframe.operand_stack.stack.clear();
         new_stack_frame.local_variables.append(&mut variables);
 
         new_stack_frame
