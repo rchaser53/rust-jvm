@@ -5,7 +5,7 @@ use std::cmp::{Ordering, PartialOrd};
 pub enum OperandStackItem {
     Null,
     Int(i32),
-    Long(i64),
+    Long(i32),
     String(String),
     Utf8(usize),
     Classref(usize),
@@ -69,7 +69,7 @@ impl OperandStack {
         }
     }
 
-    pub fn ladd(&mut self) -> OperandStackItem {
+    pub fn ladd(&mut self) -> (i32, i32) {
         match (
             self.stack.pop(),
             self.stack.pop(),
@@ -82,12 +82,11 @@ impl OperandStack {
                 Some(OperandStackItem::Long(first_2)),
                 Some(OperandStackItem::Long(first_1)),
             ) => {
-                let second = (second_1 << 16 | second_2) & 0xFFFFFFFF;
-                let first = (first_1 << 16 | first_2) & 0xFFFFFFFF;
-                OperandStack::add_two_item(
-                    OperandStackItem::Long(first),
-                    OperandStackItem::Long(second),
-                )
+                let second: i64 = ((second_1 << 32) as i64) | second_2 as i64;
+                let first: i64 = ((first_1 << 32) as i64) | first_2 as i64;
+                let result = second + first;
+
+                (((result >> 32) << 32) as i32, (result & 0xFFFFFFFF) as i32)
             }
             _ => panic!("shortage item in OperandStack"),
         }
@@ -125,9 +124,6 @@ impl OperandStack {
         match (&first, &second) {
             (OperandStackItem::Int(first), OperandStackItem::Int(second)) => {
                 OperandStackItem::Int(first + second)
-            }
-            (OperandStackItem::Long(first), OperandStackItem::Long(second)) => {
-                OperandStackItem::Long(first + second)
             }
             _ => panic!(
                 "first:{:?} and second:{:?} types are not matched",

@@ -85,19 +85,15 @@ impl<'a> Context<'a> {
                     .stack_frames
                     .last_mut()
                     .expect("should exist stack_frame");
-                if let OperandStackItem::Long(val) = stackframe.operand_stack.ladd() {
-                    // TBD should fix this
-                    let first = 0;
-                    let second = val & 0xFFFFFFFF;
-                    stackframe
-                        .operand_stack
-                        .stack
-                        .push(OperandStackItem::Long(first));
-                    stackframe
-                        .operand_stack
-                        .stack
-                        .push(OperandStackItem::Long(second));
-                }
+                let (first, second) = stackframe.operand_stack.ladd();
+                stackframe
+                    .operand_stack
+                    .stack
+                    .push(OperandStackItem::Long(first));
+                stackframe
+                    .operand_stack
+                    .stack
+                    .push(OperandStackItem::Long(second));
             }
             Instruction::Isub => {
                 let stackframe = self
@@ -153,7 +149,7 @@ impl<'a> Context<'a> {
                 stackframe
                     .operand_stack
                     .stack
-                    .push(OperandStackItem::Long(*val as i64));
+                    .push(OperandStackItem::Long(*val as i32));
             }
             // maybe need to fix for float or something like that
             Instruction::Bipush(val) => {

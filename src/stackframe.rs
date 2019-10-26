@@ -4,7 +4,7 @@ use crate::operand::{OperandStack, OperandStackItem};
 pub enum StackframeItem {
     Null,
     Int(i32),
-    Long(i64),
+    Long(i32),
     String(String),
     Utf8(usize),
     Classref(usize),

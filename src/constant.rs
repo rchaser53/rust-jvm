@@ -106,10 +106,8 @@ next tag: {}",
                 ConstPoolItem::ConstantFieldref(_) => stack.push(OperandStackItem::Fieldref(index)),
                 ConstPoolItem::ConstantUtf8(_) => stack.push(OperandStackItem::Utf8(index)),
                 ConstPoolItem::ConstantLong(ref item) => {
-                    stack.push(OperandStackItem::Long(
-                        ((item.high_bytes << 16) & 0xFFFFFFFF) as i64,
-                    ));
-                    stack.push(OperandStackItem::Long(item.low_bytes as i64));
+                    stack.push(OperandStackItem::Long(item.high_bytes as i32));
+                    stack.push(OperandStackItem::Long(item.low_bytes as i32));
                 }
                 ConstPoolItem::ConstantNull => {
                     unreachable!("index: {}. should not come ConstantNull", index)
@@ -208,7 +206,7 @@ impl fmt::Display for ConstantPool {
                 ConstPoolItem::ConstantLong(item) => format!(
                     "  #{} = Long             {}l",
                     index,
-                    ((item.high_bytes << 16) | item.low_bytes) & 0xFFFFFFFF
+                    (item.high_bytes << 32) as i64 | item.low_bytes as i64
                 ),
                 ConstPoolItem::ConstantDouble(item) => format!(
                     "  #{} = Double           {}",
@@ -287,8 +285,8 @@ pub enum ConstPoolItem {
 #[derive(Debug, PartialEq)]
 pub struct ConstantLong {
     pub tag: ConstPoolTag,
-    pub high_bytes: usize, // u4
-    pub low_bytes: usize,  // u4
+    pub high_bytes: i32, // u4
+    pub low_bytes: i32,  // u4
 }
 
 impl ConstantLong {
@@ -298,8 +296,8 @@ impl ConstantLong {
         (
             ConstantLong {
                 tag: ConstPoolTag::ConstantString,
-                high_bytes,
-                low_bytes,
+                high_bytes: high_bytes as i32,
+                low_bytes: low_bytes as i32,
             },
             index,
         )
