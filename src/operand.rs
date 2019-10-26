@@ -82,8 +82,8 @@ impl OperandStack {
                 Some(OperandStackItem::Long(first_2)),
                 Some(OperandStackItem::Long(first_1)),
             ) => {
-                let second: i64 = ((second_1 << 32) as i64) | second_2 as i64;
-                let first: i64 = ((first_1 << 32) as i64) | first_2 as i64;
+                let second: i64 = (((second_1 as i64) << 32) as i64) | second_2 as i64;
+                let first: i64 = (((first_1 as i64) << 32) as i64) | first_2 as i64;
                 let result = second + first;
 
                 (((result >> 32) << 32) as i32, (result & 0xFFFFFFFF) as i32)

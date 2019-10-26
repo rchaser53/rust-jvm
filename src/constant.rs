@@ -206,7 +206,7 @@ impl fmt::Display for ConstantPool {
                 ConstPoolItem::ConstantLong(item) => format!(
                     "  #{} = Long             {}l",
                     index,
-                    (item.high_bytes << 32) as i64 | item.low_bytes as i64
+                    ((item.high_bytes as i64) << 32) as i64 | item.low_bytes as i64
                 ),
                 ConstPoolItem::ConstantDouble(item) => format!(
                     "  #{} = Double           {}",
