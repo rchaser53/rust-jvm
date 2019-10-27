@@ -3,9 +3,8 @@ use crate::attribute::instruction::Instruction;
 use crate::constant::{ConstantNameAndType, ConstantPool};
 use crate::java_class::{custom::Custom, JavaClass};
 use crate::operand::OperandStackItem;
-use crate::option::RJ_OPTION;
 use crate::stackframe::{Stackframe, StackframeItem};
-use crate::utils::read_file;
+use crate::utils::{emit_debug_info, read_file};
 use std::cmp::Ordering;
 use std::collections::HashMap;
 use std::mem;
@@ -53,16 +52,7 @@ impl<'a> Context<'a> {
     fn run_method(&mut self, class_file: &Custom, code: &Code) {
         let mut index = 0;
         while let Some(instruction) = code.code.get(index) {
-            if RJ_OPTION.lock().unwrap().is_debug {
-                println!(
-                    "instruction: {}
-operand_stack:
-{}
-",
-                    instruction,
-                    self.stack_frames.last().unwrap().operand_stack
-                );
-            }
+            emit_debug_info(instruction, self.stack_frames.last());
             let (should_finish, update_index) = self.execute(class_file, instruction, index);
             if should_finish {
                 break;

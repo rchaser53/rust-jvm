@@ -1,13 +1,17 @@
 use std::sync::Mutex;
-
+/**
+ * 0: no info
+ * 1: emit instruction
+ * 2: emit instruction + operandstack
+ */
 #[derive(Debug)]
 pub struct RjOption {
-    pub is_debug: bool,
+    pub debug_mode: usize,
 }
 
 impl RjOption {
     pub fn new() -> RjOption {
-        RjOption { is_debug: false }
+        RjOption { debug_mode: 0 }
     }
 }
 

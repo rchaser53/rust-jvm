@@ -1,3 +1,7 @@
+use crate::attribute::instruction::Instruction;
+use crate::option::RJ_OPTION;
+use crate::stackframe::Stackframe;
+
 use std::fs::File;
 use std::io::prelude::*;
 use std::io::Result;
@@ -30,6 +34,25 @@ pub fn extract_x_byte_as_usize(input: &mut [u8], index: usize, x: usize) -> (usi
 
 pub fn devide_i64_to_two_i32(input: i64) -> (i32, i32) {
     (((input >> 32) << 32) as i32, (input & 0xFFFFFFFF) as i32)
+}
+
+pub fn emit_debug_info(instruction: &Instruction, stackframe: Option<&Stackframe>) {
+    match RJ_OPTION.lock().unwrap().debug_mode {
+        1 => {
+            println!("instruction: {}", instruction,);
+        }
+        2 => {
+            println!(
+                "instruction: {}
+operand_stack:
+{}
+",
+                instruction,
+                stackframe.unwrap().operand_stack
+            );
+        }
+        _ => {}
+    };
 }
 
 #[macro_export]

@@ -24,8 +24,8 @@ extern crate lazy_static;
 
 use option::RJ_OPTION;
 
-pub fn execute(file_name: String, is_debug: bool) {
-    RJ_OPTION.lock().unwrap().is_debug = is_debug;
+pub fn execute(file_name: String, debug_mode: usize) {
+    RJ_OPTION.lock().unwrap().debug_mode = debug_mode;
     let class_name = file_name + ".class";
     if let Ok(buffer) = read_file(&class_name, &mut vec![]) {
         let (class_file, _pc_count) = Custom::new(buffer, 0);
