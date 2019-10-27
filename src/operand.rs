@@ -1,6 +1,7 @@
 use crate::stackframe::StackframeItem;
 use crate::utils::devide_i64_to_two_i32;
 use std::cmp::{Ordering, PartialOrd};
+use std::fmt;
 
 #[derive(PartialEq, Clone, Debug)]
 pub enum OperandStackItem {
@@ -25,6 +26,21 @@ impl From<&StackframeItem> for OperandStackItem {
             StackframeItem::Fieldref(index) => OperandStackItem::Fieldref(*index),
             StackframeItem::Objectref(index) => OperandStackItem::Objectref(*index),
             StackframeItem::Null => OperandStackItem::Null,
+        }
+    }
+}
+
+impl fmt::Display for OperandStackItem {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            OperandStackItem::Null => write!(f, "null"),
+            OperandStackItem::Int(val) => write!(f, "int: {}", val),
+            OperandStackItem::Long(val) => write!(f, "long: {}", val),
+            OperandStackItem::String(val) => write!(f, "string: {}", val),
+            OperandStackItem::Utf8(val) => write!(f, "utf8: {}", val),
+            OperandStackItem::Classref(val) => write!(f, "class_ref: {}", val),
+            OperandStackItem::Fieldref(val) => write!(f, "field_ref: {}", val),
+            OperandStackItem::Objectref(val) => write!(f, "object_ref: {}", val),
         }
     }
 }
@@ -172,5 +188,24 @@ impl OperandStack {
         } else {
             OperandStackItem::Int(-1)
         }
+    }
+}
+
+impl fmt::Display for OperandStack {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let length = self.stack.len();
+        let mut item_string_vec = Vec::with_capacity(length);
+        for item in self.stack.iter() {
+            item_string_vec.push(format!("{}", item));
+        }
+
+        write!(
+            f,
+            "length: {}
+item:
+{}",
+            length,
+            item_string_vec.join("\n")
+        )
     }
 }

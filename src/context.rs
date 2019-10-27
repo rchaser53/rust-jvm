@@ -54,7 +54,14 @@ impl<'a> Context<'a> {
         let mut index = 0;
         while let Some(instruction) = code.code.get(index) {
             if RJ_OPTION.lock().unwrap().is_debug {
-                println!("{}", instruction);
+                println!(
+                    "instruction: {}
+operand_stack:
+{}
+",
+                    instruction,
+                    self.stack_frames.last().unwrap().operand_stack
+                );
             }
             let (should_finish, update_index) = self.execute(class_file, instruction, index);
             if should_finish {
