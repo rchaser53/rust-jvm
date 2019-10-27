@@ -362,6 +362,9 @@ impl<'a> Context<'a> {
                 let jump_pointer = if first <= second { *if_val } else { *else_val };
                 return (false, jump_pointer);
             }
+            Instruction::Iload(index) => {
+                self.load_n(*index);
+            }
             Instruction::IloadN(index) => {
                 self.load_n(*index);
             }
@@ -369,6 +372,9 @@ impl<'a> Context<'a> {
                 let base_index = *index;
                 self.load_n(base_index);
                 self.load_n(base_index + 1);
+            }
+            Instruction::Istore(index) => {
+                self.store_n(&[*index]);
             }
             Instruction::IstoreN(index) => {
                 self.store_n(&[*index]);

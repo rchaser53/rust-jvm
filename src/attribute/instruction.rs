@@ -9,9 +9,11 @@ pub enum Instruction {
     Sipush(usize),          // 0x11
     Ldc(usize),             // 0x12
     Ldc2W(usize, usize),    // 0x14
+    Iload(usize),           // 0x15
     IloadN(usize),          // 0x1a(0) - 0x1d(3)
     LloadN(usize),          // 0x1e(0) - 0x21(3)
     AloadN(usize),          // 0x2a(0) - 0x2d(3)
+    Istore(usize),          // 0x36
     IstoreN(usize),         // 0x3b(0) - 0x3e(3)
     LstoreN(usize),         // 0x3f(0) - 0x42(3)
     AstoreN(usize),         // 0x4b(0) - 0x4e(3)
@@ -64,9 +66,11 @@ impl fmt::Display for Instruction {
             Instruction::Sipush(val) => write!(f, "sipush         {}", val),
             Instruction::Ldc(val) => write!(f, "ldc             #{}", val),
             Instruction::Ldc2W(a, b) => write!(f, "ldc2_w         #{},{}", a, b),
+            Instruction::Iload(val) => write!(f, "iload            #{}", val),
             Instruction::IloadN(val) => write!(f, "iload_{}", val),
             Instruction::LloadN(val) => write!(f, "lload_{}", val),
             Instruction::AloadN(val) => write!(f, "aload_{}", val),
+            Instruction::Istore(val) => write!(f, "istore            #{}", val),
             Instruction::IstoreN(val) => write!(f, "istore_{}", val),
             Instruction::LstoreN(val) => write!(f, "lstore_{}", val),
             Instruction::AstoreN(val) => write!(f, "astore_{}", val),
@@ -160,6 +164,13 @@ impl Instruction {
                 codes.push(Instruction::Noope);
                 (index, 3)
             }
+            // iload
+            0x15 => {
+                let (val, index) = extract_x_byte_as_usize(inputs, index, 1);
+                codes.push(Instruction::Iload(val));
+                codes.push(Instruction::Noope);
+                (index, 2)
+            }
             // iload_n
             val @ 0x1a..=0x1d => {
                 codes.push(Instruction::IloadN(val - 0x1a));
@@ -174,6 +185,13 @@ impl Instruction {
             val @ 0x2a..=0x2d => {
                 codes.push(Instruction::AloadN(val - 0x2a));
                 (index, 1)
+            }
+            // istore
+            0x36 => {
+                let (val, index) = extract_x_byte_as_usize(inputs, index, 1);
+                codes.push(Instruction::Istore(val));
+                codes.push(Instruction::Noope);
+                (index, 2)
             }
             // istore_n
             val @ 0x3b..=0x3e => {
@@ -504,7 +522,10 @@ impl Instruction {
             | Instruction::Invokespecial(_)
             | Instruction::Invokestatic(_)
             | Instruction::New(_) => 2,
-            Instruction::Bipush(_) | Instruction::Ldc(_) => 1,
+            Instruction::Iload(_)
+            | Instruction::Istore(_)
+            | Instruction::Bipush(_)
+            | Instruction::Ldc(_) => 1,
             Instruction::IconstN(_)
             | Instruction::LconstN(_)
             | Instruction::IstoreN(_)
