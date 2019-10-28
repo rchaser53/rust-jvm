@@ -1,6 +1,7 @@
 use crate::attribute::code::Code;
 use crate::attribute::instruction::Instruction;
 use crate::constant::{ConstantNameAndType, ConstantPool};
+use crate::field::{BaseType, FieldDescriptor};
 use crate::java_class::{custom::Custom, JavaClass};
 use crate::operand::OperandStackItem;
 use crate::stackframe::{Stackframe, StackframeItem};
@@ -16,16 +17,43 @@ pub struct Context<'a> {
     pub program_count: usize,
     pub stack_frames: Vec<Stackframe>,
     pub root_path: &'a str,
+    pub static_fields: StaticFields,
 }
+pub type ClassMap = HashMap<String, JavaClass>;
+// class_name, field_name
+pub type StaticFields = HashMap<(String, String), OperandStackItem>;
 
 impl<'a> Context<'a> {
-    pub fn new(class_map: HashMap<String, JavaClass>, root_path: &'a str) -> Context {
+    pub fn new(class_map: ClassMap, root_path: &'a str) -> Context {
         Context {
             class_map,
             program_count: 0,
             stack_frames: vec![],
             root_path,
+            static_fields: HashMap::new(),
         }
+    }
+
+    pub fn create_static_fields(class_map: &ClassMap) -> StaticFields {
+        let mut static_fields = HashMap::new();
+        for key in class_map.keys() {
+            if let Some(JavaClass::Custom(class)) = class_map.get(key) {
+                for field in class.fields.iter() {
+                    let field_name = class.cp_info.get_utf8(field.name_index);
+                    match class.get_descriptor(field.descriptor_index) {
+                        FieldDescriptor::BaseType(BaseType::I) => {
+                            static_fields.insert(
+                                (class.this_class_name(), field_name),
+                                // TBD need to create system to express uninitialized value
+                                OperandStackItem::Int(0),
+                            );
+                        }
+                        _ => {}
+                    };
+                }
+            }
+        }
+        static_fields
     }
 
     pub fn run_entry_file(&mut self, class_file: Custom) {

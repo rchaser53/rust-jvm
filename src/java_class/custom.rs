@@ -1,7 +1,7 @@
 use crate::attribute::code::Code;
 use crate::attribute::defs::Attribute;
 use crate::constant::ConstantPool;
-use crate::field::Field;
+use crate::field::{Field, FieldDescriptor};
 use crate::method::{Method, MethodAccessFlag};
 use crate::utils::*;
 use std::fmt;
@@ -176,6 +176,11 @@ impl Custom {
                 name, descriptor
             )
         }
+    }
+
+    pub fn get_descriptor(&self, descriptor_index: usize) -> FieldDescriptor {
+        let descriptor_str = self.cp_info.get_utf8(descriptor_index);
+        FieldDescriptor::from(descriptor_str.as_ref())
     }
 }
 
