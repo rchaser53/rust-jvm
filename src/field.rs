@@ -55,6 +55,26 @@ impl fmt::Display for Field {
     }
 }
 
+#[derive(Debug)]
+pub enum FieldDescriptor {
+    BaseType(BaseType),
+    // L ClassName ;	reference	an instance of class ClassName
+    ObjectType(String),
+    ArrayType(Box<FieldDescriptor>),
+}
+
+#[derive(Debug)]
+pub enum BaseType {
+    B, // byte
+    C, // char
+    D, // double
+    F, // float
+    I, // int
+    J, // long
+    S, // short
+    Z, // boolean
+}
+
 fn extract_access_flags(num: usize) -> FieldAccessFlags {
     let mut access_flags = vec![];
     crate::add_flags!(&mut access_flags, num, FieldAccessFlag::AccPublic);
