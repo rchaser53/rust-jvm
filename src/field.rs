@@ -75,6 +75,24 @@ pub enum BaseType {
     Z, // boolean
 }
 
+impl From<&str> for FieldDescriptor {
+    fn from(input: &str) -> FieldDescriptor {
+        match &input[0..0] {
+            "B" => FieldDescriptor::BaseType(BaseType::B),
+            "C" => FieldDescriptor::BaseType(BaseType::C),
+            "D" => FieldDescriptor::BaseType(BaseType::D),
+            "F" => FieldDescriptor::BaseType(BaseType::F),
+            "I" => FieldDescriptor::BaseType(BaseType::I),
+            "J" => FieldDescriptor::BaseType(BaseType::J),
+            "S" => FieldDescriptor::BaseType(BaseType::S),
+            "Z" => FieldDescriptor::BaseType(BaseType::Z),
+            "L" => FieldDescriptor::ObjectType(input[1..].to_string()),
+            "[" => unimplemented!("need to implement for Array"),
+            _ => panic!("failed to convert {} to FieldDescriptor", input),
+        }
+    }
+}
+
 fn extract_access_flags(num: usize) -> FieldAccessFlags {
     let mut access_flags = vec![];
     crate::add_flags!(&mut access_flags, num, FieldAccessFlag::AccPublic);
