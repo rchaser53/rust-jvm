@@ -424,6 +424,13 @@ impl<'a> Context<'a> {
             }
             Instruction::Getstatic(index) => {
                 let (class_name, field_name) = self.get_class_and_field_name(class_file, *index);
+                dbg!(&class_name);
+                if self.class_map.get(&class_name).is_none() {
+                    let new_class_file = self.create_custom_class(&class_name);
+                    self.class_map
+                        .insert(class_name.to_string(), JavaClass::Custom(new_class_file));
+                }
+
                 let stackframe = self
                     .stack_frames
                     .last_mut()
@@ -497,26 +504,17 @@ impl<'a> Context<'a> {
                     );
                     self.class_map.insert(class.this_class_name(), class);
                 } else {
-                    let class_name = class_name.to_string() + ".class";
-                    let class_path = Path::new(self.root_path).join(&class_name);
-                    if let Ok(buffer) = read_file(&class_path, &mut vec![]) {
-                        let (new_class_file, _pc_count) = Custom::new(buffer, 0);
-                        let mut new_class_file = JavaClass::Custom(new_class_file);
+                    let new_class_file = self.create_custom_class(&class_name);
+                    let mut new_class_file = JavaClass::Custom(new_class_file);
 
-                        self.call_other_class_method(
-                            &mut new_class_file,
-                            &class_file.cp_info,
-                            &method_name,
-                            &method_descriptor,
-                        );
-                        self.class_map
-                            .insert(class_name.to_string(), new_class_file);
-                    } else {
-                        unimplemented!(
-                            "need to add handler for the case failed to find the class file: {}",
-                            class_name
-                        )
-                    }
+                    self.call_other_class_method(
+                        &mut new_class_file,
+                        &class_file.cp_info,
+                        &method_name,
+                        &method_descriptor,
+                    );
+                    self.class_map
+                        .insert(class_name.to_string(), new_class_file);
                 }
             }
             Instruction::Ldc(index) => {
@@ -555,6 +553,19 @@ impl<'a> Context<'a> {
             _ => {}
         };
         (false, index + instruction.counsume_index())
+    }
+
+    fn create_custom_class(&mut self, class_name: &str) -> Custom {
+        let class_name = class_name.to_string() + ".class";
+        let class_path = Path::new(self.root_path).join(&class_name);
+        let mut buffer = vec![];
+        dbg!(&class_path);
+        let buffer = read_file(&class_path, &mut buffer).expect(&format!(
+            "need to add handler for the case failed to find the class file: {}",
+            class_name
+        ));
+        let (new_class_file, _pc_count) = Custom::new(buffer, 0);
+        new_class_file
     }
 
     fn call_other_class_method(

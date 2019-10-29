@@ -9,10 +9,12 @@ pub fn setup_class_map() -> HashMap<String, JavaClass> {
     let (print_stream_name, print_stream) = create_print_stream();
     let (java_lang_object_name, java_lang_object) = create_java_lang_object();
     let (java_lang_integer_name, java_lang_integer) = create_java_lang_integer();
+    let (java_lang_system_name, java_lang_system) = create_java_lang_system();
 
     class_map.insert(print_stream_name, print_stream);
     class_map.insert(java_lang_object_name, java_lang_object);
     class_map.insert(java_lang_integer_name, java_lang_integer);
+    class_map.insert(java_lang_system_name, java_lang_system);
     class_map
 }
 
@@ -32,6 +34,15 @@ fn create_java_lang_object() -> (String, JavaClass) {
     let init = BuiltInMethod::new(init_name.clone(), BuitlInCodeType::JavaLangObjectInit);
     java_lang_object.methods.insert(init_name, init);
     (java_lang_object_name, JavaClass::BuiltIn(java_lang_object))
+}
+
+fn create_java_lang_system() -> (String, JavaClass) {
+    let java_lang_system_name = String::from("java/lang/System");
+    let mut java_lang_system = BuiltIn::new(java_lang_system_name.clone());
+    let init_name = String::from("<init>");
+    let init = BuiltInMethod::new(init_name.clone(), BuitlInCodeType::JavaLangSystemInit);
+    java_lang_system.methods.insert(init_name, init);
+    (java_lang_system_name, JavaClass::BuiltIn(java_lang_system))
 }
 
 fn create_java_lang_integer() -> (String, JavaClass) {

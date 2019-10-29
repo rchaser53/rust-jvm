@@ -50,7 +50,9 @@ impl PartialOrd for OperandStackItem {
         match (self, other) {
             (OperandStackItem::Null, OperandStackItem::Null) => Some(Ordering::Equal),
             (OperandStackItem::Int(left), OperandStackItem::Int(right)) => Some(left.cmp(right)),
-            (OperandStackItem::Boolean(left), OperandStackItem::Boolean(right)) => Some(left.cmp(right)),
+            (OperandStackItem::Boolean(left), OperandStackItem::Boolean(right)) => {
+                Some(left.cmp(right))
+            }
             (OperandStackItem::Long(left), OperandStackItem::Long(right)) => Some(left.cmp(right)),
             (OperandStackItem::Classref(left), OperandStackItem::Classref(right)) => {
                 Some(left.cmp(right))

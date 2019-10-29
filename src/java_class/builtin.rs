@@ -40,9 +40,10 @@ impl BuiltInMethod {
             BuitlInCodeType::Println => match descriptor {
                 "(J)V" | "(D)V" => 2,
                 _ => 1,
-            },
-            BuitlInCodeType::JavaLangObjectInit => 1,
-            BuitlInCodeType::JavaLangObjectToString => 1,
+            }
+            BuitlInCodeType::JavaLangSystemInit
+            | BuitlInCodeType::JavaLangObjectInit
+            | BuitlInCodeType::JavaLangObjectToString => 1,
         }
     }
 
@@ -78,7 +79,8 @@ impl BuiltInMethod {
                     unreachable!("should have a argument for println")
                 }
             }
-            BuitlInCodeType::JavaLangObjectInit => {}
+            BuitlInCodeType::JavaLangSystemInit
+            | BuitlInCodeType::JavaLangObjectInit => {}
             BuitlInCodeType::JavaLangObjectToString => {
                 let val = if let Some(StackframeItem::Int(val)) = stackframe.local_variables.get(0)
                 {
@@ -100,5 +102,6 @@ impl BuiltInMethod {
 pub enum BuitlInCodeType {
     Println,
     JavaLangObjectInit,
+    JavaLangSystemInit,
     JavaLangObjectToString,
 }
