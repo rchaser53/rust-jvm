@@ -25,36 +25,14 @@ pub type StaticFields = HashMap<(String, String), (OperandStackItem, OperandStac
 
 impl<'a> Context<'a> {
     pub fn new(class_map: ClassMap, root_path: &'a str) -> Context {
+        let static_fields = setup_static_fields(&class_map);
         Context {
             class_map,
             program_count: 0,
             stack_frames: vec![],
             root_path,
-            static_fields: HashMap::new(),
+            static_fields,
         }
-    }
-
-    pub fn create_static_fields(class_map: &ClassMap) -> StaticFields {
-        let mut static_fields = HashMap::new();
-        for key in class_map.keys() {
-            if let Some(JavaClass::Custom(class)) = class_map.get(key) {
-                for field in class.fields.iter() {
-                    let field_name = class.cp_info.get_utf8(field.name_index);
-                    let value = match class.get_descriptor(field.descriptor_index) {
-                        // TBD need to create system to express uninitialized value
-                        FieldDescriptor::BaseType(BaseType::I) => {
-                            (OperandStackItem::Int(0), OperandStackItem::Null)
-                        }
-                        FieldDescriptor::BaseType(BaseType::J) => {
-                            (OperandStackItem::Long(0), OperandStackItem::Long(0))
-                        }
-                        _ => unimplemented!("should implement"),
-                    };
-                    static_fields.insert((class.this_class_name(), field_name), value);
-                }
-            }
-        }
-        static_fields
     }
 
     pub fn run_entry_file(&mut self, class_file: Custom) {
@@ -689,4 +667,36 @@ impl<'a> Context<'a> {
     }
 
     // Instruction::Getfield(val) => write!(f, "getfield        #{}", val),
+}
+
+pub fn setup_static_fields(class_map: &ClassMap) -> StaticFields {
+    let mut static_fields = HashMap::new();
+    for key in class_map.keys() {
+        if let Some(JavaClass::Custom(class)) = class_map.get(key) {
+            for field in class.fields.iter() {
+                let field_name = class.cp_info.get_utf8(field.name_index);
+                let value = match class.get_descriptor(field.descriptor_index) {
+                    // TBD need to create system to express uninitialized value
+                    FieldDescriptor::BaseType(BaseType::I) => {
+                        (OperandStackItem::Int(0), OperandStackItem::Null)
+                    }
+                    FieldDescriptor::BaseType(BaseType::J) => {
+                        (OperandStackItem::Long(0), OperandStackItem::Long(0))
+                    }
+                    _ => unimplemented!("should implement"),
+                };
+                static_fields.insert((class.this_class_name(), field_name), value);
+            }
+        }
+    }
+
+    static_fields.insert(
+        (String::from("java/lang/System"), String::from("out")),
+        (
+            OperandStackItem::Classref(String::from("java/io/PrintStream")),
+            OperandStackItem::Null,
+        ),
+    );
+
+    static_fields
 }
