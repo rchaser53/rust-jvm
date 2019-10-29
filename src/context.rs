@@ -423,13 +423,27 @@ impl<'a> Context<'a> {
                     .insert((class_name, field_name), (first, second));
             }
             Instruction::Getstatic(index) => {
+                let (class_name, field_name) = self.get_class_and_field_name(class_file, *index);
                 let stackframe = self
                     .stack_frames
                     .last_mut()
                     .expect("should exist stack_frame");
-                class_file
-                    .cp_info
-                    .create_and_set_operand_stack_item(&mut stackframe.operand_stack.stack, *index);
+
+                let err_message = format!(
+                    "Getstatic failed. {}.{} is not found",
+                    &class_name, &field_name
+                );
+                let items = self
+                    .static_fields
+                    .get_mut(&(class_name, field_name))
+                    .expect(&err_message);
+                stackframe.operand_stack.stack.push(items.0.clone());
+                match items.0 {
+                    OperandStackItem::Long(_) => {
+                        stackframe.operand_stack.stack.push(items.1.clone());
+                    }
+                    _ => {}
+                };
             }
             Instruction::Areturn | Instruction::Ireturn => {
                 let stackframe = self
