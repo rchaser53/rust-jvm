@@ -7,7 +7,6 @@ pub enum StackframeItem {
     Long(i32),
     String(String),
     Classref(String),
-    Utf8(usize),
     Fieldref(usize),
     Objectref(usize),
 }
@@ -19,7 +18,6 @@ impl From<OperandStackItem> for StackframeItem {
             OperandStackItem::Long(value) => StackframeItem::Long(value),
             OperandStackItem::String(value) => StackframeItem::String(value),
             OperandStackItem::Classref(value) => StackframeItem::Classref(value),
-            OperandStackItem::Utf8(index) => StackframeItem::Utf8(index),
             OperandStackItem::Fieldref(index) => StackframeItem::Fieldref(index),
             OperandStackItem::Objectref(index) => StackframeItem::Objectref(index),
             OperandStackItem::Null => StackframeItem::Null,
@@ -34,7 +32,6 @@ impl From<&OperandStackItem> for StackframeItem {
             OperandStackItem::Long(value) => StackframeItem::Long(*value),
             OperandStackItem::String(value) => StackframeItem::String(value.clone()),
             OperandStackItem::Classref(value) => StackframeItem::Classref(value.clone()),
-            OperandStackItem::Utf8(index) => StackframeItem::Utf8(*index),
             OperandStackItem::Fieldref(index) => StackframeItem::Fieldref(*index),
             OperandStackItem::Objectref(index) => StackframeItem::Objectref(*index),
             OperandStackItem::Null => StackframeItem::Null,

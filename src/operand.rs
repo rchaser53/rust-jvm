@@ -10,7 +10,6 @@ pub enum OperandStackItem {
     Long(i32),
     String(String),
     Classref(String),
-    Utf8(usize),
     Fieldref(usize),
     Objectref(usize),
 }
@@ -22,7 +21,6 @@ impl From<&StackframeItem> for OperandStackItem {
             StackframeItem::Long(value) => OperandStackItem::Long(*value),
             StackframeItem::String(value) => OperandStackItem::String(value.clone()),
             StackframeItem::Classref(value) => OperandStackItem::Classref(value.clone()),
-            StackframeItem::Utf8(index) => OperandStackItem::Utf8(*index),
             StackframeItem::Fieldref(index) => OperandStackItem::Fieldref(*index),
             StackframeItem::Objectref(index) => OperandStackItem::Objectref(*index),
             StackframeItem::Null => OperandStackItem::Null,
@@ -37,7 +35,6 @@ impl fmt::Display for OperandStackItem {
             OperandStackItem::Int(val) => write!(f, "int: {}", val),
             OperandStackItem::Long(val) => write!(f, "long: {}", val),
             OperandStackItem::String(val) => write!(f, "string: {}", val),
-            OperandStackItem::Utf8(val) => write!(f, "utf8: {}", val),
             OperandStackItem::Classref(val) => write!(f, "class_ref: {}", val),
             OperandStackItem::Fieldref(val) => write!(f, "field_ref: {}", val),
             OperandStackItem::Objectref(val) => write!(f, "object_ref: {}", val),
@@ -51,7 +48,6 @@ impl PartialOrd for OperandStackItem {
             (OperandStackItem::Null, OperandStackItem::Null) => Some(Ordering::Equal),
             (OperandStackItem::Int(left), OperandStackItem::Int(right)) => Some(left.cmp(right)),
             (OperandStackItem::Long(left), OperandStackItem::Long(right)) => Some(left.cmp(right)),
-            (OperandStackItem::Utf8(left), OperandStackItem::Utf8(right)) => Some(left.cmp(right)),
             (OperandStackItem::Classref(left), OperandStackItem::Classref(right)) => {
                 Some(left.cmp(right))
             }
