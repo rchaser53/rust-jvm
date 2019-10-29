@@ -77,7 +77,7 @@ pub enum BaseType {
 
 impl From<&str> for FieldDescriptor {
     fn from(input: &str) -> FieldDescriptor {
-        match &input[0..0] {
+        match &input[0..1] {
             "B" => FieldDescriptor::BaseType(BaseType::B),
             "C" => FieldDescriptor::BaseType(BaseType::C),
             "D" => FieldDescriptor::BaseType(BaseType::D),
