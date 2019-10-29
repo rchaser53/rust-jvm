@@ -79,6 +79,9 @@ impl fmt::Display for Code {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let mut code_strs = Vec::with_capacity(self.code_length);
         for (index, code) in self.code.iter().enumerate() {
+            if let Instruction::Noope = *code {
+                continue;
+            }
             code_strs.push(format!("{}: {}", index, code));
         }
         let mut attribute_strs = Vec::with_capacity(self.attributes_count);
