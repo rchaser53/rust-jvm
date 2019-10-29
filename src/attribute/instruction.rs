@@ -48,6 +48,7 @@ pub enum Instruction {
     Areturn,                // 0xb0
     Return,                 // 0xb1
     Getstatic(usize),       // 0xb2
+    Putstatic(usize),       // 0xb3
     Getfield(usize),        // 0xb4
     Putfield(usize),        // 0xb5
     Invokevirtual(usize),   // 0xb6
@@ -105,6 +106,7 @@ impl fmt::Display for Instruction {
             Instruction::Areturn => write!(f, "areturn"),
             Instruction::Return => write!(f, "return"),
             Instruction::Getstatic(val) => write!(f, "getstatic       #{}", val),
+            Instruction::Putstatic(val) => write!(f, "putstatic       #{}", val),
             Instruction::Getfield(val) => write!(f, "getfield        #{}", val),
             Instruction::Putfield(val) => write!(f, "putfield        #{}", val),
             Instruction::Invokevirtual(val) => write!(f, "invokevirtual   #{}", val),
@@ -457,6 +459,14 @@ impl Instruction {
                 codes.push(Instruction::Noope);
                 (index, 3)
             }
+            // getstatic
+            0xb3 => {
+                let (val, index) = extract_x_byte_as_usize(inputs, index, 2);
+                codes.push(Instruction::Putstatic(val));
+                codes.push(Instruction::Noope);
+                codes.push(Instruction::Noope);
+                (index, 3)
+            }
             // getfield
             0xb4 => {
                 let (val, index) = extract_x_byte_as_usize(inputs, index, 2);
@@ -513,6 +523,7 @@ impl Instruction {
         match self {
             Instruction::Ificmple(_, _)
             | Instruction::Getstatic(_)
+            | Instruction::Putstatic(_)
             | Instruction::Getfield(_)
             | Instruction::Putfield(_)
             | Instruction::Iinc(_, _)

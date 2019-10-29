@@ -145,6 +145,13 @@ next tag: {}",
         }
     }
 
+    pub fn get_field_ref(&self, index: usize) -> &ConstantFieldref {
+        match self.0.get(index) {
+            Some(ConstPoolItem::ConstantFieldref(ref item)) => item,
+            _ => unreachable!("should be ConstantFieldref. actual {:?}", self.0.get(index)),
+        }
+    }
+
     pub fn get_string(&self, index: usize) -> String {
         match self.0.get(index) {
             Some(ConstPoolItem::ConstantString(ref item)) => self.get_utf8(item.string_index),

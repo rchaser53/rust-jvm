@@ -21,7 +21,7 @@ pub struct Context<'a> {
 }
 pub type ClassMap = HashMap<String, JavaClass>;
 // class_name, field_name
-pub type StaticFields = HashMap<(String, String), OperandStackItem>;
+pub type StaticFields = HashMap<(String, String), (OperandStackItem, OperandStackItem)>;
 
 impl<'a> Context<'a> {
     pub fn new(class_map: ClassMap, root_path: &'a str) -> Context {
@@ -40,16 +40,17 @@ impl<'a> Context<'a> {
             if let Some(JavaClass::Custom(class)) = class_map.get(key) {
                 for field in class.fields.iter() {
                     let field_name = class.cp_info.get_utf8(field.name_index);
-                    match class.get_descriptor(field.descriptor_index) {
+                    let value = match class.get_descriptor(field.descriptor_index) {
+                        // TBD need to create system to express uninitialized value
                         FieldDescriptor::BaseType(BaseType::I) => {
-                            static_fields.insert(
-                                (class.this_class_name(), field_name),
-                                // TBD need to create system to express uninitialized value
-                                OperandStackItem::Int(0),
-                            );
+                            (OperandStackItem::Int(0), OperandStackItem::Null)
                         }
-                        _ => {}
+                        FieldDescriptor::BaseType(BaseType::J) => {
+                            (OperandStackItem::Long(0), OperandStackItem::Long(0))
+                        }
+                        _ => unimplemented!("should implement"),
                     };
+                    static_fields.insert((class.this_class_name(), field_name), value);
                 }
             }
         }
@@ -425,6 +426,22 @@ impl<'a> Context<'a> {
             Instruction::AstoreN(index) => {
                 self.store_n(&[*index]);
             }
+            Instruction::Putstatic(index) => {
+                let (class_name, field_name) = self.get_class_and_field_name(class_file, *index);
+                let stackframe = self
+                    .stack_frames
+                    .last_mut()
+                    .expect("should exist stack_frame");
+                let (first, second) = match stackframe.operand_stack.stack.pop() {
+                    Some(second @ OperandStackItem::Long(_)) => {
+                        let first = stackframe.operand_stack.stack.pop().unwrap();
+                        (first, second)
+                    }
+                    first @ _ => (first.unwrap(), OperandStackItem::Null),
+                };
+                self.static_fields
+                    .insert((class_name, field_name), (first, second));
+            }
             Instruction::Getstatic(index) => {
                 let stackframe = self
                     .stack_frames
@@ -626,6 +643,19 @@ impl<'a> Context<'a> {
         }
     }
 
+    // (class_name, field_name)
+    fn get_class_and_field_name(&mut self, class_file: &Custom, index: usize) -> (String, String) {
+        let field_ref = class_file.cp_info.get_field_ref(index);
+        let class_ref = class_file.cp_info.get_class_ref(field_ref.class_index);
+        let name_and_type = class_file
+            .cp_info
+            .get_name_and_type(field_ref.name_and_type_index);
+        (
+            class_file.cp_info.get_utf8(class_ref.name_index),
+            class_file.cp_info.get_utf8(name_and_type.name_index),
+        )
+    }
+
     fn get_related_method_info<'b>(
         &mut self,
         class_file: &'b Custom,
@@ -659,5 +689,4 @@ impl<'a> Context<'a> {
     }
 
     // Instruction::Getfield(val) => write!(f, "getfield        #{}", val),
-    // Instruction::Putfield(val) => write!(f, "putfield        #{}", val),
 }
