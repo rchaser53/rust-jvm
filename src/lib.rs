@@ -35,7 +35,7 @@ pub fn execute(file_name: String, debug_mode: usize) {
         } else {
             "./"
         };
-        let mut context = Context::new(class_map, parent_path);
+        let mut context = Context::new(class_map, &class_file, parent_path);
         context.run_entry_file(class_file);
     } else {
         unimplemented!("need to add handler for the case failed to find the class file")

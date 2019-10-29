@@ -24,8 +24,10 @@ pub type ClassMap = HashMap<String, JavaClass>;
 pub type StaticFields = HashMap<(String, String), (OperandStackItem, OperandStackItem)>;
 
 impl<'a> Context<'a> {
-    pub fn new(class_map: ClassMap, root_path: &'a str) -> Context {
-        let static_fields = setup_static_fields(&class_map);
+    pub fn new(class_map: ClassMap, class_file: &Custom, root_path: &'a str) -> Context<'a> {
+        let mut static_fields = setup_static_fields(&class_map);
+        set_static_fields(&class_file, &mut static_fields);
+
         Context {
             class_map,
             program_count: 0,
