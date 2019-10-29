@@ -9,6 +9,7 @@ pub enum OperandStackItem {
     Int(i32),
     Long(i32),
     String(String),
+    Boolean(bool),
     Classref(String),
     Fieldref(usize),
     Objectref(usize),
@@ -19,6 +20,7 @@ impl From<&StackframeItem> for OperandStackItem {
         match item {
             StackframeItem::Int(value) => OperandStackItem::Int(*value),
             StackframeItem::Long(value) => OperandStackItem::Long(*value),
+            StackframeItem::Boolean(value) => OperandStackItem::Boolean(value.clone()),
             StackframeItem::String(value) => OperandStackItem::String(value.clone()),
             StackframeItem::Classref(value) => OperandStackItem::Classref(value.clone()),
             StackframeItem::Fieldref(index) => OperandStackItem::Fieldref(*index),
@@ -34,6 +36,7 @@ impl fmt::Display for OperandStackItem {
             OperandStackItem::Null => write!(f, "null"),
             OperandStackItem::Int(val) => write!(f, "int: {}", val),
             OperandStackItem::Long(val) => write!(f, "long: {}", val),
+            OperandStackItem::Boolean(val) => write!(f, "boolean: {}", val),
             OperandStackItem::String(val) => write!(f, "string: {}", val),
             OperandStackItem::Classref(val) => write!(f, "class_ref: {}", val),
             OperandStackItem::Fieldref(val) => write!(f, "field_ref: {}", val),
@@ -47,6 +50,7 @@ impl PartialOrd for OperandStackItem {
         match (self, other) {
             (OperandStackItem::Null, OperandStackItem::Null) => Some(Ordering::Equal),
             (OperandStackItem::Int(left), OperandStackItem::Int(right)) => Some(left.cmp(right)),
+            (OperandStackItem::Boolean(left), OperandStackItem::Boolean(right)) => Some(left.cmp(right)),
             (OperandStackItem::Long(left), OperandStackItem::Long(right)) => Some(left.cmp(right)),
             (OperandStackItem::Classref(left), OperandStackItem::Classref(right)) => {
                 Some(left.cmp(right))

@@ -699,6 +699,9 @@ pub fn setup_static_fields(class_map: &ClassMap) -> StaticFields {
                     FieldDescriptor::BaseType(BaseType::J) => {
                         (OperandStackItem::Long(0), OperandStackItem::Long(0))
                     }
+                    FieldDescriptor::BaseType(BaseType::Z) => {
+                        (OperandStackItem::Boolean(true), OperandStackItem::Null)
+                    }
                     _ => unimplemented!("should implement"),
                 };
                 static_fields.insert((class.this_class_name(), field_name), value);

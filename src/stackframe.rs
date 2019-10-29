@@ -5,6 +5,7 @@ pub enum StackframeItem {
     Null,
     Int(i32),
     Long(i32),
+    Boolean(bool),
     String(String),
     Classref(String),
     Fieldref(usize),
@@ -16,6 +17,7 @@ impl From<OperandStackItem> for StackframeItem {
         match item {
             OperandStackItem::Int(value) => StackframeItem::Int(value),
             OperandStackItem::Long(value) => StackframeItem::Long(value),
+            OperandStackItem::Boolean(value) => StackframeItem::Boolean(value),
             OperandStackItem::String(value) => StackframeItem::String(value),
             OperandStackItem::Classref(value) => StackframeItem::Classref(value),
             OperandStackItem::Fieldref(index) => StackframeItem::Fieldref(index),
@@ -30,6 +32,7 @@ impl From<&OperandStackItem> for StackframeItem {
         match item {
             OperandStackItem::Int(value) => StackframeItem::Int(*value),
             OperandStackItem::Long(value) => StackframeItem::Long(*value),
+            OperandStackItem::Boolean(value) => StackframeItem::Boolean(*value),
             OperandStackItem::String(value) => StackframeItem::String(value.clone()),
             OperandStackItem::Classref(value) => StackframeItem::Classref(value.clone()),
             OperandStackItem::Fieldref(index) => StackframeItem::Fieldref(*index),
