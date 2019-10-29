@@ -423,9 +423,9 @@ impl<'a> Context<'a> {
                     .insert((class_name, field_name), (first, second));
             }
             Instruction::Getstatic(index) => {
+                let this_class_name = class_file.this_class_name();
                 let (class_name, field_name) = self.get_class_and_field_name(class_file, *index);
-                dbg!(&class_name);
-                if self.class_map.get(&class_name).is_none() {
+                if this_class_name != class_name && self.class_map.get_mut(&class_name).is_none() {
                     let new_class_file = self.create_custom_class(&class_name);
                     self.class_map
                         .insert(class_name.to_string(), JavaClass::Custom(new_class_file));
@@ -559,12 +559,13 @@ impl<'a> Context<'a> {
         let class_name = class_name.to_string() + ".class";
         let class_path = Path::new(self.root_path).join(&class_name);
         let mut buffer = vec![];
-        dbg!(&class_path);
         let buffer = read_file(&class_path, &mut buffer).expect(&format!(
             "need to add handler for the case failed to find the class file: {}",
             class_name
         ));
         let (new_class_file, _pc_count) = Custom::new(buffer, 0);
+        // TBD should be set initial value
+        set_static_fields(&new_class_file, &mut self.static_fields);
         new_class_file
     }
 
@@ -696,27 +697,31 @@ impl<'a> Context<'a> {
     // Instruction::Getfield(val) => write!(f, "getfield        #{}", val),
 }
 
+pub fn set_static_fields(class: &Custom, static_fields: &mut StaticFields) {
+    for field in class.fields.iter() {
+        let field_name = class.cp_info.get_utf8(field.name_index);
+        let value = match class.get_descriptor(field.descriptor_index) {
+            // TBD need to create system to express uninitialized value
+            FieldDescriptor::BaseType(BaseType::I) => {
+                (OperandStackItem::Int(0), OperandStackItem::Null)
+            }
+            FieldDescriptor::BaseType(BaseType::J) => {
+                (OperandStackItem::Long(0), OperandStackItem::Long(0))
+            }
+            FieldDescriptor::BaseType(BaseType::Z) => {
+                (OperandStackItem::Boolean(true), OperandStackItem::Null)
+            }
+            _ => unimplemented!("should implement"),
+        };
+        static_fields.insert((class.this_class_name(), field_name), value);
+    }
+}
+
 pub fn setup_static_fields(class_map: &ClassMap) -> StaticFields {
     let mut static_fields = HashMap::new();
     for key in class_map.keys() {
         if let Some(JavaClass::Custom(class)) = class_map.get(key) {
-            for field in class.fields.iter() {
-                let field_name = class.cp_info.get_utf8(field.name_index);
-                let value = match class.get_descriptor(field.descriptor_index) {
-                    // TBD need to create system to express uninitialized value
-                    FieldDescriptor::BaseType(BaseType::I) => {
-                        (OperandStackItem::Int(0), OperandStackItem::Null)
-                    }
-                    FieldDescriptor::BaseType(BaseType::J) => {
-                        (OperandStackItem::Long(0), OperandStackItem::Long(0))
-                    }
-                    FieldDescriptor::BaseType(BaseType::Z) => {
-                        (OperandStackItem::Boolean(true), OperandStackItem::Null)
-                    }
-                    _ => unimplemented!("should implement"),
-                };
-                static_fields.insert((class.this_class_name(), field_name), value);
-            }
+            set_static_fields(&class, &mut static_fields);
         }
     }
 
