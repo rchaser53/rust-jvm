@@ -104,7 +104,9 @@ next tag: {}",
                     stack.push(OperandStackItem::String(self.get_string(item.string_index)));
                 }
                 ConstPoolItem::ConstantFieldref(_) => stack.push(OperandStackItem::Fieldref(index)),
-                ConstPoolItem::ConstantUtf8(_) => stack.push(OperandStackItem::Utf8(index)),
+                ConstPoolItem::ConstantUtf8(item) => stack.push(OperandStackItem::String(
+                    String::from_utf8_lossy(item.bytes.as_slice()).to_string(),
+                )),
                 ConstPoolItem::ConstantLong(ref item) => {
                     stack.push(OperandStackItem::Long(item.high_bytes as i32));
                     stack.push(OperandStackItem::Long(item.low_bytes as i32));
