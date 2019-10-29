@@ -42,7 +42,9 @@ impl<'a> Context<'a> {
 
         // TBD Perhaps this method is not invoked from super_class
         let super_class_index = class_file.super_class;
-        let stack_frame_item_0 = StackframeItem::Classref(super_class_index);
+        let super_class_ref = class_file.cp_info.get_class_ref(super_class_index);
+        let super_class_name = class_file.cp_info.get_utf8(super_class_ref.name_index);
+        let stack_frame_item_0 = StackframeItem::Classref(super_class_name);
 
         let code = entry_method
             .extract_code()
