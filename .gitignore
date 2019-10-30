@@ -3,3 +3,4 @@
 *.java
 *.class
 !tests/class/*.class
+!tests/original/*.java
