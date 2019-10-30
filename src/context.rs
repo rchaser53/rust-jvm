@@ -48,6 +48,12 @@ impl<'a> Context<'a> {
         let super_class_name = class_file.cp_info.get_utf8(super_class_ref.name_index);
         let stack_frame_item_0 = StackframeItem::Classref(super_class_name);
 
+        if let Some(code) = class_file.get_clinit_code() {
+            let stack_frame = Stackframe::new(code.max_locals as usize);
+            self.stack_frames.push(stack_frame);
+            self.call_custom_class_method(&class_file, code);
+        }
+
         let code = entry_method
             .extract_code()
             .expect("should exist code in method");
@@ -575,6 +581,10 @@ impl<'a> Context<'a> {
     fn initilize_class_static_info(&mut self, this_class_name: &str, class_name: &str) {
         if this_class_name != class_name && self.class_map.get_mut(class_name).is_none() {
             let new_class_file = self.create_custom_class(&class_name);
+            if let Some(code) = new_class_file.get_clinit_code() {
+                self.call_custom_class_method(&new_class_file, code);
+            }
+
             self.class_map
                 .insert(class_name.to_string(), JavaClass::Custom(new_class_file));
         }
@@ -616,13 +626,17 @@ impl<'a> Context<'a> {
                 if let Some(method_code) =
                     custom_class.get_method_code_by_string(method_name, method_descriptor)
                 {
-                    let local_variable_length = method_code.max_locals as usize;
-                    let stack_frame = self.create_new_stack_frame(local_variable_length);
-                    self.stack_frames.push(stack_frame);
-                    self.run_method(custom_class, method_code);
+                    self.call_custom_class_method(custom_class, &method_code);
                 }
             }
         }
+    }
+
+    fn call_custom_class_method(&mut self, class: &Custom, code: &Code) {
+        let local_variable_length = code.max_locals as usize;
+        let stack_frame = self.create_new_stack_frame(local_variable_length);
+        self.stack_frames.push(stack_frame);
+        self.run_method(class, code);
     }
 
     fn load_n(&mut self, index: usize) {

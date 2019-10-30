@@ -89,6 +89,17 @@ next tag: {}",
         })
     }
 
+    pub fn get_clinit_index(&self) -> Option<usize> {
+        self.0.iter().position(|item| {
+            if let ConstPoolItem::ConstantUtf8(utf8) = item {
+                // <clinit>
+                utf8.bytes == vec![0x3C, 0x63, 0x6C, 0x69, 0x6E, 0x69, 0x74, 0x3E]
+            } else {
+                false
+            }
+        })
+    }
+
     pub fn create_and_set_operand_stack_item(
         &self,
         stack: &mut Vec<OperandStackItem>,

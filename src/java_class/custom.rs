@@ -118,6 +118,37 @@ impl Custom {
         panic!("failed to find main method in {}", self);
     }
 
+    pub fn get_clinit_code(&self) -> Option<&Code> {
+        if let Some(clinit_index) = self.cp_info.get_clinit_index() {
+            let method_option = self.methods.iter().find(|method| {
+                method
+                    .access_flags
+                    .0
+                    .iter()
+                    .find(|flag| **flag == MethodAccessFlag::AccStatic)
+                    .is_some()
+                    && method.name_index == clinit_index
+            });
+            if let Some(method) = method_option {
+                if let Some(Attribute::Code(code)) = method.attribute_info.iter().find(|attr| {
+                    if let Attribute::Code(_) = attr {
+                        true
+                    } else {
+                        false
+                    }
+                }) {
+                    Some(code)
+                } else {
+                    None
+                }
+            } else {
+                None
+            }
+        } else {
+            None
+        }
+    }
+
     pub fn this_class_name(&self) -> String {
         let class_ref = self.cp_info.get_class_ref(self.this_class);
         self.cp_info.get_utf8(class_ref.name_index)
