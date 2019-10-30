@@ -409,7 +409,10 @@ impl<'a> Context<'a> {
                 self.store_n(&[*index]);
             }
             Instruction::Putstatic(index) => {
+                let this_class_name = class_file.this_class_name();
                 let (class_name, field_name) = self.get_class_and_field_name(class_file, *index);
+                self.initilize_class_static_info(&this_class_name, &class_name);
+
                 let stackframe = self
                     .stack_frames
                     .last_mut()
@@ -427,11 +430,7 @@ impl<'a> Context<'a> {
             Instruction::Getstatic(index) => {
                 let this_class_name = class_file.this_class_name();
                 let (class_name, field_name) = self.get_class_and_field_name(class_file, *index);
-                if this_class_name != class_name && self.class_map.get_mut(&class_name).is_none() {
-                    let new_class_file = self.create_custom_class(&class_name);
-                    self.class_map
-                        .insert(class_name.to_string(), JavaClass::Custom(new_class_file));
-                }
+                self.initilize_class_static_info(&this_class_name, &class_name);
 
                 let stackframe = self
                     .stack_frames
@@ -490,34 +489,15 @@ impl<'a> Context<'a> {
                 };
                 stackframe.operand_stack.stack.push(last);
             }
-            Instruction::Invokevirtual(index)
-            | Instruction::Invokespecial(index)
-            | Instruction::Invokestatic(index) => {
+            Instruction::Invokevirtual(index) | Instruction::Invokespecial(index) => {
                 let (class_name, name_and_type) = self.get_related_method_info(class_file, *index);
-                let method_name = class_file.cp_info.get_utf8(name_and_type.name_index);
-                let method_descriptor = class_file.cp_info.get_utf8(name_and_type.descriptor_index);
-
-                if let Some(mut class) = self.class_map.remove(&class_name) {
-                    self.call_other_class_method(
-                        &mut class,
-                        &class_file.cp_info,
-                        &method_name,
-                        &method_descriptor,
-                    );
-                    self.class_map.insert(class.this_class_name(), class);
-                } else {
-                    let new_class_file = self.create_custom_class(&class_name);
-                    let mut new_class_file = JavaClass::Custom(new_class_file);
-
-                    self.call_other_class_method(
-                        &mut new_class_file,
-                        &class_file.cp_info,
-                        &method_name,
-                        &method_descriptor,
-                    );
-                    self.class_map
-                        .insert(class_name.to_string(), new_class_file);
-                }
+                self.call_method(&class_file, class_name, name_and_type);
+            }
+            Instruction::Invokestatic(index) => {
+                let this_class_name = class_file.this_class_name();
+                let (class_name, name_and_type) = self.get_related_method_info(class_file, *index);
+                self.initilize_class_static_info(&this_class_name, &class_name);
+                self.call_method(&class_file, class_name, name_and_type);
             }
             Instruction::Ldc(index) => {
                 let string_val = class_file.cp_info.get_string(*index);
@@ -541,6 +521,10 @@ impl<'a> Context<'a> {
                 );
             }
             Instruction::New(index) => {
+                let this_class_name = class_file.this_class_name();
+                let class_ref = class_file.cp_info.get_class_ref(*index);
+                let class_name = class_file.cp_info.get_utf8(class_ref.name_index);
+                self.initilize_class_static_info(&this_class_name, &class_name);
                 let stackframe = self
                     .stack_frames
                     .last_mut()
@@ -555,6 +539,45 @@ impl<'a> Context<'a> {
             _ => {}
         };
         (false, index + instruction.counsume_index())
+    }
+
+    fn call_method(
+        &mut self,
+        class_file: &Custom,
+        class_name: String,
+        name_and_type: &ConstantNameAndType,
+    ) {
+        let method_name = class_file.cp_info.get_utf8(name_and_type.name_index);
+        let method_descriptor = class_file.cp_info.get_utf8(name_and_type.descriptor_index);
+
+        if let Some(mut class) = self.class_map.remove(&class_name) {
+            self.call_other_class_method(
+                &mut class,
+                &class_file.cp_info,
+                &method_name,
+                &method_descriptor,
+            );
+            self.class_map.insert(class.this_class_name(), class);
+        } else {
+            let new_class_file = self.create_custom_class(&class_name);
+            let mut new_class_file = JavaClass::Custom(new_class_file);
+
+            self.call_other_class_method(
+                &mut new_class_file,
+                &class_file.cp_info,
+                &method_name,
+                &method_descriptor,
+            );
+            self.class_map.insert(class_name, new_class_file);
+        }
+    }
+
+    fn initilize_class_static_info(&mut self, this_class_name: &str, class_name: &str) {
+        if this_class_name != class_name && self.class_map.get_mut(class_name).is_none() {
+            let new_class_file = self.create_custom_class(&class_name);
+            self.class_map
+                .insert(class_name.to_string(), JavaClass::Custom(new_class_file));
+        }
     }
 
     fn create_custom_class(&mut self, class_name: &str) -> Custom {
