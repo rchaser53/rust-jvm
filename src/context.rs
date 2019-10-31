@@ -216,6 +216,29 @@ impl<'a> Context<'a> {
                     .stack
                     .push(OperandStackItem::Int(*val as i32));
             }
+            Instruction::Lookupswitch(vals) => {
+                let stackframe = self
+                    .stack_frames
+                    .last_mut()
+                    .expect("should exist stack_frame");
+                if let Some(OperandStackItem::Int(target_key)) =
+                    stackframe.operand_stack.stack.pop()
+                {
+                    if let Some(jump_pointer) = vals.iter().find(|(optional_key, _)| {
+                        if let Some(key) = *optional_key {
+                            key == target_key as usize
+                        } else {
+                            false
+                        }
+                    }) {
+                        return (false, jump_pointer.1);
+                    } else {
+                        return (false, vals.first().expect("should exist default value").1);
+                    }
+                } else {
+                    unreachable!("should exist operan_item");
+                }
+            }
             Instruction::Goto(pointer) => {
                 return (false, *pointer);
             }

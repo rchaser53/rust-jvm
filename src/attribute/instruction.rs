@@ -3,59 +3,60 @@ use std::fmt;
 
 #[derive(Debug)]
 pub enum Instruction {
-    IconstN(usize),         // 0x02(-1) - 0x08(5)
-    LconstN(usize),         // 0x09(0) - 0x0a(1)
-    Bipush(usize),          // 0x10
-    Sipush(usize),          // 0x11
-    Ldc(usize),             // 0x12
-    Ldc2W(usize, usize),    // 0x14
-    Iload(usize),           // 0x15
-    IloadN(usize),          // 0x1a(0) - 0x1d(3)
-    LloadN(usize),          // 0x1e(0) - 0x21(3)
-    AloadN(usize),          // 0x2a(0) - 0x2d(3)
-    Istore(usize),          // 0x36
-    IstoreN(usize),         // 0x3b(0) - 0x3e(3)
-    LstoreN(usize),         // 0x3f(0) - 0x42(3)
-    AstoreN(usize),         // 0x4b(0) - 0x4e(3)
-    Pop,                    // 0x57
-    Dup,                    // 0x59
-    Iadd,                   // 0x60
-    Ladd,                   // 0x61
-    Isub,                   // 0x64
-    Lsub,                   // 0x65
-    Imul,                   // 0x68
-    Lmul,                   // 0x69
-    Idiv,                   // 0x6c
-    Ldiv,                   // 0x6d
-    Irem,                   // 0x70
-    Lrem,                   // 0x71
-    Iinc(usize, usize),     // 0x84
-    Lcmp,                   // 0x94
-    Ifeq(usize, usize),     // 0x99
-    Ifne(usize, usize),     // 0x9a
-    Iflt(usize, usize),     // 0x9b
-    Ifge(usize, usize),     // 0x9c
-    Ifgt(usize, usize),     // 0x9d
-    Ifle(usize, usize),     // 0x9e
-    Ificmpeq(usize, usize), // 0x9f
-    Ificmpne(usize, usize), // 0xa0
-    Ificmplt(usize, usize), // 0xa1
-    Ificmpge(usize, usize), // 0xa2
-    Ificmpgt(usize, usize), // 0xa3
-    Ificmple(usize, usize), // 0xa4
-    Goto(usize),            // 0xa7
-    Ireturn,                // 0xac
-    Areturn,                // 0xb0
-    Return,                 // 0xb1
-    Getstatic(usize),       // 0xb2
-    Putstatic(usize),       // 0xb3
-    Getfield(usize),        // 0xb4
-    Putfield(usize),        // 0xb5
-    Invokevirtual(usize),   // 0xb6
-    Invokespecial(usize),   // 0xb7
-    Invokestatic(usize),    // 0xb8
-    New(usize),             // 0xbb
-    Noope,                  // custom command for Ificmple etc.
+    IconstN(usize),                            // 0x02(-1) - 0x08(5)
+    LconstN(usize),                            // 0x09(0) - 0x0a(1)
+    Bipush(usize),                             // 0x10
+    Sipush(usize),                             // 0x11
+    Ldc(usize),                                // 0x12
+    Ldc2W(usize, usize),                       // 0x14
+    Iload(usize),                              // 0x15
+    IloadN(usize),                             // 0x1a(0) - 0x1d(3)
+    LloadN(usize),                             // 0x1e(0) - 0x21(3)
+    AloadN(usize),                             // 0x2a(0) - 0x2d(3)
+    Istore(usize),                             // 0x36
+    IstoreN(usize),                            // 0x3b(0) - 0x3e(3)
+    LstoreN(usize),                            // 0x3f(0) - 0x42(3)
+    AstoreN(usize),                            // 0x4b(0) - 0x4e(3)
+    Pop,                                       // 0x57
+    Dup,                                       // 0x59
+    Iadd,                                      // 0x60
+    Ladd,                                      // 0x61
+    Isub,                                      // 0x64
+    Lsub,                                      // 0x65
+    Imul,                                      // 0x68
+    Lmul,                                      // 0x69
+    Idiv,                                      // 0x6c
+    Ldiv,                                      // 0x6d
+    Irem,                                      // 0x70
+    Lrem,                                      // 0x71
+    Iinc(usize, usize),                        // 0x84
+    Lcmp,                                      // 0x94
+    Ifeq(usize, usize),                        // 0x99
+    Ifne(usize, usize),                        // 0x9a
+    Iflt(usize, usize),                        // 0x9b
+    Ifge(usize, usize),                        // 0x9c
+    Ifgt(usize, usize),                        // 0x9d
+    Ifle(usize, usize),                        // 0x9e
+    Ificmpeq(usize, usize),                    // 0x9f
+    Ificmpne(usize, usize),                    // 0xa0
+    Ificmplt(usize, usize),                    // 0xa1
+    Ificmpge(usize, usize),                    // 0xa2
+    Ificmpgt(usize, usize),                    // 0xa3
+    Ificmple(usize, usize),                    // 0xa4
+    Goto(usize),                               // 0xa7
+    Lookupswitch(Vec<(Option<usize>, usize)>), // 0xab
+    Ireturn,                                   // 0xac
+    Areturn,                                   // 0xb0
+    Return,                                    // 0xb1
+    Getstatic(usize),                          // 0xb2
+    Putstatic(usize),                          // 0xb3
+    Getfield(usize),                           // 0xb4
+    Putfield(usize),                           // 0xb5
+    Invokevirtual(usize),                      // 0xb6
+    Invokespecial(usize),                      // 0xb7
+    Invokestatic(usize),                       // 0xb8
+    New(usize),                                // 0xbb
+    Noope,                                     // custom command for Ificmple etc.
 }
 
 impl fmt::Display for Instruction {
@@ -103,6 +104,26 @@ impl fmt::Display for Instruction {
             Instruction::Ificmple(a, b) => write!(f, "if_icmple   {}, {}", a, b),
             Instruction::Goto(val) => write!(f, "goto          {}", val),
             Instruction::Ireturn => write!(f, "ireturn"),
+            Instruction::Lookupswitch(vals) => {
+                let vals_length = vals.len();
+                // let branch_length = vals[1];
+
+                let mut output_strings = Vec::with_capacity(vals_length);
+                // let mut index = 1;
+                for (key, val) in &vals[1..vals_length] {
+                    output_strings.push(format!("       {}: {}", key.unwrap(), val));
+                    // index += 1;
+                }
+                output_strings.push(format!("       default: {}", vals.last().unwrap().1));
+                write!(
+                    f,
+                    "lookupswitch {{ // {}
+{}
+}}",
+                    vals_length - 1,
+                    output_strings.join("\n")
+                )
+            }
             Instruction::Areturn => write!(f, "areturn"),
             Instruction::Return => write!(f, "return"),
             Instruction::Getstatic(val) => write!(f, "getstatic       #{}", val),
@@ -436,6 +457,30 @@ impl Instruction {
                 codes.push(Instruction::Noope);
                 (index, 3)
             }
+            // lookupswitch
+            0xab => {
+                let (offset, index) = extract_x_byte_as_usize(inputs, index, 4);
+                // default_value can be used for branch_length
+                let (default_value, mut index) = extract_x_byte_as_usize(inputs, index, 4);
+                // default + branch_length
+                let mut switch_values = Vec::with_capacity(1 + default_value);
+                switch_values.push((None, offset + default_value));
+
+                for _ in 0..default_value {
+                    let (key, update_index) = extract_x_byte_as_usize(inputs, index, 4);
+                    let (val, update_index) = extract_x_byte_as_usize(inputs, update_index, 4);
+                    switch_values.push((Some(key), val + default_value));
+                    index = update_index
+                }
+                codes.push(Instruction::Lookupswitch(switch_values));
+
+                let set_length = default_value + 1;
+                let switch_instructions_len = set_length * 4 * 2;
+                for _ in 0..switch_instructions_len {
+                    codes.push(Instruction::Noope)
+                }
+                (index, switch_instructions_len + 1)
+            }
             // ireturn
             0xac => {
                 codes.push(Instruction::Ireturn);
@@ -521,6 +566,7 @@ impl Instruction {
 
     pub fn counsume_index(&self) -> usize {
         match self {
+            Instruction::Lookupswitch(vals) => vals.len() * 4,
             Instruction::Ificmple(_, _)
             | Instruction::Getstatic(_)
             | Instruction::Putstatic(_)
