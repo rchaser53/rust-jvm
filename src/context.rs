@@ -3,8 +3,8 @@ use crate::attribute::instruction::Instruction;
 use crate::constant::{ConstantNameAndType, ConstantPool};
 use crate::field::{BaseType, FieldDescriptor};
 use crate::java_class::{custom::Custom, JavaClass};
-use crate::operand::OperandStackItem;
-use crate::stackframe::{Stackframe, StackframeItem};
+use crate::operand::Item;
+use crate::stackframe::Stackframe;
 use crate::utils::{emit_debug_info, read_file};
 use std::cmp::Ordering;
 use std::collections::HashMap;
@@ -21,7 +21,7 @@ pub struct Context<'a> {
 }
 pub type ClassMap = HashMap<String, JavaClass>;
 // class_name, field_name
-pub type StaticFields = HashMap<(String, String), (OperandStackItem, OperandStackItem)>;
+pub type StaticFields = HashMap<(String, String), (Item, Item)>;
 
 impl<'a> Context<'a> {
     pub fn new(class_map: ClassMap, class_file: &Custom, root_path: &'a str) -> Context<'a> {
@@ -46,7 +46,7 @@ impl<'a> Context<'a> {
         let super_class_index = class_file.super_class;
         let super_class_ref = class_file.cp_info.get_class_ref(super_class_index);
         let super_class_name = class_file.cp_info.get_utf8(super_class_ref.name_index);
-        let stack_frame_item_0 = StackframeItem::Classref(super_class_name);
+        let stack_frame_item_0 = Item::Classref(super_class_name);
 
         if let Some(code) = class_file.get_clinit_code() {
             let stack_frame = Stackframe::new(code.max_locals as usize);
@@ -176,24 +176,15 @@ impl<'a> Context<'a> {
                     .stack_frames
                     .last_mut()
                     .expect("should exist stack_frame");
-                stackframe
-                    .operand_stack
-                    .stack
-                    .push(OperandStackItem::Int(*val as i32));
+                stackframe.operand_stack.stack.push(Item::Int(*val as i32));
             }
             Instruction::LconstN(val) => {
                 let stackframe = self
                     .stack_frames
                     .last_mut()
                     .expect("should exist stack_frame");
-                stackframe
-                    .operand_stack
-                    .stack
-                    .push(OperandStackItem::Long(0));
-                stackframe
-                    .operand_stack
-                    .stack
-                    .push(OperandStackItem::Long(*val as i32));
+                stackframe.operand_stack.stack.push(Item::Long(0));
+                stackframe.operand_stack.stack.push(Item::Long(*val as i32));
             }
             // maybe need to fix for float or something like that
             Instruction::Bipush(val) => {
@@ -201,29 +192,21 @@ impl<'a> Context<'a> {
                     .stack_frames
                     .last_mut()
                     .expect("should exist stack_frame");
-                stackframe
-                    .operand_stack
-                    .stack
-                    .push(OperandStackItem::Int(*val as i32));
+                stackframe.operand_stack.stack.push(Item::Int(*val as i32));
             }
             Instruction::Sipush(val) => {
                 let stackframe = self
                     .stack_frames
                     .last_mut()
                     .expect("should exist stack_frame");
-                stackframe
-                    .operand_stack
-                    .stack
-                    .push(OperandStackItem::Int(*val as i32));
+                stackframe.operand_stack.stack.push(Item::Int(*val as i32));
             }
             Instruction::Lookupswitch(vals) => {
                 let stackframe = self
                     .stack_frames
                     .last_mut()
                     .expect("should exist stack_frame");
-                if let Some(OperandStackItem::Int(target_key)) =
-                    stackframe.operand_stack.stack.pop()
-                {
+                if let Some(Item::Int(target_key)) = stackframe.operand_stack.stack.pop() {
                     if let Some(jump_pointer) = vals.iter().find(|(optional_key, _)| {
                         if let Some(key) = *optional_key {
                             key == target_key as usize
@@ -248,7 +231,7 @@ impl<'a> Context<'a> {
                     .last_mut()
                     .expect("should exist stack_frame");
                 if let Some(item) = stackframe.local_variables.get_mut(*index) {
-                    if let StackframeItem::Int(val) = item {
+                    if let Item::Int(val) = item {
                         mem::replace(val, *val + *value as i32);
                     }
                 }
@@ -267,7 +250,7 @@ impl<'a> Context<'a> {
                     .last_mut()
                     .expect("should exist stack_frame");
                 let val = stackframe.operand_stack.stack.pop().unwrap();
-                let jump_pointer = if val == OperandStackItem::Int(0) {
+                let jump_pointer = if val == Item::Int(0) {
                     *if_val
                 } else {
                     *else_val
@@ -280,7 +263,7 @@ impl<'a> Context<'a> {
                     .last_mut()
                     .expect("should exist stack_frame");
                 let val = stackframe.operand_stack.stack.pop().unwrap();
-                let jump_pointer = if val != OperandStackItem::Int(0) {
+                let jump_pointer = if val != Item::Int(0) {
                     *if_val
                 } else {
                     *else_val
@@ -293,7 +276,7 @@ impl<'a> Context<'a> {
                     .last_mut()
                     .expect("should exist stack_frame");
                 let val = stackframe.operand_stack.stack.pop().unwrap();
-                let jump_pointer = if val < OperandStackItem::Int(0) {
+                let jump_pointer = if val < Item::Int(0) {
                     *if_val
                 } else {
                     *else_val
@@ -306,7 +289,7 @@ impl<'a> Context<'a> {
                     .last_mut()
                     .expect("should exist stack_frame");
                 let val = stackframe.operand_stack.stack.pop().unwrap();
-                let jump_pointer = if val >= OperandStackItem::Int(0) {
+                let jump_pointer = if val >= Item::Int(0) {
                     *if_val
                 } else {
                     *else_val
@@ -319,7 +302,7 @@ impl<'a> Context<'a> {
                     .last_mut()
                     .expect("should exist stack_frame");
                 let val = stackframe.operand_stack.stack.pop().unwrap();
-                let jump_pointer = if val > OperandStackItem::Int(0) {
+                let jump_pointer = if val > Item::Int(0) {
                     *if_val
                 } else {
                     *else_val
@@ -332,7 +315,7 @@ impl<'a> Context<'a> {
                     .last_mut()
                     .expect("should exist stack_frame");
                 let val = stackframe.operand_stack.stack.pop().unwrap();
-                let jump_pointer = if val <= OperandStackItem::Int(0) {
+                let jump_pointer = if val <= Item::Int(0) {
                     *if_val
                 } else {
                     *else_val
@@ -425,14 +408,14 @@ impl<'a> Context<'a> {
                     .stack_frames
                     .last_mut()
                     .expect("should exist stack_frame");
-                let value = &stackframe
+                let value = stackframe
                     .local_variables
                     .get(*index)
                     .expect("should exsit local variable");
                 stackframe
                     .operand_stack
                     .stack
-                    .push(OperandStackItem::from(*value));
+                    .push(Item::from(value.clone()));
             }
             Instruction::AstoreN(index) => {
                 self.store_n(&[*index]);
@@ -447,11 +430,11 @@ impl<'a> Context<'a> {
                     .last_mut()
                     .expect("should exist stack_frame");
                 let (first, second) = match stackframe.operand_stack.stack.pop() {
-                    Some(second @ OperandStackItem::Long(_)) => {
+                    Some(second @ Item::Long(_)) => {
                         let first = stackframe.operand_stack.stack.pop().unwrap();
                         (first, second)
                     }
-                    first @ _ => (first.unwrap(), OperandStackItem::Null),
+                    first @ _ => (first.unwrap(), Item::Null),
                 };
                 self.static_fields
                     .insert((class_name, field_name), (first, second));
@@ -476,7 +459,7 @@ impl<'a> Context<'a> {
                     .expect(&err_message);
                 stackframe.operand_stack.stack.push(items.0.clone());
                 match items.0 {
-                    OperandStackItem::Long(_) => {
+                    Item::Long(_) => {
                         stackframe.operand_stack.stack.push(items.1.clone());
                     }
                     _ => {}
@@ -537,7 +520,7 @@ impl<'a> Context<'a> {
                 stackframe
                     .operand_stack
                     .stack
-                    .push(OperandStackItem::String(string_val));
+                    .push(Item::String(string_val));
             }
             Instruction::Ldc2W(first, second) => {
                 let stackframe = self
@@ -559,10 +542,7 @@ impl<'a> Context<'a> {
                     .last_mut()
                     .expect("should exist stack_frame");
                 // TBD need to implement correctly
-                stackframe
-                    .operand_stack
-                    .stack
-                    .push(OperandStackItem::Objectref(*index));
+                stackframe.operand_stack.stack.push(Item::Objectref(*index));
             }
             Instruction::Return => {}
             _ => {}
@@ -667,14 +647,14 @@ impl<'a> Context<'a> {
             .stack_frames
             .last_mut()
             .expect("should exist stack_frame");
-        let value = *&stackframe
+        let value = stackframe
             .local_variables
             .get(index)
             .expect("should exist local variable");
         stackframe
             .operand_stack
             .stack
-            .push(OperandStackItem::from(value));
+            .push(Item::from(value.clone()));
     }
 
     fn store_n(&mut self, indexs: &[usize]) {
@@ -702,11 +682,9 @@ impl<'a> Context<'a> {
 
         for (index, item) in item_vec.into_iter() {
             if stackframe.local_variables.get(index).is_some() {
-                stackframe.local_variables[index] = StackframeItem::from(item);
+                stackframe.local_variables[index] = Item::from(item);
             } else {
-                stackframe
-                    .local_variables
-                    .insert(index, StackframeItem::from(item));
+                stackframe.local_variables.insert(index, Item::from(item));
             }
         }
     }
@@ -749,7 +727,7 @@ impl<'a> Context<'a> {
             .stack
             .iter()
             .rev()
-            .map(|operand_item| StackframeItem::from(operand_item))
+            .map(|operand_item| Item::from(operand_item.clone()))
             .collect();
         new_stack_frame.local_variables.append(&mut variables);
 
@@ -764,15 +742,9 @@ pub fn set_static_fields(class: &Custom, static_fields: &mut StaticFields) {
         let field_name = class.cp_info.get_utf8(field.name_index);
         let value = match class.get_descriptor(field.descriptor_index) {
             // TBD need to create system to express uninitialized value
-            FieldDescriptor::BaseType(BaseType::I) => {
-                (OperandStackItem::Int(0), OperandStackItem::Null)
-            }
-            FieldDescriptor::BaseType(BaseType::J) => {
-                (OperandStackItem::Long(0), OperandStackItem::Long(0))
-            }
-            FieldDescriptor::BaseType(BaseType::Z) => {
-                (OperandStackItem::Boolean(true), OperandStackItem::Null)
-            }
+            FieldDescriptor::BaseType(BaseType::I) => (Item::Int(0), Item::Null),
+            FieldDescriptor::BaseType(BaseType::J) => (Item::Long(0), Item::Long(0)),
+            FieldDescriptor::BaseType(BaseType::Z) => (Item::Boolean(true), Item::Null),
             _ => unimplemented!("should implement"),
         };
         static_fields.insert((class.this_class_name(), field_name), value);
@@ -790,8 +762,8 @@ pub fn setup_static_fields(class_map: &ClassMap) -> StaticFields {
     static_fields.insert(
         (String::from("java/lang/System"), String::from("out")),
         (
-            OperandStackItem::Classref(String::from("java/io/PrintStream")),
-            OperandStackItem::Null,
+            Item::Classref(String::from("java/io/PrintStream")),
+            Item::Null,
         ),
     );
 

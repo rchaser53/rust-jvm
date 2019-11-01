@@ -1,50 +1,8 @@
-use crate::operand::{OperandStack, OperandStackItem};
-
-#[derive(Debug)]
-pub enum StackframeItem {
-    Null,
-    Int(i32),
-    Long(i32),
-    Boolean(bool),
-    String(String),
-    Classref(String),
-    Fieldref(usize),
-    Objectref(usize),
-}
-
-impl From<OperandStackItem> for StackframeItem {
-    fn from(item: OperandStackItem) -> StackframeItem {
-        match item {
-            OperandStackItem::Int(value) => StackframeItem::Int(value),
-            OperandStackItem::Long(value) => StackframeItem::Long(value),
-            OperandStackItem::Boolean(value) => StackframeItem::Boolean(value),
-            OperandStackItem::String(value) => StackframeItem::String(value),
-            OperandStackItem::Classref(value) => StackframeItem::Classref(value),
-            OperandStackItem::Fieldref(index) => StackframeItem::Fieldref(index),
-            OperandStackItem::Objectref(index) => StackframeItem::Objectref(index),
-            OperandStackItem::Null => StackframeItem::Null,
-        }
-    }
-}
-
-impl From<&OperandStackItem> for StackframeItem {
-    fn from(item: &OperandStackItem) -> StackframeItem {
-        match item {
-            OperandStackItem::Int(value) => StackframeItem::Int(*value),
-            OperandStackItem::Long(value) => StackframeItem::Long(*value),
-            OperandStackItem::Boolean(value) => StackframeItem::Boolean(*value),
-            OperandStackItem::String(value) => StackframeItem::String(value.clone()),
-            OperandStackItem::Classref(value) => StackframeItem::Classref(value.clone()),
-            OperandStackItem::Fieldref(index) => StackframeItem::Fieldref(*index),
-            OperandStackItem::Objectref(index) => StackframeItem::Objectref(*index),
-            OperandStackItem::Null => StackframeItem::Null,
-        }
-    }
-}
+use crate::operand::{Item, OperandStack};
 
 #[derive(Debug)]
 pub struct Stackframe {
-    pub local_variables: Vec<StackframeItem>,
+    pub local_variables: Vec<Item>,
     pub operand_stack: OperandStack,
 }
 
@@ -58,8 +16,7 @@ impl Stackframe {
 
     pub fn istore(&mut self, operand_stack: &mut OperandStack, index: usize) {
         if let Some(val) = operand_stack.stack.pop() {
-            self.local_variables
-                .insert(index, StackframeItem::from(val));
+            self.local_variables.insert(index, val);
         }
     }
 }

@@ -1,8 +1,8 @@
 use std::collections::HashMap;
 
 use crate::constant::ConstantPool;
-use crate::operand::OperandStackItem;
-use crate::stackframe::{Stackframe, StackframeItem};
+use crate::operand::Item;
+use crate::stackframe::Stackframe;
 
 #[derive(Debug)]
 pub struct BuiltIn {
@@ -53,19 +53,17 @@ impl BuiltInMethod {
             BuitlInCodeType::Println => {
                 if let Some(item) = stackframe.local_variables.get(0) {
                     match item {
-                        StackframeItem::Fieldref(index) => {
+                        Item::Fieldref(index) => {
                             println!("{}", constant_pool.get_fieldref_as_utf8(*index));
                         }
-                        StackframeItem::String(value) => {
+                        Item::String(value) => {
                             println!("{}", value);
                         }
-                        StackframeItem::Int(value) => {
+                        Item::Int(value) => {
                             println!("{}", value);
                         }
-                        StackframeItem::Long(second) => {
-                            if let Some(StackframeItem::Long(first)) =
-                                stackframe.local_variables.get(1)
-                            {
+                        Item::Long(second) => {
+                            if let Some(Item::Long(first)) = stackframe.local_variables.get(1) {
                                 println!("{}", ((*first as i64) << 32) as i64 | *second as i64);
                             } else {
                                 unreachable!("should exist long second item")
@@ -81,8 +79,7 @@ impl BuiltInMethod {
             }
             BuitlInCodeType::JavaLangSystemInit | BuitlInCodeType::JavaLangObjectInit => {}
             BuitlInCodeType::JavaLangObjectToString => {
-                let val = if let Some(StackframeItem::Int(val)) = stackframe.local_variables.get(0)
-                {
+                let val = if let Some(Item::Int(val)) = stackframe.local_variables.get(0) {
                     val
                 } else {
                     unreachable!("should have a argument for toString")
@@ -91,7 +88,7 @@ impl BuiltInMethod {
                 stackframe
                     .operand_stack
                     .stack
-                    .push(OperandStackItem::String(format!("{}", val)));
+                    .push(Item::String(format!("{}", val)));
             }
         }
     }

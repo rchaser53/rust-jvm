@@ -1,12 +1,12 @@
-use crate::operand::OperandStackItem;
+use crate::operand::Item;
 
 #[derive(Debug)]
 pub struct Order {
     pub opecode: Opecode,
-    pub operand: OperandStackItem,
+    pub operand: Item,
 }
 impl Order {
-    pub fn new(opecode: Opecode, operand: OperandStackItem) -> Order {
+    pub fn new(opecode: Opecode, operand: Item) -> Order {
         Order { opecode, operand }
     }
 }

@@ -1,4 +1,4 @@
-use crate::operand::OperandStackItem;
+use crate::operand::Item;
 use crate::utils::*;
 use std::fmt;
 
@@ -100,11 +100,7 @@ next tag: {}",
         })
     }
 
-    pub fn create_and_set_operand_stack_item(
-        &self,
-        stack: &mut Vec<OperandStackItem>,
-        index: usize,
-    ) {
+    pub fn create_and_set_operand_stack_item(&self, stack: &mut Vec<Item>, index: usize) {
         match self.0.get(index) {
             Some(ref item) => match item {
                 // ConstPoolItem::ConstantClass(ConstantClass),
@@ -112,15 +108,15 @@ next tag: {}",
                 // ConstPoolItem::ConstantInterfaceMethodref,
                 // ConstPoolItem::ConstantNameAndType(ConstantNameAndType),
                 ConstPoolItem::ConstantString(ref item) => {
-                    stack.push(OperandStackItem::String(self.get_string(item.string_index)));
+                    stack.push(Item::String(self.get_string(item.string_index)));
                 }
-                ConstPoolItem::ConstantFieldref(_) => stack.push(OperandStackItem::Fieldref(index)),
-                ConstPoolItem::ConstantUtf8(item) => stack.push(OperandStackItem::String(
+                ConstPoolItem::ConstantFieldref(_) => stack.push(Item::Fieldref(index)),
+                ConstPoolItem::ConstantUtf8(item) => stack.push(Item::String(
                     String::from_utf8_lossy(item.bytes.as_slice()).to_string(),
                 )),
                 ConstPoolItem::ConstantLong(ref item) => {
-                    stack.push(OperandStackItem::Long(item.high_bytes as i32));
-                    stack.push(OperandStackItem::Long(item.low_bytes as i32));
+                    stack.push(Item::Long(item.high_bytes as i32));
+                    stack.push(Item::Long(item.low_bytes as i32));
                 }
                 ConstPoolItem::ConstantNull => {
                     unreachable!("index: {}. should not come ConstantNull", index)
