@@ -541,8 +541,23 @@ impl<'a> Context<'a> {
                     .stack_frames
                     .last_mut()
                     .expect("should exist stack_frame");
-                // TBD need to implement correctly
-                stackframe.operand_stack.stack.push(Item::Objectref(*index));
+                if let Some(JavaClass::Custom(target_class)) = self.class_map.get(&class_name) {
+                    let mut map = HashMap::new();
+                    for field in target_class.fields.iter() {
+                        let field_name = target_class.cp_info.get_utf8(field.name_index);
+                        let descriptor = target_class.cp_info.get_utf8(field.descriptor_index);
+                        let value =
+                            create_uninitialized_item(&FieldDescriptor::from(descriptor.as_ref()));
+                        map.insert(field_name, value);
+                    }
+
+                    stackframe
+                        .operand_stack
+                        .stack
+                        .push(Item::Objectref(class_name, map));
+                } else {
+                    unreachable!("not come here")
+                }
             }
             Instruction::Return => {}
             _ => {}
@@ -740,13 +755,7 @@ impl<'a> Context<'a> {
 pub fn set_static_fields(class: &Custom, static_fields: &mut StaticFields) {
     for field in class.fields.iter() {
         let field_name = class.cp_info.get_utf8(field.name_index);
-        let value = match class.get_descriptor(field.descriptor_index) {
-            // TBD need to create system to express uninitialized value
-            FieldDescriptor::BaseType(BaseType::I) => (Item::Int(0), Item::Null),
-            FieldDescriptor::BaseType(BaseType::J) => (Item::Long(0), Item::Long(0)),
-            FieldDescriptor::BaseType(BaseType::Z) => (Item::Boolean(true), Item::Null),
-            _ => unimplemented!("should implement"),
-        };
+        let value = create_uninitialized_item(&class.get_descriptor(field.descriptor_index));
         static_fields.insert((class.this_class_name(), field_name), value);
     }
 }
@@ -768,4 +777,14 @@ pub fn setup_static_fields(class_map: &ClassMap) -> StaticFields {
     );
 
     static_fields
+}
+
+// TBD need to create system to express uninitialized value
+pub fn create_uninitialized_item(descriptor: &FieldDescriptor) -> (Item, Item) {
+    match descriptor {
+        FieldDescriptor::BaseType(BaseType::I) => (Item::Int(0), Item::Null),
+        FieldDescriptor::BaseType(BaseType::J) => (Item::Long(0), Item::Long(0)),
+        FieldDescriptor::BaseType(BaseType::Z) => (Item::Boolean(true), Item::Null),
+        _ => unimplemented!("should implement"),
+    }
 }

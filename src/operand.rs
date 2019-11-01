@@ -1,6 +1,6 @@
-// use crate::stackframe::StackframeItem;
 use crate::utils::devide_i64_to_two_i32;
 use std::cmp::{Ordering, PartialOrd};
+use std::collections::HashMap;
 use std::fmt;
 
 #[derive(PartialEq, Clone, Debug)]
@@ -12,7 +12,7 @@ pub enum Item {
     Boolean(bool),
     Classref(String),
     Fieldref(usize),
-    Objectref(usize),
+    Objectref(String, HashMap<String, (Item, Item)>),
 }
 
 impl fmt::Display for Item {
@@ -25,7 +25,24 @@ impl fmt::Display for Item {
             Item::String(val) => write!(f, "string: {}", val),
             Item::Classref(val) => write!(f, "class_ref: {}", val),
             Item::Fieldref(val) => write!(f, "field_ref: {}", val),
-            Item::Objectref(val) => write!(f, "object_ref: {}", val),
+            Item::Objectref(key, vals) => {
+                let keys = vals.keys();
+                let mut val_strs = Vec::with_capacity(keys.len());
+                for key in keys {
+                    let val = vals.get(key).unwrap();
+                    match val.1 {
+                        Item::Null => val_strs.push(format!("{}: {}", key, val.0)),
+                        _ => val_strs.push(format!("{}: {} {}", key, val.0, val.1)),
+                    };
+                }
+                write!(
+                    f,
+                    "object_ref: calss {}:
+{}",
+                    key,
+                    val_strs.join("\n")
+                )
+            }
         }
     }
 }
@@ -39,7 +56,6 @@ impl PartialOrd for Item {
             (Item::Long(left), Item::Long(right)) => Some(left.cmp(right)),
             (Item::Classref(left), Item::Classref(right)) => Some(left.cmp(right)),
             (Item::Fieldref(left), Item::Fieldref(right)) => Some(left.cmp(right)),
-            (Item::Objectref(left), Item::Objectref(right)) => Some(left.cmp(right)),
             (Item::String(left), Item::String(right)) => Some(left.cmp(right)),
             _ => None,
         }
