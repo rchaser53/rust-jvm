@@ -38,8 +38,9 @@ impl fmt::Display for Item {
                 }
                 write!(
                     f,
-                    "object_ref: calss {}:
-{}",
+                    "object_ref:
+    class {}:
+    {}",
                     key,
                     val_strs.join("\n")
                 )
@@ -172,15 +173,24 @@ impl fmt::Display for OperandStack {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let length = self.stack.len();
         let mut item_string_vec = Vec::with_capacity(length);
+        let mut index = 0;
         for item in self.stack.iter() {
-            item_string_vec.push(format!("{}", item));
+            match item {
+                Item::Long(_) => {
+                    item_string_vec.push(format!("#{}+#{} {}", index, index + 1, item));
+                    index += 1;
+                }
+                _ => item_string_vec.push(format!("#{} {}", index, item)),
+            };
+            index += 1;
         }
 
         write!(
             f,
             "length: {}
-item:
-{}",
+item ====================
+{}
+========================",
             length,
             item_string_vec.join("\n")
         )
