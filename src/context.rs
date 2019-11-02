@@ -530,6 +530,35 @@ impl<'a> Context<'a> {
                     None => unreachable!("should be Objectref. actual: None"),
                 };
             }
+            Instruction::Getfield(index) => {
+                let (class_name, field_name) = class_file.cp_info.get_class_and_field_name(*index);
+                let stackframe = self
+                    .stack_frames
+                    .last_mut()
+                    .expect("should exist stack_frame");
+                let operand_stack = &mut stackframe.operand_stack.stack;
+                match operand_stack.pop() {
+                    Some(Item::Objectref(object_class_name, field_map)) => {
+                        assert!(
+                            class_name == object_class_name,
+                            "should be equal class_name"
+                        );
+                        let (first, second) =
+                            field_map.get(&field_name).expect("should exist item");
+                        match first {
+                            Item::Long(val) => {
+                                operand_stack.push(Item::Long(*val));
+                                operand_stack.push(second.clone());
+                            }
+                            item @ _ => {
+                                operand_stack.push(item.clone());
+                            }
+                        }
+                    }
+                    Some(item) => unreachable!("should be Objectref. actual: {}", item),
+                    None => unreachable!("should be Objectref. actual: None"),
+                };
+            }
             Instruction::Ldc(index) => {
                 let string_val = class_file.cp_info.get_string(*index);
                 let stackframe = self
@@ -756,6 +785,8 @@ impl<'a> Context<'a> {
             .stack_frames
             .last_mut()
             .expect("should exist stack_frame");
+
+        // TBD need to fix this
         let mut variables: Vec<_> = stackframe
             .operand_stack
             .stack
@@ -763,12 +794,16 @@ impl<'a> Context<'a> {
             .rev()
             .map(|operand_item| Item::from(operand_item.clone()))
             .collect();
+        let mut variables = variables.drain(0..local_variable_length).rev().collect();
         new_stack_frame.local_variables.append(&mut variables);
+
+        // TBD need to fix this
+        for _ in 0..local_variable_length {
+            let _ = stackframe.operand_stack.stack.pop();
+        }
 
         new_stack_frame
     }
-
-    // Instruction::Getfield(val) => write!(f, "getfield        #{}", val),
 }
 
 pub fn set_static_fields(class: &Custom, static_fields: &mut StaticFields) {
