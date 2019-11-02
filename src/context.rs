@@ -87,126 +87,81 @@ impl<'a> Context<'a> {
     ) -> (bool, usize) {
         match instruction {
             Instruction::Iadd => {
-                let stackframe = self
-                    .stack_frames
-                    .last_mut()
-                    .expect("should exist stack_frame");
+                let stackframe = self.get_last_stackframe();
                 let item = stackframe.operand_stack.iadd();
                 stackframe.operand_stack.stack.push(item);
             }
             Instruction::Ladd => {
-                let stackframe = self
-                    .stack_frames
-                    .last_mut()
-                    .expect("should exist stack_frame");
+                let stackframe = self.get_last_stackframe();
                 let (first, second) = stackframe.operand_stack.ladd();
                 stackframe.operand_stack.stack.push(first);
                 stackframe.operand_stack.stack.push(second);
             }
             Instruction::Isub => {
-                let stackframe = self
-                    .stack_frames
-                    .last_mut()
-                    .expect("should exist stack_frame");
+                let stackframe = self.get_last_stackframe();
                 let item = stackframe.operand_stack.isub();
                 stackframe.operand_stack.stack.push(item);
             }
             Instruction::Lsub => {
-                let stackframe = self
-                    .stack_frames
-                    .last_mut()
-                    .expect("should exist stack_frame");
+                let stackframe = self.get_last_stackframe();
                 let (first, second) = stackframe.operand_stack.lsub();
                 stackframe.operand_stack.stack.push(first);
                 stackframe.operand_stack.stack.push(second);
             }
             Instruction::Imul => {
-                let stackframe = self
-                    .stack_frames
-                    .last_mut()
-                    .expect("should exist stack_frame");
+                let stackframe = self.get_last_stackframe();
                 let item = stackframe.operand_stack.imul();
                 stackframe.operand_stack.stack.push(item);
             }
             Instruction::Lmul => {
-                let stackframe = self
-                    .stack_frames
-                    .last_mut()
-                    .expect("should exist stack_frame");
+                let stackframe = self.get_last_stackframe();
                 let (first, second) = stackframe.operand_stack.lmul();
                 stackframe.operand_stack.stack.push(first);
                 stackframe.operand_stack.stack.push(second);
             }
             Instruction::Idiv => {
-                let stackframe = self
-                    .stack_frames
-                    .last_mut()
-                    .expect("should exist stack_frame");
+                let stackframe = self.get_last_stackframe();
                 let item = stackframe.operand_stack.idiv();
                 stackframe.operand_stack.stack.push(item);
             }
             Instruction::Ldiv => {
-                let stackframe = self
-                    .stack_frames
-                    .last_mut()
-                    .expect("should exist stack_frame");
+                let stackframe = self.get_last_stackframe();
                 let (first, second) = stackframe.operand_stack.ldiv();
                 stackframe.operand_stack.stack.push(first);
                 stackframe.operand_stack.stack.push(second);
             }
             Instruction::Irem => {
-                let stackframe = self
-                    .stack_frames
-                    .last_mut()
-                    .expect("should exist stack_frame");
+                let stackframe = self.get_last_stackframe();
                 let item = stackframe.operand_stack.irem();
                 stackframe.operand_stack.stack.push(item);
             }
             Instruction::Lrem => {
-                let stackframe = self
-                    .stack_frames
-                    .last_mut()
-                    .expect("should exist stack_frame");
+                let stackframe = self.get_last_stackframe();
                 let (first, second) = stackframe.operand_stack.lrem();
                 stackframe.operand_stack.stack.push(first);
                 stackframe.operand_stack.stack.push(second);
             }
             Instruction::IconstN(val) => {
-                let stackframe = self
-                    .stack_frames
-                    .last_mut()
-                    .expect("should exist stack_frame");
-                stackframe.operand_stack.stack.push(Item::Int(*val as i32));
+                let operand_stack = self.get_operand_stack();
+                operand_stack.push(Item::Int(*val as i32));
             }
             Instruction::LconstN(val) => {
-                let stackframe = self
-                    .stack_frames
-                    .last_mut()
-                    .expect("should exist stack_frame");
-                stackframe.operand_stack.stack.push(Item::Long(0));
-                stackframe.operand_stack.stack.push(Item::Long(*val as i32));
+                let operand_stack = self.get_operand_stack();
+                operand_stack.push(Item::Long(0));
+                operand_stack.push(Item::Long(*val as i32));
             }
             // maybe need to fix for float or something like that
             Instruction::Bipush(val) => {
-                let stackframe = self
-                    .stack_frames
-                    .last_mut()
-                    .expect("should exist stack_frame");
-                stackframe.operand_stack.stack.push(Item::Int(*val as i32));
+                let operand_stack = self.get_operand_stack();
+                operand_stack.push(Item::Int(*val as i32));
             }
             Instruction::Sipush(val) => {
-                let stackframe = self
-                    .stack_frames
-                    .last_mut()
-                    .expect("should exist stack_frame");
-                stackframe.operand_stack.stack.push(Item::Int(*val as i32));
+                let operand_stack = self.get_operand_stack();
+                operand_stack.push(Item::Int(*val as i32));
             }
             Instruction::Lookupswitch(vals) => {
-                let stackframe = self
-                    .stack_frames
-                    .last_mut()
-                    .expect("should exist stack_frame");
-                if let Some(Item::Int(target_key)) = stackframe.operand_stack.stack.pop() {
+                let operand_stack = self.get_operand_stack();
+                if let Some(Item::Int(target_key)) = operand_stack.pop() {
                     if let Some(jump_pointer) = vals.iter().find(|(optional_key, _)| {
                         if let Some(key) = *optional_key {
                             key == target_key as usize
@@ -226,10 +181,7 @@ impl<'a> Context<'a> {
                 return (false, *pointer);
             }
             Instruction::Iinc(index, value) => {
-                let stackframe = self
-                    .stack_frames
-                    .last_mut()
-                    .expect("should exist stack_frame");
+                let stackframe = self.get_last_stackframe();
                 if let Some(item) = stackframe.local_variables.get_mut(*index) {
                     if let Item::Int(val) = item {
                         mem::replace(val, *val + *value as i32);
@@ -237,19 +189,13 @@ impl<'a> Context<'a> {
                 }
             }
             Instruction::Lcmp => {
-                let stackframe = self
-                    .stack_frames
-                    .last_mut()
-                    .expect("should exist stack_frame");
+                let stackframe = self.get_last_stackframe();
                 let val = stackframe.operand_stack.lcmp();
                 stackframe.operand_stack.stack.push(val);
             }
             Instruction::Ifeq(if_val, else_val) => {
-                let stackframe = self
-                    .stack_frames
-                    .last_mut()
-                    .expect("should exist stack_frame");
-                let val = stackframe.operand_stack.stack.pop().unwrap();
+                let operand_stack = self.get_operand_stack();
+                let val = operand_stack.pop().unwrap();
                 let jump_pointer = if val == Item::Int(0) {
                     *if_val
                 } else {
@@ -258,11 +204,8 @@ impl<'a> Context<'a> {
                 return (false, jump_pointer);
             }
             Instruction::Ifne(if_val, else_val) => {
-                let stackframe = self
-                    .stack_frames
-                    .last_mut()
-                    .expect("should exist stack_frame");
-                let val = stackframe.operand_stack.stack.pop().unwrap();
+                let operand_stack = self.get_operand_stack();
+                let val = operand_stack.pop().unwrap();
                 let jump_pointer = if val != Item::Int(0) {
                     *if_val
                 } else {
@@ -271,11 +214,8 @@ impl<'a> Context<'a> {
                 return (false, jump_pointer);
             }
             Instruction::Iflt(if_val, else_val) => {
-                let stackframe = self
-                    .stack_frames
-                    .last_mut()
-                    .expect("should exist stack_frame");
-                let val = stackframe.operand_stack.stack.pop().unwrap();
+                let operand_stack = self.get_operand_stack();
+                let val = operand_stack.pop().unwrap();
                 let jump_pointer = if val < Item::Int(0) {
                     *if_val
                 } else {
@@ -284,11 +224,8 @@ impl<'a> Context<'a> {
                 return (false, jump_pointer);
             }
             Instruction::Ifge(if_val, else_val) => {
-                let stackframe = self
-                    .stack_frames
-                    .last_mut()
-                    .expect("should exist stack_frame");
-                let val = stackframe.operand_stack.stack.pop().unwrap();
+                let operand_stack = self.get_operand_stack();
+                let val = operand_stack.pop().unwrap();
                 let jump_pointer = if val >= Item::Int(0) {
                     *if_val
                 } else {
@@ -297,11 +234,8 @@ impl<'a> Context<'a> {
                 return (false, jump_pointer);
             }
             Instruction::Ifgt(if_val, else_val) => {
-                let stackframe = self
-                    .stack_frames
-                    .last_mut()
-                    .expect("should exist stack_frame");
-                let val = stackframe.operand_stack.stack.pop().unwrap();
+                let operand_stack = self.get_operand_stack();
+                let val = operand_stack.pop().unwrap();
                 let jump_pointer = if val > Item::Int(0) {
                     *if_val
                 } else {
@@ -310,11 +244,8 @@ impl<'a> Context<'a> {
                 return (false, jump_pointer);
             }
             Instruction::Ifle(if_val, else_val) => {
-                let stackframe = self
-                    .stack_frames
-                    .last_mut()
-                    .expect("should exist stack_frame");
-                let val = stackframe.operand_stack.stack.pop().unwrap();
+                let operand_stack = self.get_operand_stack();
+                let val = operand_stack.pop().unwrap();
                 let jump_pointer = if val <= Item::Int(0) {
                     *if_val
                 } else {
@@ -323,62 +254,44 @@ impl<'a> Context<'a> {
                 return (false, jump_pointer);
             }
             Instruction::Ificmpeq(if_val, else_val) => {
-                let stackframe = self
-                    .stack_frames
-                    .last_mut()
-                    .expect("should exist stack_frame");
-                let second = stackframe.operand_stack.stack.pop();
-                let first = stackframe.operand_stack.stack.pop();
+                let operand_stack = self.get_operand_stack();
+                let second = operand_stack.pop();
+                let first = operand_stack.pop();
                 let jump_pointer = if first == second { *if_val } else { *else_val };
                 return (false, jump_pointer);
             }
             Instruction::Ificmpne(if_val, else_val) => {
-                let stackframe = self
-                    .stack_frames
-                    .last_mut()
-                    .expect("should exist stack_frame");
-                let second = stackframe.operand_stack.stack.pop();
-                let first = stackframe.operand_stack.stack.pop();
+                let operand_stack = self.get_operand_stack();
+                let second = operand_stack.pop();
+                let first = operand_stack.pop();
                 let jump_pointer = if first != second { *if_val } else { *else_val };
                 return (false, jump_pointer);
             }
             Instruction::Ificmplt(if_val, else_val) => {
-                let stackframe = self
-                    .stack_frames
-                    .last_mut()
-                    .expect("should exist stack_frame");
-                let second = stackframe.operand_stack.stack.pop();
-                let first = stackframe.operand_stack.stack.pop();
+                let operand_stack = self.get_operand_stack();
+                let second = operand_stack.pop();
+                let first = operand_stack.pop();
                 let jump_pointer = if first < second { *if_val } else { *else_val };
                 return (false, jump_pointer);
             }
             Instruction::Ificmpge(if_val, else_val) => {
-                let stackframe = self
-                    .stack_frames
-                    .last_mut()
-                    .expect("should exist stack_frame");
-                let second = stackframe.operand_stack.stack.pop();
-                let first = stackframe.operand_stack.stack.pop();
+                let operand_stack = self.get_operand_stack();
+                let second = operand_stack.pop();
+                let first = operand_stack.pop();
                 let jump_pointer = if first >= second { *if_val } else { *else_val };
                 return (false, jump_pointer);
             }
             Instruction::Ificmpgt(if_val, else_val) => {
-                let stackframe = self
-                    .stack_frames
-                    .last_mut()
-                    .expect("should exist stack_frame");
-                let second = stackframe.operand_stack.stack.pop();
-                let first = stackframe.operand_stack.stack.pop();
+                let operand_stack = self.get_operand_stack();
+                let second = operand_stack.pop();
+                let first = operand_stack.pop();
                 let jump_pointer = if first > second { *if_val } else { *else_val };
                 return (false, jump_pointer);
             }
             Instruction::Ificmple(if_val, else_val) => {
-                let stackframe = self
-                    .stack_frames
-                    .last_mut()
-                    .expect("should exist stack_frame");
-                let second = stackframe.operand_stack.stack.pop();
-                let first = stackframe.operand_stack.stack.pop();
+                let operand_stack = self.get_operand_stack();
+                let second = operand_stack.pop();
+                let first = operand_stack.pop();
                 let jump_pointer = if first <= second { *if_val } else { *else_val };
                 return (false, jump_pointer);
             }
@@ -414,13 +327,10 @@ impl<'a> Context<'a> {
                 let (class_name, field_name) = self.get_class_and_field_name(class_file, *index);
                 self.initilize_class_static_info(&this_class_name, &class_name);
 
-                let stackframe = self
-                    .stack_frames
-                    .last_mut()
-                    .expect("should exist stack_frame");
-                let (first, second) = match stackframe.operand_stack.stack.pop() {
+                let operand_stack = self.get_operand_stack();
+                let (first, second) = match operand_stack.pop() {
                     Some(second @ Item::Long(_)) => {
-                        let first = stackframe.operand_stack.stack.pop().unwrap();
+                        let first = operand_stack.pop().unwrap();
                         (first, second)
                     }
                     first @ _ => (first.unwrap(), Item::Null),
@@ -433,10 +343,6 @@ impl<'a> Context<'a> {
                 let (class_name, field_name) = self.get_class_and_field_name(class_file, *index);
                 self.initilize_class_static_info(&this_class_name, &class_name);
 
-                let stackframe = self
-                    .stack_frames
-                    .last_mut()
-                    .expect("should exist stack_frame");
                 let err_message = format!(
                     "Getstatic failed. {}.{} is not found",
                     &class_name, &field_name
@@ -444,22 +350,22 @@ impl<'a> Context<'a> {
                 let items = self
                     .static_fields
                     .get_mut(&(class_name, field_name))
-                    .expect(&err_message);
-                stackframe.operand_stack.stack.push(items.0.clone());
+                    .expect(&err_message)
+                    .clone();
+
+                let operand_stack = self.get_operand_stack();
                 match items.0 {
                     Item::Long(_) => {
-                        stackframe.operand_stack.stack.push(items.1.clone());
+                        operand_stack.push(items.0);
+                        operand_stack.push(items.1);
                     }
-                    _ => {}
+                    _ => operand_stack.push(items.0),
                 };
             }
             Instruction::Areturn | Instruction::Ireturn => {
-                let stackframe = self
-                    .stack_frames
-                    .last_mut()
-                    .expect("should exist stack_frame");
-                let item = if let Some(item) = stackframe.operand_stack.stack.pop() {
-                    stackframe.operand_stack.stack.clear();
+                let operand_stack = self.get_operand_stack();
+                let item = if let Some(item) = operand_stack.pop() {
+                    operand_stack.clear();
                     item
                 } else {
                     unreachable!("should exist return value on operand_stack")
@@ -473,21 +379,17 @@ impl<'a> Context<'a> {
                 return (true, index);
             }
             Instruction::Pop => {
-                if let Some(stackframe) = self.stack_frames.last_mut() {
-                    stackframe.operand_stack.stack.pop();
-                }
+                let operand_stack = self.get_operand_stack();
+                operand_stack.pop();
             }
             Instruction::Dup => {
-                let stackframe = self
-                    .stack_frames
-                    .last_mut()
-                    .expect("should exist stack_frame");
-                let last = if let Some(last) = stackframe.operand_stack.stack.last() {
+                let operand_stack = self.get_operand_stack();
+                let last = if let Some(last) = operand_stack.last() {
                     last.clone()
                 } else {
                     unreachable!("should have an item at least");
                 };
-                stackframe.operand_stack.stack.push(last);
+                operand_stack.push(last);
             }
             Instruction::Invokevirtual(index) | Instruction::Invokespecial(index) => {
                 let (class_name, name_and_type) = self.get_related_method_info(class_file, *index);
@@ -501,11 +403,7 @@ impl<'a> Context<'a> {
             }
             Instruction::Putfield(index) => {
                 let (class_name, field_name) = class_file.cp_info.get_class_and_field_name(*index);
-                let stackframe = self
-                    .stack_frames
-                    .last_mut()
-                    .expect("should exist stack_frame");
-                let operand_stack = &mut stackframe.operand_stack.stack;
+                let operand_stack = self.get_operand_stack();
 
                 let first = operand_stack
                     .pop()
@@ -532,11 +430,7 @@ impl<'a> Context<'a> {
             }
             Instruction::Getfield(index) => {
                 let (class_name, field_name) = class_file.cp_info.get_class_and_field_name(*index);
-                let stackframe = self
-                    .stack_frames
-                    .last_mut()
-                    .expect("should exist stack_frame");
-                let operand_stack = &mut stackframe.operand_stack.stack;
+                let operand_stack = self.get_operand_stack();
                 match operand_stack.pop() {
                     Some(Item::Objectref(object_class_name, field_map)) => {
                         assert!(
@@ -561,22 +455,14 @@ impl<'a> Context<'a> {
             }
             Instruction::Ldc(index) => {
                 let string_val = class_file.cp_info.get_string(*index);
-                let stackframe = self
-                    .stack_frames
-                    .last_mut()
-                    .expect("should exist stack_frame");
-                stackframe
-                    .operand_stack
-                    .stack
-                    .push(Item::String(string_val));
+                let operand_stack = self.get_operand_stack();
+
+                operand_stack.push(Item::String(string_val));
             }
             Instruction::Ldc2W(first, second) => {
-                let stackframe = self
-                    .stack_frames
-                    .last_mut()
-                    .expect("should exist stack_frame");
+                let mut operand_stack = self.get_operand_stack();
                 class_file.cp_info.create_and_set_operand_stack_item(
-                    &mut stackframe.operand_stack.stack,
+                    &mut operand_stack,
                     (*first << 8 | *second) & 0xFFFF,
                 );
             }
@@ -585,10 +471,7 @@ impl<'a> Context<'a> {
                 let class_ref = class_file.cp_info.get_class_ref(*index);
                 let class_name = class_file.cp_info.get_utf8(class_ref.name_index);
                 self.initilize_class_static_info(&this_class_name, &class_name);
-                let stackframe = self
-                    .stack_frames
-                    .last_mut()
-                    .expect("should exist stack_frame");
+
                 if let Some(JavaClass::Custom(target_class)) = self.class_map.get(&class_name) {
                     let mut map = HashMap::new();
                     for field in target_class.fields.iter() {
@@ -598,25 +481,30 @@ impl<'a> Context<'a> {
                             create_uninitialized_item(&FieldDescriptor::from(descriptor.as_ref()));
                         map.insert(field_name, value);
                     }
-
-                    stackframe
-                        .operand_stack
-                        .stack
-                        .push(Item::Objectref(class_name, map));
+                    let operand_stack = self.get_operand_stack();
+                    operand_stack.push(Item::Objectref(class_name, map));
                 } else {
                     unreachable!("not come here")
                 }
             }
             Instruction::Return => {
-                let stackframe = self
-                    .stack_frames
-                    .last_mut()
-                    .expect("should exist stack_frame");
-                stackframe.operand_stack.stack.clear();
+                let operand_stack = self.get_operand_stack();
+                operand_stack.clear();
             }
             _ => {}
         };
         (false, index + instruction.counsume_index())
+    }
+
+    fn get_last_stackframe(&mut self) -> &mut Stackframe {
+        self.stack_frames
+            .last_mut()
+            .expect("should exist stack_frame")
+    }
+
+    fn get_operand_stack(&mut self) -> &mut Vec<Item> {
+        let stackframe = self.get_last_stackframe();
+        &mut stackframe.operand_stack.stack
     }
 
     fn call_method(
@@ -712,10 +600,7 @@ impl<'a> Context<'a> {
     }
 
     fn load_n(&mut self, index: usize) {
-        let stackframe = self
-            .stack_frames
-            .last_mut()
-            .expect("should exist stack_frame");
+        let stackframe = self.get_last_stackframe();
         let value = stackframe
             .local_variables
             .get(index)
@@ -729,10 +614,7 @@ impl<'a> Context<'a> {
     fn store_n(&mut self, indexs: &[usize]) {
         let index_size = indexs.len();
         let mut item_vec = Vec::with_capacity(index_size);
-        let stackframe = self
-            .stack_frames
-            .last_mut()
-            .expect("should exist stack_frame");
+        let stackframe = self.get_last_stackframe();
         for i in 0..index_size {
             let item = stackframe
                 .operand_stack
@@ -787,10 +669,7 @@ impl<'a> Context<'a> {
 
     fn create_new_stack_frame(&mut self, local_variable_length: usize) -> Stackframe {
         let mut new_stack_frame = Stackframe::new(local_variable_length);
-        let stackframe = self
-            .stack_frames
-            .last_mut()
-            .expect("should exist stack_frame");
+        let stackframe = self.get_last_stackframe();
 
         // TBD need to fix this
         let mut variables: Vec<_> = stackframe
