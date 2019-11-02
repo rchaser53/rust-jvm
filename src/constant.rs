@@ -144,6 +144,22 @@ next tag: {}",
         }
     }
 
+    pub fn get_class_ref_name(&self, index: usize) -> String {
+        match self.0.get(index) {
+            Some(ConstPoolItem::ConstantClass(ref item)) => self.get_utf8(item.name_index),
+            _ => unreachable!("should be ConstantClass. actual {:?}", self.0.get(index)),
+        }
+    }
+
+    // (class_name, field_name)
+    pub fn get_class_and_field_name(&self, index: usize) -> (String, String) {
+        let field = self.get_field_ref(index);
+        let name_and_type = self.get_name_and_type(field.name_and_type_index);
+        let class_name = self.get_class_ref_name(field.class_index);
+        let field_name = self.get_utf8(name_and_type.name_index);
+        (class_name, field_name)
+    }
+
     pub fn get_method_ref(&self, index: usize) -> &ConstantMethodref {
         match self.0.get(index) {
             Some(ConstPoolItem::ConstantMethodref(ref item)) => item,
