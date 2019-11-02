@@ -12,6 +12,7 @@ pub enum Item {
     Boolean(bool),
     Classref(String),
     Fieldref(usize),
+    // class_name, field_name, item
     Objectref(String, HashMap<String, (Item, Item)>),
 }
 

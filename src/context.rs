@@ -499,6 +499,37 @@ impl<'a> Context<'a> {
                 self.initilize_class_static_info(&this_class_name, &class_name);
                 self.call_method(&class_file, class_name, name_and_type);
             }
+            Instruction::Putfield(index) => {
+                let (class_name, field_name) = class_file.cp_info.get_class_and_field_name(*index);
+                let stackframe = self
+                    .stack_frames
+                    .last_mut()
+                    .expect("should exist stack_frame");
+                let operand_stack = &mut stackframe.operand_stack.stack;
+
+                let first = operand_stack
+                    .pop()
+                    .expect("should exist operand stack item");
+                let second = match first {
+                    Item::Long(_) => operand_stack
+                        .pop()
+                        .expect("should exist operand stack item"),
+                    _ => Item::Null,
+                };
+
+                match operand_stack.pop() {
+                    Some(Item::Objectref(object_class_name, mut field_map)) => {
+                        assert!(
+                            class_name == object_class_name,
+                            "should be equal class_name"
+                        );
+                        field_map.insert(field_name, (first, second));
+                        operand_stack.push(Item::Objectref(object_class_name, field_map));
+                    }
+                    Some(item) => unreachable!("should be Objectref. actual: {}", item),
+                    None => unreachable!("should be Objectref. actual: None"),
+                };
+            }
             Instruction::Ldc(index) => {
                 let string_val = class_file.cp_info.get_string(*index);
                 let stackframe = self
