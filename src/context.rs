@@ -3,6 +3,7 @@ use crate::attribute::instruction::Instruction;
 use crate::constant::{ConstantNameAndType, ConstantPool};
 use crate::field::{BaseType, FieldDescriptor};
 use crate::java_class::{custom::Custom, JavaClass};
+use crate::object::{ObjectMap, Objectref};
 use crate::operand::Item;
 use crate::option::OBJECT_ID;
 use crate::stackframe::Stackframe;
@@ -11,7 +12,6 @@ use crate::utils::{emit_debug_info, read_file};
 use std::cell::RefCell;
 use std::cmp::Ordering;
 use std::collections::HashMap;
-use std::fmt;
 use std::mem;
 use std::path::Path;
 
@@ -27,36 +27,6 @@ pub struct Context<'a> {
 pub type ClassMap = HashMap<String, JavaClass>;
 // class_name, field_name
 pub type StaticFields = HashMap<(String, String), (Item, Item)>;
-
-pub type ObjectMap = HashMap<usize, Objectref>;
-#[derive(PartialEq, Clone, Debug)]
-pub struct Objectref {
-    pub class_name: String,
-    pub field_map: RefCell<HashMap<(String, usize), (Item, Item)>>,
-}
-
-impl fmt::Display for Objectref {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let field_map = self.field_map.borrow();
-        let keys = field_map.keys();
-        let mut val_strs = Vec::with_capacity(keys.len());
-        for key in keys {
-            let val = field_map.get(key).unwrap();
-            match val.1 {
-                Item::Null => val_strs.push(format!("{}.{}: {}", key.0, key.1, val.0)),
-                _ => val_strs.push(format!("{}.{}: {} {}", key.0, key.1, val.0, val.1)),
-            };
-        }
-        write!(
-            f,
-            "object_ref:
-class {}:
-{}",
-            self.class_name,
-            val_strs.join("\n")
-        )
-    }
-}
 
 impl<'a> Context<'a> {
     pub fn new(class_map: ClassMap, class_file: &Custom, root_path: &'a str) -> Context<'a> {

@@ -7,6 +7,7 @@ mod context;
 mod field;
 mod java_class;
 mod method;
+mod object;
 mod operand;
 mod option;
 mod order;
