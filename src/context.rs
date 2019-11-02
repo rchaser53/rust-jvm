@@ -607,7 +607,13 @@ impl<'a> Context<'a> {
                     unreachable!("not come here")
                 }
             }
-            Instruction::Return => {}
+            Instruction::Return => {
+                let stackframe = self
+                    .stack_frames
+                    .last_mut()
+                    .expect("should exist stack_frame");
+                stackframe.operand_stack.stack.clear();
+            }
             _ => {}
         };
         (false, index + instruction.counsume_index())
