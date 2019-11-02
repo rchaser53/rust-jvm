@@ -404,18 +404,7 @@ impl<'a> Context<'a> {
                 self.store_n(&[base_index + 1, base_index]);
             }
             Instruction::AloadN(index) => {
-                let stackframe = self
-                    .stack_frames
-                    .last_mut()
-                    .expect("should exist stack_frame");
-                let value = stackframe
-                    .local_variables
-                    .get(*index)
-                    .expect("should exsit local variable");
-                stackframe
-                    .operand_stack
-                    .stack
-                    .push(Item::from(value.clone()));
+                self.load_n(*index);
             }
             Instruction::AstoreN(index) => {
                 self.store_n(&[*index]);
@@ -448,7 +437,6 @@ impl<'a> Context<'a> {
                     .stack_frames
                     .last_mut()
                     .expect("should exist stack_frame");
-
                 let err_message = format!(
                     "Getstatic failed. {}.{} is not found",
                     &class_name, &field_name
