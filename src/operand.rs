@@ -1,4 +1,5 @@
 use crate::utils::devide_i64_to_two_i32;
+use std::cell::RefCell;
 use std::cmp::{Ordering, PartialOrd};
 use std::collections::HashMap;
 use std::fmt;
@@ -12,8 +13,36 @@ pub enum Item {
     Boolean(bool),
     Classref(String),
     Fieldref(usize),
-    // class_name, field_name, item
-    Objectref(String, HashMap<String, (Item, Item)>),
+    Objectref(Objectref),
+}
+
+#[derive(PartialEq, Clone, Debug)]
+pub struct Objectref {
+    pub class_name: String,
+    pub field_map: RefCell<HashMap<String, (Item, Item)>>,
+}
+
+impl fmt::Display for Objectref {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let field_map = self.field_map.borrow();
+        let keys = field_map.keys();
+        let mut val_strs = Vec::with_capacity(keys.len());
+        for key in keys {
+            let val = field_map.get(key).unwrap();
+            match val.1 {
+                Item::Null => val_strs.push(format!("{}: {}", key, val.0)),
+                _ => val_strs.push(format!("{}: {} {}", key, val.0, val.1)),
+            };
+        }
+        write!(
+            f,
+            "object_ref:
+class {}:
+{}",
+            self.class_name,
+            val_strs.join("\n")
+        )
+    }
 }
 
 impl fmt::Display for Item {
@@ -26,25 +55,7 @@ impl fmt::Display for Item {
             Item::String(val) => write!(f, "string: {}", val),
             Item::Classref(val) => write!(f, "class_ref: {}", val),
             Item::Fieldref(val) => write!(f, "field_ref: {}", val),
-            Item::Objectref(key, vals) => {
-                let keys = vals.keys();
-                let mut val_strs = Vec::with_capacity(keys.len());
-                for key in keys {
-                    let val = vals.get(key).unwrap();
-                    match val.1 {
-                        Item::Null => val_strs.push(format!("{}: {}", key, val.0)),
-                        _ => val_strs.push(format!("{}: {} {}", key, val.0, val.1)),
-                    };
-                }
-                write!(
-                    f,
-                    "object_ref:
-    class {}:
-    {}",
-                    key,
-                    val_strs.join("\n")
-                )
-            }
+            Item::Objectref(val) => write!(f, "{}", val),
         }
     }
 }

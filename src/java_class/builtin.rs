@@ -71,8 +71,8 @@ impl BuiltInMethod {
                             let _ = stackframe.operand_stack.stack.pop();
                         }
                         // TBD should fix to output value correctly
-                        Item::Objectref(class_name, field_map) => {
-                            println!("objectref {} {:?}", class_name, field_map);
+                        Item::Objectref(object_ref) => {
+                            println!("objectref: {}", object_ref);
                         }
                         _ => unimplemented!(),
                     };

@@ -3,9 +3,10 @@ use crate::attribute::instruction::Instruction;
 use crate::constant::{ConstantNameAndType, ConstantPool};
 use crate::field::{BaseType, FieldDescriptor};
 use crate::java_class::{custom::Custom, JavaClass};
-use crate::operand::Item;
+use crate::operand::{Item, Objectref};
 use crate::stackframe::Stackframe;
 use crate::utils::{emit_debug_info, read_file};
+use std::cell::RefCell;
 use std::cmp::Ordering;
 use std::collections::HashMap;
 use std::mem;
@@ -403,40 +404,39 @@ impl<'a> Context<'a> {
             }
             Instruction::Putfield(index) => {
                 let (class_name, field_name) = class_file.cp_info.get_class_and_field_name(*index);
+                let vals = self.get_field_tupple();
                 let operand_stack = self.get_operand_stack();
 
-                let first = operand_stack
-                    .pop()
-                    .expect("should exist operand stack item");
-                let second = match first {
-                    Item::Long(_) => operand_stack
-                        .pop()
-                        .expect("should exist operand stack item"),
-                    _ => Item::Null,
-                };
-
                 match operand_stack.pop() {
-                    Some(Item::Objectref(object_class_name, mut field_map)) => {
+                    Some(Item::Objectref(obj_ref)) => {
                         assert!(
-                            class_name == object_class_name,
+                            class_name == obj_ref.class_name,
                             "should be equal class_name"
                         );
-                        field_map.insert(field_name, (first, second));
-                        operand_stack.push(Item::Objectref(object_class_name, field_map));
+                        obj_ref
+                            .field_map
+                            .borrow_mut()
+                            .insert(field_name.clone(), vals.clone());
+                        operand_stack.push(Item::Objectref(obj_ref));
                     }
                     Some(item) => unreachable!("should be Objectref. actual: {}", item),
                     None => unreachable!("should be Objectref. actual: None"),
                 };
+
+                let stackframe = self.get_last_stackframe();
+                // TBD needs to think more. Maybe should update local variable in other instructions
+                stackframe.update_object_ref(class_name, field_name, vals);
             }
             Instruction::Getfield(index) => {
                 let (class_name, field_name) = class_file.cp_info.get_class_and_field_name(*index);
                 let operand_stack = self.get_operand_stack();
                 match operand_stack.pop() {
-                    Some(Item::Objectref(object_class_name, field_map)) => {
+                    Some(Item::Objectref(obj_ref)) => {
                         assert!(
-                            class_name == object_class_name,
+                            class_name == obj_ref.class_name,
                             "should be equal class_name"
                         );
+                        let field_map = obj_ref.field_map.borrow();
                         let (first, second) =
                             field_map.get(&field_name).expect("should exist item");
                         match first {
@@ -473,16 +473,19 @@ impl<'a> Context<'a> {
                 self.initilize_class_static_info(&this_class_name, &class_name);
 
                 if let Some(JavaClass::Custom(target_class)) = self.class_map.get(&class_name) {
-                    let mut map = HashMap::new();
+                    let mut field_map = HashMap::new();
                     for field in target_class.fields.iter() {
                         let field_name = target_class.cp_info.get_utf8(field.name_index);
                         let descriptor = target_class.cp_info.get_utf8(field.descriptor_index);
-                        let value =
+                        let vals =
                             create_uninitialized_item(&FieldDescriptor::from(descriptor.as_ref()));
-                        map.insert(field_name, value);
+                        field_map.insert(field_name, vals);
                     }
                     let operand_stack = self.get_operand_stack();
-                    operand_stack.push(Item::Objectref(class_name, map));
+                    operand_stack.push(Item::Objectref(Objectref {
+                        class_name,
+                        field_map: RefCell::new(field_map),
+                    }));
                 } else {
                     unreachable!("not come here")
                 }
@@ -494,6 +497,20 @@ impl<'a> Context<'a> {
             _ => {}
         };
         (false, index + instruction.counsume_index())
+    }
+
+    fn get_field_tupple(&mut self) -> (Item, Item) {
+        let operand_stack = self.get_operand_stack();
+        let first = operand_stack
+            .pop()
+            .expect("should exist operand stack item");
+        let second = match first {
+            Item::Long(_) => operand_stack
+                .pop()
+                .expect("should exist operand stack item"),
+            _ => Item::Null,
+        };
+        (first, second)
     }
 
     fn get_last_stackframe(&mut self) -> &mut Stackframe {
