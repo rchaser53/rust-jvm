@@ -349,6 +349,24 @@ impl<'a> Context<'a> {
                     _ => panic!("should exist two items in operand_stack"),
                 };
             }
+            Instruction::Aaload => {
+                let operand_stack = self.get_operand_stack();
+                match (operand_stack.pop(), operand_stack.pop()) {
+                    (Some(Item::Int(index)), Some(Item::Arrayref(array_ref_id))) => {
+                        let array_cell = self
+                            .array_map
+                            .get_mut(&array_ref_id)
+                            .expect("should exist item in array_map");
+                        let object_id = match array_cell {
+                            Array::Custom(items) => items.borrow()[index as usize],
+                            _ => unimplemented!(),
+                        };
+                        let operand_stack = self.get_operand_stack();
+                        operand_stack.push(Item::Objectref(object_id));
+                    }
+                    _ => unreachable!("should exist two items in operand_stack"),
+                };
+            }
             Instruction::Iastore => {
                 let operand_stack = self.get_operand_stack();
                 match (
@@ -366,7 +384,7 @@ impl<'a> Context<'a> {
                             };
                         }
                     }
-                    _ => panic!("should exist three items in operand_stack"),
+                    _ => unreachable!("should exist three items in operand_stack"),
                 };
             }
             Instruction::Aastore => {
@@ -496,7 +514,7 @@ impl<'a> Context<'a> {
                         obj_ref
                             .field_map
                             .borrow_mut()
-                            .insert((field_name.clone(), *index), vals.clone());
+                            .insert((field_name.clone(), obj_id), vals);
                         obj_id
                     }
                     item @ _ => unreachable!("should be Objectref. actual: {}", item),
@@ -524,7 +542,7 @@ impl<'a> Context<'a> {
                         );
                         let field_map = obj_ref.field_map.borrow();
                         let (first, second) = field_map
-                            .get(&(field_name, *index))
+                            .get(&(field_name, obj_id))
                             .expect("should exist item")
                             .clone();
                         (first, second)
