@@ -14,4 +14,5 @@ fn main() {
     test_helper(String::from("tests/class/InitializeStatic"));
     test_helper(String::from("tests/class/Switch"));
     test_helper(String::from("tests/class/InstanceField"));
+    test_helper(String::from("tests/class/PrimitiveArray"));
 }
