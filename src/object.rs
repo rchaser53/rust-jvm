@@ -9,6 +9,19 @@ pub type ObjectMap = HashMap<usize, Objectref>;
 pub struct Objectref {
     pub class_name: String,
     pub field_map: RefCell<HashMap<(String, usize), (Item, Item)>>,
+    pub is_initialized: bool,
+}
+
+pub type FieldMap = RefCell<HashMap<(String, usize), (Item, Item)>>;
+
+impl Objectref {
+    pub fn new(class_name: String, field_map: FieldMap, is_initialized: bool) -> Objectref {
+        Objectref {
+            class_name,
+            field_map,
+            is_initialized,
+        }
+    }
 }
 
 impl fmt::Display for Objectref {

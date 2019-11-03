@@ -1,8 +1,11 @@
 use crate::attribute::instruction::Instruction;
+use crate::object::{ObjectMap, Objectref};
 use crate::operand::Item;
-use crate::option::RJ_OPTION;
+use crate::option::{OBJECT_ID, RJ_OPTION};
 use crate::stackframe::Stackframe;
 
+use std::cell::RefCell;
+use std::collections::HashMap;
 use std::fs::File;
 use std::io::prelude::*;
 use std::io::Result;
@@ -79,6 +82,25 @@ pub fn iniailize_primitive_array(type_index: usize, length: usize) -> Vec<Item> 
     };
     let mut initialize_vec = vec![];
     initialize_vec.extend(iter::repeat(default_val).take(length));
+    initialize_vec
+}
+
+pub fn initialize_objectref_array(
+    object_map: &mut ObjectMap,
+    class_name: String,
+    length: usize,
+) -> Vec<usize> {
+    let mut initialize_vec = Vec::with_capacity(length);
+    for _ in 0..length {
+        let id = *OBJECT_ID.lock().unwrap();
+        *OBJECT_ID.lock().unwrap() = id + 1;
+        initialize_vec.push(id);
+        object_map.insert(
+            id,
+            Objectref::new(class_name.clone(), RefCell::new(HashMap::new()), false),
+        );
+    }
+
     initialize_vec
 }
 

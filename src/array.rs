@@ -22,7 +22,7 @@ pub enum PrimitiveArrayType {
 pub enum Array {
     Primitive(RefCell<Vec<Item>>),
     Array(RefCell<Vec<Array>>),
-    Custom(usize),
+    Custom(RefCell<Vec<usize>>),
 }
 
 impl fmt::Display for Array {

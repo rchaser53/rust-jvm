@@ -8,7 +8,9 @@ use crate::object::{ObjectMap, Objectref};
 use crate::operand::Item;
 use crate::option::OBJECT_ID;
 use crate::stackframe::Stackframe;
-use crate::utils::{emit_debug_info, iniailize_primitive_array, read_file};
+use crate::utils::{
+    emit_debug_info, iniailize_primitive_array, initialize_objectref_array, read_file,
+};
 
 use std::cell::RefCell;
 use std::cmp::Ordering;
@@ -554,10 +556,7 @@ impl<'a> Context<'a> {
                     operand_stack.push(Item::Objectref(id));
                     (
                         id,
-                        Objectref {
-                            class_name,
-                            field_map: RefCell::new(field_map),
-                        },
+                        Objectref::new(class_name, RefCell::new(field_map), true),
                     )
                 } else {
                     unreachable!("not come here")
@@ -572,6 +571,27 @@ impl<'a> Context<'a> {
                     let default_array = iniailize_primitive_array(*type_index, length as usize);
                     self.array_map
                         .insert(id, Array::Primitive(RefCell::new(default_array)));
+                } else {
+                    unreachable!("should exist item in operand_stack")
+                }
+
+                let operand_stack = self.get_operand_stack();
+                operand_stack.push(Item::Arrayref(id));
+            }
+            // class, array, or interface type
+            Instruction::Anewarray(index) => {
+                let id = *OBJECT_ID.lock().unwrap();
+                *OBJECT_ID.lock().unwrap() = id + 1;
+
+                let class_name = class_file.cp_info.get_class_ref_name(*index);
+                if let Some(Item::Int(length)) = self.get_operand_stack().pop() {
+                    let default_array = initialize_objectref_array(
+                        &mut self.object_map,
+                        class_name,
+                        length as usize,
+                    );
+                    self.array_map
+                        .insert(id, Array::Custom(RefCell::new(default_array)));
                 } else {
                     unreachable!("should exist item in operand_stack")
                 }
