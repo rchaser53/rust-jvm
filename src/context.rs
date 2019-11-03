@@ -8,7 +8,7 @@ use crate::object::{ObjectMap, Objectref};
 use crate::operand::Item;
 use crate::option::OBJECT_ID;
 use crate::stackframe::Stackframe;
-use crate::utils::{emit_debug_info, read_file};
+use crate::utils::{emit_debug_info, iniailize_primitive_array, read_file};
 
 use std::cell::RefCell;
 use std::cmp::Ordering;
@@ -329,6 +329,26 @@ impl<'a> Context<'a> {
             Instruction::AloadN(index) => {
                 self.load_n(*index);
             }
+            Instruction::Iastore => {
+                let operand_stack = self.get_operand_stack();
+                match (
+                    operand_stack.pop(),
+                    operand_stack.pop(),
+                    operand_stack.pop(),
+                ) {
+                    (Some(value), Some(Item::Int(index)), Some(Item::Arrayref(array_ref_id))) => {
+                        if let Some(array_cell) = self.array_map.get_mut(&array_ref_id) {
+                            match array_cell {
+                                Array::Primitive(items) => {
+                                    items.borrow_mut()[index as usize] = value;
+                                }
+                                _ => unimplemented!(),
+                            };
+                        }
+                    }
+                    _ => panic!("should exist three items in operand_stack"),
+                };
+            }
             Instruction::AstoreN(index) => {
                 self.store_n(&[*index]);
             }
@@ -526,14 +546,14 @@ impl<'a> Context<'a> {
                 };
                 self.object_map.insert(id, object_ref);
             }
-            Instruction::Newarray(_type_index) => {
-                // TBD should handle type_index?
+            Instruction::Newarray(type_index) => {
                 let id = *OBJECT_ID.lock().unwrap();
                 *OBJECT_ID.lock().unwrap() = id + 1;
 
                 if let Some(Item::Int(length)) = self.get_operand_stack().pop() {
+                    let default_array = iniailize_primitive_array(*type_index, length as usize);
                     self.array_map
-                        .insert(id, Array::Primitive(Vec::with_capacity(length as usize)));
+                        .insert(id, Array::Primitive(RefCell::new(default_array)));
                 } else {
                     unreachable!("should exist item in operand_stack")
                 }

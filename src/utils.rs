@@ -1,10 +1,12 @@
 use crate::attribute::instruction::Instruction;
+use crate::operand::Item;
 use crate::option::RJ_OPTION;
 use crate::stackframe::Stackframe;
 
 use std::fs::File;
 use std::io::prelude::*;
 use std::io::Result;
+use std::iter;
 use std::path::Path;
 
 pub fn read_file<'a, P: AsRef<Path>>(
@@ -53,6 +55,31 @@ operand_stack:
         }
         _ => {}
     };
+}
+
+pub fn iniailize_primitive_array(type_index: usize, length: usize) -> Vec<Item> {
+    let default_val = match type_index {
+        // TBoolean
+        // 4 => ,
+        // // TChar
+        // 5 => ,
+        // // TFloat
+        // 6 => ,
+        // // TDouble
+        // 7 => ,
+        // // TByte
+        // 8 => ,
+        // // TShort
+        // 9 => ,
+        // TInt
+        10 => Item::Int(0),
+        // TLong
+        // 11 => ,
+        _ => unreachable!("type_index range should 4 - 11"),
+    };
+    let mut initialize_vec = vec![];
+    initialize_vec.extend(iter::repeat(default_val).take(length));
+    initialize_vec
 }
 
 #[macro_export]
