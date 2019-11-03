@@ -369,6 +369,30 @@ impl<'a> Context<'a> {
                     _ => panic!("should exist three items in operand_stack"),
                 };
             }
+            Instruction::Aastore => {
+                let operand_stack = self.get_operand_stack();
+                match (
+                    operand_stack.pop(),
+                    operand_stack.pop(),
+                    operand_stack.pop(),
+                ) {
+                    (
+                        Some(Item::Objectref(ref_id)),
+                        Some(Item::Int(index)),
+                        Some(Item::Arrayref(array_ref_id)),
+                    ) => {
+                        if let Some(array_cell) = self.array_map.get_mut(&array_ref_id) {
+                            match array_cell {
+                                Array::Custom(items) => {
+                                    items.borrow_mut()[index as usize] = ref_id;
+                                }
+                                _ => unimplemented!(),
+                            };
+                        }
+                    }
+                    _ => panic!("should exist three items in operand_stack"),
+                };
+            }
             Instruction::AstoreN(index) => {
                 self.store_n(&[*index]);
             }
