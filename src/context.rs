@@ -1,3 +1,4 @@
+use crate::array::{Array, ArrayMap};
 use crate::attribute::code::Code;
 use crate::attribute::instruction::Instruction;
 use crate::constant::{ConstantNameAndType, ConstantPool};
@@ -23,7 +24,9 @@ pub struct Context<'a> {
     pub root_path: &'a str,
     pub static_fields: StaticFields,
     pub object_map: ObjectMap,
+    pub array_map: ArrayMap,
 }
+
 pub type ClassMap = HashMap<String, JavaClass>;
 // class_name, field_name
 pub type StaticFields = HashMap<(String, String), (Item, Item)>;
@@ -40,6 +43,7 @@ impl<'a> Context<'a> {
             root_path,
             static_fields,
             object_map: HashMap::new(),
+            array_map: HashMap::new(),
         }
     }
 
@@ -521,6 +525,21 @@ impl<'a> Context<'a> {
                     unreachable!("not come here")
                 };
                 self.object_map.insert(id, object_ref);
+            }
+            Instruction::Newarray(_type_index) => {
+                // TBD should handle type_index?
+                let id = *OBJECT_ID.lock().unwrap();
+                *OBJECT_ID.lock().unwrap() = id + 1;
+
+                if let Some(Item::Int(length)) = self.get_operand_stack().pop() {
+                    self.array_map
+                        .insert(id, Array::Primitive(Vec::with_capacity(length as usize)));
+                } else {
+                    unreachable!("should exist item in operand_stack")
+                }
+
+                let operand_stack = self.get_operand_stack();
+                operand_stack.push(Item::Arrayref(id));
             }
             Instruction::Return => {
                 let operand_stack = self.get_operand_stack();

@@ -12,6 +12,7 @@ pub enum Item {
     Classref(String),
     Fieldref(usize),
     Objectref(usize),
+    Arrayref(usize),
 }
 
 impl fmt::Display for Item {
@@ -24,7 +25,8 @@ impl fmt::Display for Item {
             Item::String(val) => write!(f, "string: {}", val),
             Item::Classref(val) => write!(f, "class_ref: {}", val),
             Item::Fieldref(val) => write!(f, "field_ref: {}", val),
-            Item::Objectref(val) => write!(f, "{}", val),
+            Item::Objectref(val) => write!(f, "object_ref: {}", val),
+            Item::Arrayref(val) => write!(f, "array_ref {}", val),
         }
     }
 }
