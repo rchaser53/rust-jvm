@@ -329,6 +329,24 @@ impl<'a> Context<'a> {
             Instruction::AloadN(index) => {
                 self.load_n(*index);
             }
+            Instruction::Iaload => {
+                let operand_stack = self.get_operand_stack();
+                match (operand_stack.pop(), operand_stack.pop()) {
+                    (Some(Item::Int(index)), Some(Item::Arrayref(array_ref_id))) => {
+                        let array_cell = self
+                            .array_map
+                            .get_mut(&array_ref_id)
+                            .expect("should exist item in array_map");
+                        let item = match array_cell {
+                            Array::Primitive(items) => items.borrow()[index as usize].clone(),
+                            _ => unimplemented!(),
+                        };
+                        let operand_stack = self.get_operand_stack();
+                        operand_stack.push(item);
+                    }
+                    _ => panic!("should exist two items in operand_stack"),
+                };
+            }
             Instruction::Iastore => {
                 let operand_stack = self.get_operand_stack();
                 match (
