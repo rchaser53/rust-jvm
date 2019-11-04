@@ -685,15 +685,24 @@ impl<'a> Context<'a> {
                 match &class_name[0..1] {
                     // for class
                     "L" => {
-                        let _actual_class_name = &class_name[1..];
-                        unimplemented!("need to implement custom class")
+                        let class_name_len = class_name.len();
+                        let actual_class_name = &class_name[1..class_name_len - 1];
+                        let first_count = counts.first().unwrap().clone();
+
+                        let multi_dimentions_id = self.create_multi_dimentions_custom_array(
+                            &mut counts,
+                            1, // default should be 1
+                            first_count,
+                            actual_class_name.to_string(),
+                        );
+                        let operand_stack = self.get_operand_stack();
+                        operand_stack.push(Item::Arrayref(multi_dimentions_id));
                     }
                     discriptor @ _ => {
                         let initial_val =
                             create_uninitialized_item(&FieldDescriptor::from(discriptor));
                         let first_count = counts.first().unwrap().clone();
-                        let multi_dimentions_id = create_multi_dimentions_array(
-                            &mut self.array_map,
+                        let multi_dimentions_id = self.create_multi_dimentions_array(
                             &mut counts,
                             1, // default should be 1
                             first_count,
@@ -708,6 +717,112 @@ impl<'a> Context<'a> {
             _ => {}
         };
         (false, index + instruction.counsume_index())
+    }
+
+    fn create_multi_dimentions_custom_array(
+        &mut self,
+        counts: &mut Vec<usize>,
+        current_index: usize,
+        current_size: usize,
+        class_name: String,
+    ) -> usize {
+        let next_size = if let Some(next_size) = counts.get(current_index) {
+            next_size.clone()
+        } else {
+            let mut items = Vec::with_capacity(current_size);
+            for _ in 0..current_size {
+                let id = *OBJECT_ID.lock().unwrap();
+                *OBJECT_ID.lock().unwrap() = id + 1;
+                items.push(id);
+                self.object_map.insert(
+                    id,
+                    Objectref::new(class_name.clone(), RefCell::new(HashMap::new()), false),
+                );
+            }
+            let id = *OBJECT_ID.lock().unwrap();
+            *OBJECT_ID.lock().unwrap() = id + 1;
+            self.array_map
+                .insert(id, Array::Custom(RefCell::new(items)));
+
+            return id;
+        };
+
+        let mut ids = Vec::with_capacity(current_size);
+        for _ in 0..current_size {
+            let input_id = self.create_multi_dimentions_custom_array(
+                counts,
+                current_index + 1,
+                next_size,
+                class_name.clone(),
+            );
+            ids.push(input_id);
+        }
+
+        let id = *OBJECT_ID.lock().unwrap();
+        *OBJECT_ID.lock().unwrap() = id + 1;
+        self.array_map.insert(id, Array::Array(RefCell::new(ids)));
+
+        id
+    }
+
+    fn create_multi_dimentions_array(
+        &mut self,
+        counts: &mut Vec<usize>,
+        current_index: usize,
+        current_size: usize,
+        initial_value: (Item, Item),
+    ) -> usize {
+        let next_size = if let Some(next_size) = counts.get(current_index) {
+            next_size.clone()
+        } else {
+            return self.create_leaf_child(current_size, initial_value);
+        };
+
+        self.create_other_dimention(
+            counts,
+            current_index,
+            current_size,
+            next_size,
+            initial_value,
+        )
+    }
+
+    fn create_leaf_child(&mut self, current_size: usize, initial_value: (Item, Item)) -> usize {
+        let mut items = Vec::with_capacity(current_size);
+        for _ in 0..current_size {
+            items.push(initial_value.clone());
+        }
+        let id = *OBJECT_ID.lock().unwrap();
+        *OBJECT_ID.lock().unwrap() = id + 1;
+        self.array_map
+            .insert(id, Array::Primitive(RefCell::new(items)));
+        id
+    }
+
+    fn create_other_dimention(
+        &mut self,
+        counts: &mut Vec<usize>,
+        current_index: usize,
+        current_size: usize,
+        next_size: usize,
+        initial_value: (Item, Item),
+    ) -> usize {
+        let mut ids = Vec::with_capacity(current_size);
+        for _ in 0..current_size {
+            let input_id = self.create_multi_dimentions_array(
+                counts,
+                current_index + 1,
+                next_size,
+                initial_value.clone(),
+            );
+            ids.push(input_id);
+        }
+
+        let id = *OBJECT_ID.lock().unwrap();
+        *OBJECT_ID.lock().unwrap() = id + 1;
+        self.array_map.insert(id, Array::Array(RefCell::new(ids)));
+
+        id
     }
 
     fn get_field_tupple(&mut self) -> (Item, Item) {
@@ -954,44 +1069,4 @@ pub fn create_uninitialized_item(descriptor: &FieldDescriptor) -> (Item, Item) {
         FieldDescriptor::BaseType(BaseType::Z) => (Item::Boolean(true), Item::Null),
         _ => unimplemented!("should implement"),
     }
-}
-
-pub fn create_multi_dimentions_array(
-    array_map: &mut ArrayMap,
-    counts: &mut Vec<usize>,
-    current_index: usize,
-    current_size: usize,
-    initial_value: (Item, Item),
-) -> usize {
-    let next_size = if let Some(next_size) = counts.get_mut(current_index) {
-        next_size.clone()
-    } else {
-        // leaf child
-        let mut items = Vec::with_capacity(current_size);
-        for _ in 0..current_size {
-            items.push(initial_value.clone());
-        }
-        let id = *OBJECT_ID.lock().unwrap();
-        *OBJECT_ID.lock().unwrap() = id + 1;
-        array_map.insert(id, Array::Primitive(RefCell::new(items)));
-        return id;
-    };
-
-    let mut ids = Vec::with_capacity(current_size);
-    for _ in 0..current_size {
-        let input_id = create_multi_dimentions_array(
-            array_map,
-            counts,
-            current_index + 1,
-            next_size,
-            initial_value.clone(),
-        );
-        ids.push(input_id);
-    }
-
-    let id = *OBJECT_ID.lock().unwrap();
-    *OBJECT_ID.lock().unwrap() = id + 1;
-    array_map.insert(id, Array::Array(RefCell::new(ids)));
-
-    id
 }
