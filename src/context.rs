@@ -361,12 +361,20 @@ impl<'a> Context<'a> {
                             .array_map
                             .get_mut(&array_ref_id)
                             .expect("should exist item in array_map");
-                        let object_id = match array_cell {
-                            Array::Custom(items) => items.borrow()[index as usize],
-                            _ => unimplemented!(),
+
+                        let item = match array_cell {
+                            Array::Custom(items) => {
+                                let object_id = items.borrow()[index as usize];
+                                Item::Objectref(object_id)
+                            }
+                            Array::Array(ids) => {
+                                let array_id = ids.borrow()[index as usize];
+                                Item::Arrayref(array_id)
+                            }
+                            _ => unreachable!("Aaload doesn't handle Array::Primitive"),
                         };
                         let operand_stack = self.get_operand_stack();
-                        operand_stack.push(Item::Objectref(object_id));
+                        operand_stack.push(item);
                     }
                     _ => unreachable!("should exist two items in operand_stack"),
                 };
@@ -382,8 +390,15 @@ impl<'a> Context<'a> {
                         if let Some(array_cell) = self.array_map.get_mut(&array_ref_id) {
                             match array_cell {
                                 Array::Primitive(items) => {
-                                    // TBD need to fix this
+                                    // TBD need to fix this for long
                                     items.borrow_mut()[index as usize] = (value, Item::Null);
+                                }
+                                Array::Array(items) => {
+                                    if let Item::Int(val) = value {
+                                        items.borrow_mut()[index as usize] = val as usize;
+                                    } else {
+                                        unreachable!("should int to set Array::Array item")
+                                    }
                                 }
                                 _ => unimplemented!(),
                             };
@@ -680,7 +695,7 @@ impl<'a> Context<'a> {
                         let multi_dimentions_id = create_multi_dimentions_array(
                             &mut self.array_map,
                             &mut counts,
-                            0,
+                            1, // default should be 1
                             first_count,
                             initial_val,
                         );
