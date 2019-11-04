@@ -10,6 +10,7 @@ pub enum Instruction {
     Ldc(usize),                                // 0x12
     Ldc2W(usize, usize),                       // 0x14
     Iload(usize),                              // 0x15
+    Aload(usize),                              // 0x19
     IloadN(usize),                             // 0x1a(0) - 0x1d(3)
     LloadN(usize),                             // 0x1e(0) - 0x21(3)
     AloadN(usize),                             // 0x2a(0) - 0x2d(3)
@@ -76,6 +77,7 @@ impl fmt::Display for Instruction {
             Instruction::Ldc(val) => write!(f, "ldc             #{}", val),
             Instruction::Ldc2W(a, b) => write!(f, "ldc2_w         #{},{}", a, b),
             Instruction::Iload(val) => write!(f, "iload            #{}", val),
+            Instruction::Aload(val) => write!(f, "aload            #{}", val),
             Instruction::IloadN(val) => write!(f, "iload_{}", val),
             Instruction::LloadN(val) => write!(f, "lload_{}", val),
             Instruction::AloadN(val) => write!(f, "aload_{}", val),
@@ -207,6 +209,13 @@ impl Instruction {
             0x15 => {
                 let (val, index) = extract_x_byte_as_usize(inputs, index, 1);
                 codes.push(Instruction::Iload(val));
+                codes.push(Instruction::Noope);
+                (index, 2)
+            }
+            // aload
+            0x19 => {
+                let (val, index) = extract_x_byte_as_usize(inputs, index, 1);
+                codes.push(Instruction::Aload(val));
                 codes.push(Instruction::Noope);
                 (index, 2)
             }
@@ -643,6 +652,7 @@ impl Instruction {
             | Instruction::New(_)
             | Instruction::Anewarray(_) => 2,
             Instruction::Iload(_)
+            | Instruction::Aload(_)
             | Instruction::Istore(_)
             | Instruction::Bipush(_)
             | Instruction::Newarray(_)

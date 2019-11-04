@@ -310,6 +310,9 @@ impl<'a> Context<'a> {
             Instruction::Iload(index) => {
                 self.load_n(*index);
             }
+            Instruction::Aload(index) => {
+                self.load_n(*index);
+            }
             Instruction::IloadN(index) => {
                 self.load_n(*index);
             }
