@@ -310,7 +310,7 @@ pub enum StackMapFrame {
     ChopFrame(ChopFrame),
     SameFrameExtended,
     AppendFrame(AppendFrame),
-    FullFrame,
+    FullFrame(FullFrame),
 }
 
 #[derive(Debug)]
@@ -329,6 +329,15 @@ pub struct AppendFrame {
     frame_type: usize,
     offset_delta: usize,
     locals: Vec<usize>, // TBD need to search what I should imeplement(ex. locals = [ int ])
+
+#[derive(Debug)]
+pub struct FullFrame {
+    frame_type: usize,
+    offset_delta: usize,               // u2
+    number_of_locals: usize,           // u2
+    locals: Vec<VerificationTypeInfo>, // locals[number_of_locals]
+    number_of_stack_items: usize,      // u2
+    stack: Vec<VerificationTypeInfo>,  // stack[number_of_stack_items]
 }
 
 impl StackMapFrame {
@@ -354,6 +363,24 @@ impl StackMapFrame {
                         frame_type,
                         offset_delta,
                         locals: vec![], // locals[frame_type - 251];
+            }
+            255 => {
+                let (offset_delta, index) = extract_x_byte_as_usize(inputs, index, 2);
+                let (number_of_locals, index) = extract_x_byte_as_usize(inputs, index, 2);
+                let (locals, index) =
+                    extract_verification_type_info(inputs, index, number_of_locals);
+                let (number_of_stack_items, index) = extract_x_byte_as_usize(inputs, index, 2);
+                let (stack, index) =
+                    extract_verification_type_info(inputs, index, number_of_stack_items);
+
+                (
+                    StackMapFrame::FullFrame(FullFrame {
+                        frame_type,
+                        offset_delta,
+                        number_of_locals,
+                        locals,
+                        number_of_stack_items,
+                        stack,
                     }),
                     index,
                 )
@@ -387,6 +414,36 @@ impl fmt::Display for StackMapFrame {
                 "{}   /* append */
   offset_delta = {}",
                 frame_type, offset_delta
+            StackMapFrame::FullFrame(FullFrame {
+                frame_type,
+                offset_delta,
+                locals,
+                stack,
+                ..
+            }) => write!(
+                f,
+                "{}   /* full_frame */
+    offset_delta = {}
+    locals = [{}]
+    stack = [{}]",
+                frame_type,
+                offset_delta,
+                format!(
+                    "{}",
+                    locals
+                        .iter()
+                        .map(|local| format!("{}", local))
+                        .collect::<Vec<String>>()
+                        .join(", ")
+                ),
+                format!(
+                    "{}",
+                    stack
+                        .iter()
+                        .map(|item| format!("{}", item))
+                        .collect::<Vec<String>>()
+                        .join(", ")
+                )
             ),
             _ => unimplemented!(),
         }
