@@ -328,7 +328,8 @@ pub struct ChopFrame {
 pub struct AppendFrame {
     frame_type: usize,
     offset_delta: usize,
-    locals: Vec<usize>, // TBD need to search what I should imeplement(ex. locals = [ int ])
+    locals: Vec<VerificationTypeInfo>,
+}
 
 #[derive(Debug)]
 pub struct FullFrame {
@@ -357,12 +358,21 @@ impl StackMapFrame {
             }
             252..=254 => {
                 let (offset_delta, index) = extract_x_byte_as_usize(inputs, index, 2);
-                let (_, index) = extract_x_byte_as_usize(inputs, index, 1); // maybe for local
+                let length = (frame_type as i32) - 251;
+                let (locals, index) = if length > 0 {
+                    extract_verification_type_info(inputs, index, length as usize)
+                } else {
+                    (vec![], index)
+                };
+
                 (
                     StackMapFrame::AppendFrame(AppendFrame {
                         frame_type,
                         offset_delta,
-                        locals: vec![], // locals[frame_type - 251];
+                        locals,
+                    }),
+                    index,
+                )
             }
             255 => {
                 let (offset_delta, index) = extract_x_byte_as_usize(inputs, index, 2);
@@ -408,12 +418,20 @@ impl fmt::Display for StackMapFrame {
             StackMapFrame::AppendFrame(AppendFrame {
                 frame_type,
                 offset_delta,
-                locals: _,
+                locals,
             }) => write!(
                 f,
                 "{}   /* append */
-  offset_delta = {}",
-                frame_type, offset_delta
+    offset_delta = {}
+    locals = [{}]",
+                frame_type,
+                offset_delta,
+                locals
+                    .iter()
+                    .map(|local| format!("{}", local))
+                    .collect::<Vec<String>>()
+                    .join(", ")
+            ),
             StackMapFrame::FullFrame(FullFrame {
                 frame_type,
                 offset_delta,
