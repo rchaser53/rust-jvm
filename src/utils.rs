@@ -60,7 +60,7 @@ operand_stack:
     };
 }
 
-pub fn iniailize_primitive_array(type_index: usize, length: usize) -> Vec<Item> {
+pub fn iniailize_primitive_array(type_index: usize, length: usize) -> Vec<(Item, Item)> {
     let default_val = match type_index {
         // TBoolean
         // 4 => ,
@@ -75,7 +75,7 @@ pub fn iniailize_primitive_array(type_index: usize, length: usize) -> Vec<Item> 
         // // TShort
         // 9 => ,
         // TInt
-        10 => Item::Int(0),
+        10 => (Item::Int(0), Item::Null),
         // TLong
         // 11 => ,
         _ => unreachable!("type_index range should 4 - 11"),

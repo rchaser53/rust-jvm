@@ -18,10 +18,10 @@ pub enum PrimitiveArrayType {
     TLong = 11,
 }
 
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub enum Array {
-    Primitive(RefCell<Vec<Item>>),
-    Array(RefCell<Vec<Array>>),
+    Primitive(RefCell<Vec<(Item, Item)>>),
+    Array(RefCell<Vec<usize>>),
     Custom(RefCell<Vec<usize>>),
 }
 

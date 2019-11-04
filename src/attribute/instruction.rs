@@ -62,6 +62,7 @@ pub enum Instruction {
     New(usize),                                // 0xbb
     Newarray(usize),                           // 0xbc
     Anewarray(usize),                          // 0xbd
+    Multianewarray(usize, usize),              // 0xc5
     Noope,                                     // custom command for Ificmple etc.
 }
 
@@ -146,6 +147,9 @@ impl fmt::Display for Instruction {
             Instruction::New(val) => write!(f, "new            #{}", val),
             Instruction::Newarray(val) => write!(f, "newarray       #{}", val),
             Instruction::Anewarray(val) => write!(f, "anewarray      #{}", val),
+            Instruction::Multianewarray(index, dimensions) => {
+                write!(f, "multianewarray    #{} {}", index, dimensions)
+            }
             Instruction::Noope => write!(f, "noope"),
         }
     }
@@ -607,6 +611,16 @@ impl Instruction {
                 codes.push(Instruction::Noope);
                 (index, 3)
             }
+            // multianewarray
+            0xc5 => {
+                let (val, index) = extract_x_byte_as_usize(inputs, index, 2);
+                let (dimentions, index) = extract_x_byte_as_usize(inputs, index, 1);
+                codes.push(Instruction::Multianewarray(val, dimentions));
+                codes.push(Instruction::Noope);
+                codes.push(Instruction::Noope);
+                codes.push(Instruction::Noope);
+                (index, 4)
+            }
             _ => unimplemented!("tag: {:x}", tag),
         }
     }
@@ -614,6 +628,7 @@ impl Instruction {
     pub fn counsume_index(&self) -> usize {
         match self {
             Instruction::Lookupswitch(vals) => vals.len() * 4,
+            Instruction::Multianewarray(_, _) => 3,
             Instruction::Ificmple(_, _)
             | Instruction::Getstatic(_)
             | Instruction::Putstatic(_)

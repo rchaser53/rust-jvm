@@ -344,7 +344,11 @@ impl<'a> Context<'a> {
                             _ => unimplemented!(),
                         };
                         let operand_stack = self.get_operand_stack();
-                        operand_stack.push(item);
+                        operand_stack.push(item.0);
+                        match item.1 {
+                            Item::Null => {}
+                            _ => operand_stack.push(item.1),
+                        };
                     }
                     _ => panic!("should exist two items in operand_stack"),
                 };
@@ -378,7 +382,8 @@ impl<'a> Context<'a> {
                         if let Some(array_cell) = self.array_map.get_mut(&array_ref_id) {
                             match array_cell {
                                 Array::Primitive(items) => {
-                                    items.borrow_mut()[index as usize] = value;
+                                    // TBD need to fix this
+                                    items.borrow_mut()[index as usize] = (value, Item::Null);
                                 }
                                 _ => unimplemented!(),
                             };
@@ -645,6 +650,46 @@ impl<'a> Context<'a> {
                 let operand_stack = self.get_operand_stack();
                 operand_stack.clear();
             }
+            Instruction::Multianewarray(index, dimentions) => {
+                let operand_stack = self.get_operand_stack();
+                let operand_stack_len = operand_stack.len();
+                let mut counts: Vec<usize> = operand_stack
+                    .drain(operand_stack_len - dimentions..operand_stack_len)
+                    .map(|item| {
+                        if let Item::Int(val) = item {
+                            val as usize
+                        } else {
+                            unreachable!("Item should be int")
+                        }
+                    })
+                    .collect();
+
+                let dimentions = *dimentions;
+                let class_array_name = class_file.cp_info.get_class_ref_name(*index);
+                let class_name = &class_array_name[dimentions..];
+                match &class_name[0..1] {
+                    // for class
+                    "L" => {
+                        let _actual_class_name = &class_name[1..];
+                        unimplemented!("need to implement custom class")
+                    }
+                    discriptor @ _ => {
+                        let initial_val =
+                            create_uninitialized_item(&FieldDescriptor::from(discriptor));
+                        let first_count = counts.first().unwrap().clone();
+                        let multi_dimentions_id = create_multi_dimentions_array(
+                            &mut self.array_map,
+                            &mut counts,
+                            0,
+                            first_count,
+                            initial_val,
+                        );
+
+                        let operand_stack = self.get_operand_stack();
+                        operand_stack.push(Item::Arrayref(multi_dimentions_id));
+                    }
+                };
+            }
             _ => {}
         };
         (false, index + instruction.counsume_index())
@@ -894,4 +939,44 @@ pub fn create_uninitialized_item(descriptor: &FieldDescriptor) -> (Item, Item) {
         FieldDescriptor::BaseType(BaseType::Z) => (Item::Boolean(true), Item::Null),
         _ => unimplemented!("should implement"),
     }
+}
+
+pub fn create_multi_dimentions_array(
+    array_map: &mut ArrayMap,
+    counts: &mut Vec<usize>,
+    current_index: usize,
+    current_size: usize,
+    initial_value: (Item, Item),
+) -> usize {
+    let next_size = if let Some(next_size) = counts.get_mut(current_index) {
+        next_size.clone()
+    } else {
+        // leaf child
+        let mut items = Vec::with_capacity(current_size);
+        for _ in 0..current_size {
+            items.push(initial_value.clone());
+        }
+        let id = *OBJECT_ID.lock().unwrap();
+        *OBJECT_ID.lock().unwrap() = id + 1;
+        array_map.insert(id, Array::Primitive(RefCell::new(items)));
+        return id;
+    };
+
+    let mut ids = Vec::with_capacity(current_size);
+    for _ in 0..current_size {
+        let input_id = create_multi_dimentions_array(
+            array_map,
+            counts,
+            current_index + 1,
+            next_size,
+            initial_value.clone(),
+        );
+        ids.push(input_id);
+    }
+
+    let id = *OBJECT_ID.lock().unwrap();
+    *OBJECT_ID.lock().unwrap() = id + 1;
+    array_map.insert(id, Array::Array(RefCell::new(ids)));
+
+    id
 }

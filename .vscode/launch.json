@@ -1,0 +1,11 @@
+{
+  "configurations": [
+    {
+      "type": "java",
+      "name": "CodeLens (Launch) - InitializeStatic",
+      "request": "launch",
+      "mainClass": "InitializeStatic",
+      "projectName": "r-jvm_11c22782"
+    }
+  ]
+}
