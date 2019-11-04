@@ -382,6 +382,9 @@ impl<'a> Context<'a> {
                     _ => unreachable!("should exist two items in operand_stack"),
                 };
             }
+            Instruction::Astore(index) => {
+                self.store_n(&[*index]);
+            }
             Instruction::Iastore => {
                 let operand_stack = self.get_operand_stack();
                 match (

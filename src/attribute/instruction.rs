@@ -17,6 +17,7 @@ pub enum Instruction {
     Iaload,                                    // 0x2e
     Aaload,                                    // 0x32
     Istore(usize),                             // 0x36
+    Astore(usize),                             // 0x3a
     IstoreN(usize),                            // 0x3b(0) - 0x3e(3)
     LstoreN(usize),                            // 0x3f(0) - 0x42(3)
     AstoreN(usize),                            // 0x4b(0) - 0x4e(3)
@@ -84,6 +85,7 @@ impl fmt::Display for Instruction {
             Instruction::Iaload => write!(f, "iaload"),
             Instruction::Aaload => write!(f, "aaload"),
             Instruction::Istore(val) => write!(f, "istore            #{}", val),
+            Instruction::Astore(val) => write!(f, "astore            #{}", val),
             Instruction::Aastore => write!(f, "aastore"),
             Instruction::IstoreN(val) => write!(f, "istore_{}", val),
             Instruction::LstoreN(val) => write!(f, "lstore_{}", val),
@@ -248,6 +250,13 @@ impl Instruction {
             0x36 => {
                 let (val, index) = extract_x_byte_as_usize(inputs, index, 1);
                 codes.push(Instruction::Istore(val));
+                codes.push(Instruction::Noope);
+                (index, 2)
+            }
+            // astore
+            0x3a => {
+                let (val, index) = extract_x_byte_as_usize(inputs, index, 1);
+                codes.push(Instruction::Astore(val));
                 codes.push(Instruction::Noope);
                 (index, 2)
             }
@@ -654,6 +663,7 @@ impl Instruction {
             Instruction::Iload(_)
             | Instruction::Aload(_)
             | Instruction::Istore(_)
+            | Instruction::Astore(_)
             | Instruction::Bipush(_)
             | Instruction::Newarray(_)
             | Instruction::Ldc(_) => 1,
