@@ -392,3 +392,81 @@ impl fmt::Display for StackMapFrame {
         }
     }
 }
+
+#[derive(Debug)]
+pub enum VerificationTypeInfo {
+    TopVariableInfo,                  // 0
+    IntegerVariableInfo,              // 1
+    FloatVariableInfo,                // 2
+    DoubleVariableInfo,               // 3
+    LongVariableInfo,                 // 4
+    NullVariableInfo,                 // 5
+    UninitializedThisVariableInfo,    // 6
+    ObjectVariableInfo(usize),        // 7, u2(cpool_index)
+    UninitializedVariableInfo(usize), // 8, u2(offset)
+}
+
+impl fmt::Display for VerificationTypeInfo {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            VerificationTypeInfo::TopVariableInfo => write!(f, "top"),
+            VerificationTypeInfo::IntegerVariableInfo => write!(f, "int"),
+            VerificationTypeInfo::FloatVariableInfo => write!(f, "float"),
+            VerificationTypeInfo::DoubleVariableInfo => write!(f, "double"),
+            VerificationTypeInfo::LongVariableInfo => write!(f, "long"),
+            VerificationTypeInfo::NullVariableInfo => write!(f, "null"),
+            VerificationTypeInfo::UninitializedThisVariableInfo => write!(f, "uninitialized_this"),
+            VerificationTypeInfo::ObjectVariableInfo(index) => {
+                write!(f, "object_variable: #{}", index)
+            }
+            VerificationTypeInfo::UninitializedVariableInfo(index) => {
+                write!(f, "uninitialized_variable: #{}", index)
+            }
+        }
+    }
+}
+
+pub fn extract_verification_type_info(
+    inputs: &mut [u8],
+    original_index: usize,
+    length: usize,
+) -> (Vec<VerificationTypeInfo>, usize) {
+    let mut index = original_index;
+    let mut result = Vec::with_capacity(length);
+    for _ in 0..length {
+        let (tag, update_index) = extract_x_byte_as_usize(inputs, index, 1);
+        let (type_info, update_index) = match tag {
+            0 => (VerificationTypeInfo::TopVariableInfo, update_index),
+            1 => (VerificationTypeInfo::IntegerVariableInfo, update_index),
+            2 => (VerificationTypeInfo::FloatVariableInfo, update_index),
+            3 => (VerificationTypeInfo::DoubleVariableInfo, update_index),
+            4 => (VerificationTypeInfo::LongVariableInfo, update_index),
+            5 => (VerificationTypeInfo::NullVariableInfo, update_index),
+            6 => (
+                VerificationTypeInfo::UninitializedThisVariableInfo,
+                update_index,
+            ),
+            7 => {
+                let (cpool_index, update_index) = extract_x_byte_as_usize(inputs, update_index, 2);
+                (
+                    VerificationTypeInfo::ObjectVariableInfo(cpool_index),
+                    update_index,
+                )
+            }
+            8 => {
+                let (offset, update_index) = extract_x_byte_as_usize(inputs, update_index, 2);
+                (
+                    VerificationTypeInfo::UninitializedVariableInfo(offset),
+                    update_index,
+                )
+            }
+            _ => unreachable!(
+                "should be below 8 for verification_type_info. actual {}",
+                tag
+            ),
+        };
+        result.push(type_info);
+        index = update_index;
+    }
+    (result, index)
+}
