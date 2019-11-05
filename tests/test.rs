@@ -18,4 +18,5 @@ fn main() {
     test_helper(String::from("tests/class/CustomArray"));
     test_helper(String::from("tests/class/SimpleMultiDimentions"));
     test_helper(String::from("tests/class/CustomMultiDimentionArray"));
+    test_helper(String::from("tests/class/NestFor"));
 }
