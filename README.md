@@ -8,7 +8,7 @@ $ cargo run --bin rj -- ClassName
 
 # Demo
 
-## Creating Instance + Nest Loop
+## Creating Instance + Nested Array
 <img alt="" src="https://github.com/rchaser53/rj/blob/master/NestLoop.gif" >
 
 ## FizzBuzz
