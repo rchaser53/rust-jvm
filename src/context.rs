@@ -421,20 +421,37 @@ impl<'a> Context<'a> {
                     operand_stack.pop(),
                 ) {
                     (
-                        Some(Item::Objectref(ref_id)),
+                        Some(item),
                         Some(Item::Int(index)),
                         Some(Item::Arrayref(array_ref_id)),
                     ) => {
                         if let Some(array_cell) = self.array_map.get_mut(&array_ref_id) {
-                            match array_cell {
-                                Array::Custom(items) => {
-                                    items.borrow_mut()[index as usize] = ref_id;
+                            match item {
+                                Item::Objectref(ref_id) => {
+                                    match array_cell {
+                                        Array::Custom(items) => {
+                                            items.borrow_mut()[index as usize] = ref_id;
+                                        }
+                                        _ => unimplemented!(),
+                                    };
+                                }
+                                Item::Arrayref(ref_id) => {
+                                    match array_cell {
+                                        Array::Array(items) => {
+                                            items.borrow_mut()[index as usize] = ref_id;
+                                        }
+                                        _ => unimplemented!(),
+                                    };
                                 }
                                 _ => unimplemented!(),
                             };
                         }
                     }
-                    _ => panic!("should exist three items in operand_stack"),
+                    items @ _ => panic!(
+                        "should exist three items in operand_stack
+${:?}",
+                        items
+                    ),
                 };
             }
             Instruction::AstoreN(index) => {
