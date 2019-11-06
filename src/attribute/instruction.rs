@@ -3,6 +3,7 @@ use std::fmt;
 
 #[derive(Debug)]
 pub enum Instruction {
+    Aconstnull,                                // 0x01
     IconstN(usize),                            // 0x02(-1) - 0x08(5)
     LconstN(usize),                            // 0x09(0) - 0x0a(1)
     Bipush(usize),                             // 0x10
@@ -71,6 +72,7 @@ pub enum Instruction {
 impl fmt::Display for Instruction {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
+            Instruction::Aconstnull => write!(f, "aconst_null"),
             Instruction::IconstN(val) => write!(f, "iconst_{}", val),
             Instruction::LconstN(val) => write!(f, "lconst_{}", val),
             Instruction::Bipush(val) => write!(f, "bipush         {}", val),
@@ -167,6 +169,11 @@ impl Instruction {
         tag: usize,
     ) -> (usize, usize) {
         match tag {
+            // aconst_null
+            0x01 => {
+                codes.push(Instruction::Aconstnull);
+                (index, 1)
+            }
             // iconst_n
             val @ 0x02..=0x08 => {
                 codes.push(Instruction::IconstN(val - 0x03));
@@ -667,7 +674,8 @@ impl Instruction {
             | Instruction::Bipush(_)
             | Instruction::Newarray(_)
             | Instruction::Ldc(_) => 1,
-            Instruction::IconstN(_)
+            Instruction::Aconstnull
+            | Instruction::IconstN(_)
             | Instruction::LconstN(_)
             | Instruction::IstoreN(_)
             | Instruction::IloadN(_)

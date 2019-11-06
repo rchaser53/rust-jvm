@@ -98,6 +98,10 @@ impl<'a> Context<'a> {
         index: usize,
     ) -> (bool, usize) {
         match instruction {
+            Instruction::Aconstnull => {
+                let operand_stack = self.get_operand_stack();
+                operand_stack.push(Item::Null);
+            }
             Instruction::Iadd => {
                 let stackframe = self.get_last_stackframe();
                 let item = stackframe.operand_stack.iadd();
@@ -420,11 +424,7 @@ impl<'a> Context<'a> {
                     operand_stack.pop(),
                     operand_stack.pop(),
                 ) {
-                    (
-                        Some(item),
-                        Some(Item::Int(index)),
-                        Some(Item::Arrayref(array_ref_id)),
-                    ) => {
+                    (Some(item), Some(Item::Int(index)), Some(Item::Arrayref(array_ref_id))) => {
                         if let Some(array_cell) = self.array_map.get_mut(&array_ref_id) {
                             match item {
                                 Item::Objectref(ref_id) => {
