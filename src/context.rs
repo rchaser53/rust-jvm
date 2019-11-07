@@ -6,7 +6,8 @@ use crate::field::{BaseType, FieldDescriptor};
 use crate::java_class::{custom::Custom, JavaClass};
 use crate::object::{ObjectMap, Objectref};
 use crate::operand::Item;
-use crate::option::OBJECT_ID;
+use crate::option::{OBJECT_ID, STRING_POOL};
+
 use crate::stackframe::Stackframe;
 use crate::utils::{
     emit_debug_info, iniailize_primitive_array, initialize_objectref_array, read_file,
@@ -512,14 +513,23 @@ ${:?}",
                             .object_map
                             .get_mut(&obj_id)
                             .expect("should exist object_ref in object_map");
-                        assert!(
-                            class_name == obj_ref.class_name,
-                            "should be equal class_name"
-                        );
+
+                        {
+                            let string_hash_map = &*STRING_POOL.lock().unwrap();
+                            assert!(
+                                &class_name
+                                    == string_hash_map
+                                        .get(&obj_ref.class_name)
+                                        .expect("must exist class_name"),
+                                "should be equal class_name"
+                            );
+                        }
+
+                        let string_id = get_id_from_string_pool(field_name);
                         obj_ref
                             .field_map
                             .borrow_mut()
-                            .insert((field_name.clone(), obj_id), vals);
+                            .insert((string_id, obj_id), vals);
                         obj_id
                     }
                     item @ _ => unreachable!("should be Objectref. actual: {}", item),
@@ -541,13 +551,20 @@ ${:?}",
                             .get(&obj_id)
                             .expect("should exist objectref in object_map");
 
-                        assert!(
-                            class_name == obj_ref.class_name,
-                            "should be equal class_name"
-                        );
+                        {
+                            let string_hash_map = &*STRING_POOL.lock().unwrap();
+                            assert!(
+                                &class_name
+                                    == string_hash_map
+                                        .get(&obj_ref.class_name)
+                                        .expect("must exist class_name"),
+                                "should be equal class_name"
+                            );
+                        }
                         let field_map = obj_ref.field_map.borrow();
+                        let string_id = get_id_from_string_pool(field_name);
                         let (first, second) = field_map
-                            .get(&(field_name, obj_id))
+                            .get(&(string_id, obj_id))
                             .expect("should exist item")
                             .clone();
                         (first, second)
@@ -591,20 +608,19 @@ ${:?}",
                     let mut field_map = HashMap::new();
                     for (index, field) in target_class.fields.iter().enumerate() {
                         let field_name = target_class.cp_info.get_utf8(field.name_index);
+                        let string_id = get_id_from_string_pool(field_name);
                         let descriptor = target_class.cp_info.get_utf8(field.descriptor_index);
                         let vals =
                             create_uninitialized_item(&FieldDescriptor::from(descriptor.as_ref()));
-                        field_map.insert((field_name, index), vals);
+                        field_map.insert((string_id, index), vals);
                     }
                     let operand_stack = self.get_operand_stack();
                     let id = *OBJECT_ID.lock().unwrap();
                     *OBJECT_ID.lock().unwrap() = id + 1;
+                    let string_id = get_id_from_string_pool(class_name);
 
                     operand_stack.push(Item::Objectref(id));
-                    (
-                        id,
-                        Objectref::new(class_name, RefCell::new(field_map), true),
-                    )
+                    (id, Objectref::new(string_id, RefCell::new(field_map), true))
                 } else {
                     unreachable!("not come here")
                 };
@@ -631,10 +647,11 @@ ${:?}",
                 *OBJECT_ID.lock().unwrap() = id + 1;
 
                 let class_name = class_file.cp_info.get_class_ref_name(*index);
+                let string_id = get_id_from_string_pool(class_name);
                 if let Some(Item::Int(length)) = self.get_operand_stack().pop() {
                     let default_array = initialize_objectref_array(
                         &mut self.object_map,
-                        class_name,
+                        string_id,
                         length as usize,
                     );
                     self.array_map
@@ -673,12 +690,13 @@ ${:?}",
                         let class_name_len = class_name.len();
                         let actual_class_name = &class_name[1..class_name_len - 1];
                         let first_count = counts.first().unwrap().clone();
+                        let string_id = get_id_from_string_pool(actual_class_name.to_string());
 
                         let multi_dimentions_id = self.create_multi_dimentions_custom_array(
                             &mut counts,
                             1, // default should be 1
                             first_count,
-                            actual_class_name.to_string(),
+                            string_id,
                         );
                         let operand_stack = self.get_operand_stack();
                         operand_stack.push(Item::Arrayref(multi_dimentions_id));
@@ -762,7 +780,7 @@ ${:?}",
         counts: &mut Vec<usize>,
         current_index: usize,
         current_size: usize,
-        class_name: String,
+        class_name_id: usize,
     ) -> usize {
         let next_size = if let Some(next_size) = counts.get(current_index) {
             next_size.clone()
@@ -774,7 +792,7 @@ ${:?}",
                 items.push(id);
                 self.object_map.insert(
                     id,
-                    Objectref::new(class_name.clone(), RefCell::new(HashMap::new()), false),
+                    Objectref::new(class_name_id, RefCell::new(HashMap::new()), false),
                 );
             }
             let id = *OBJECT_ID.lock().unwrap();
@@ -791,7 +809,7 @@ ${:?}",
                 counts,
                 current_index + 1,
                 next_size,
-                class_name.clone(),
+                class_name_id,
             );
             ids.push(input_id);
         }
@@ -1107,4 +1125,22 @@ pub fn create_uninitialized_item(descriptor: &FieldDescriptor) -> (Item, Item) {
         FieldDescriptor::BaseType(BaseType::Z) => (Item::Boolean(true), Item::Null),
         _ => unimplemented!("should implement"),
     }
+}
+
+fn get_id_from_string_pool(value: String) -> usize {
+    {
+        let string_hash_map = &*STRING_POOL.lock().unwrap();
+        for (id, hash_value) in string_hash_map.iter() {
+            if hash_value == &value {
+                return *id;
+            }
+        }
+    }
+
+    let string_id = *OBJECT_ID.lock().unwrap();
+    *OBJECT_ID.lock().unwrap() = string_id + 1;
+
+    let string_hash_map = &mut *STRING_POOL.lock().unwrap();
+    string_hash_map.insert(string_id, value.clone());
+    string_id
 }

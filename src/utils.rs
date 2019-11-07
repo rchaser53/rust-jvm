@@ -87,7 +87,7 @@ pub fn iniailize_primitive_array(type_index: usize, length: usize) -> Vec<(Item,
 
 pub fn initialize_objectref_array(
     object_map: &mut ObjectMap,
-    class_name: String,
+    class_name_id: usize,
     length: usize,
 ) -> Vec<usize> {
     let mut initialize_vec = Vec::with_capacity(length);
@@ -97,7 +97,7 @@ pub fn initialize_objectref_array(
         initialize_vec.push(id);
         object_map.insert(
             id,
-            Objectref::new(class_name.clone(), RefCell::new(HashMap::new()), false),
+            Objectref::new(class_name_id, RefCell::new(HashMap::new()), false),
         );
     }
 
