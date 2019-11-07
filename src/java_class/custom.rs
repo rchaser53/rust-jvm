@@ -149,7 +149,7 @@ impl Custom {
         }
     }
 
-    pub fn this_class_name(&self) -> String {
+    pub fn this_class_name(&self) -> usize {
         let class_ref = self.cp_info.get_class_ref(self.this_class);
         self.cp_info.get_utf8(class_ref.name_index)
     }
@@ -160,10 +160,10 @@ impl Custom {
             .find(|item| item.name_index == name_index && item.descriptor_index == descriptor_index)
     }
 
-    pub fn get_method_by_string(&self, name: &str, descriptor: &str) -> Option<&Method> {
+    pub fn get_method_by_string(&self, name: usize, descriptor: usize) -> Option<&Method> {
         self.methods.iter().find(|item| {
-            (&self.cp_info.get_utf8(item.name_index) == name)
-                && (&self.cp_info.get_utf8(item.descriptor_index) == descriptor)
+            (self.cp_info.get_utf8(item.name_index) == name)
+                && (self.cp_info.get_utf8(item.descriptor_index) == descriptor)
         })
     }
 
@@ -188,7 +188,9 @@ impl Custom {
         }
     }
 
-    pub fn get_method_code_by_string(&self, name: &str, descriptor: &str) -> Option<&Code> {
+    pub fn get_method_code_by_string(&self, name: usize, descriptor: usize) -> Option<&Code> {
+        // let name = get_string_from_string_pool(&name);
+        // let descriptor = get_string_from_string_pool(&descriptor);
         if let Some(method) = self.get_method_by_string(name, descriptor) {
             if let Some(Attribute::Code(code)) = method.attribute_info.iter().find(|attr| {
                 if let Attribute::Code(_) = attr {
@@ -210,7 +212,7 @@ impl Custom {
     }
 
     pub fn get_descriptor(&self, descriptor_index: usize) -> FieldDescriptor {
-        let descriptor_str = self.cp_info.get_utf8(descriptor_index);
+        let descriptor_str = get_string_from_string_pool(&self.cp_info.get_utf8(descriptor_index));
         FieldDescriptor::from(descriptor_str.as_ref())
     }
 }

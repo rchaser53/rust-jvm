@@ -10,7 +10,8 @@ use crate::option::{OBJECT_ID, STRING_POOL};
 
 use crate::stackframe::Stackframe;
 use crate::utils::{
-    emit_debug_info, iniailize_primitive_array, initialize_objectref_array, read_file,
+    emit_debug_info, get_string_from_string_pool, iniailize_primitive_array,
+    initialize_objectref_array, insert_string_pool, read_file,
 };
 
 use std::cell::RefCell;
@@ -21,7 +22,7 @@ use std::path::Path;
 
 #[derive(Debug)]
 pub struct Context<'a> {
-    pub class_map: HashMap<String, JavaClass>,
+    pub class_map: HashMap<usize, JavaClass>,
     pub program_count: usize,
     pub stack_frames: Vec<Stackframe>,
     pub root_path: &'a str,
@@ -30,9 +31,9 @@ pub struct Context<'a> {
     pub array_map: ArrayMap,
 }
 
-pub type ClassMap = HashMap<String, JavaClass>;
+pub type ClassMap = HashMap<usize, JavaClass>;
 // class_name, field_name
-pub type StaticFields = HashMap<(String, String), (Item, Item)>;
+pub type StaticFields = HashMap<(usize, usize), (Item, Item)>;
 
 impl<'a> Context<'a> {
     pub fn new(class_map: ClassMap, class_file: &Custom, root_path: &'a str) -> Context<'a> {
@@ -423,7 +424,7 @@ ${:?}",
             Instruction::Putstatic(index) => {
                 let this_class_name = class_file.this_class_name();
                 let (class_name, field_name) = self.get_class_and_field_name(class_file, *index);
-                self.initilize_class_static_info(&this_class_name, &class_name);
+                self.initilize_class_static_info(this_class_name, class_name);
 
                 let operand_stack = self.get_operand_stack();
                 let (first, second) = match operand_stack.pop() {
@@ -439,7 +440,7 @@ ${:?}",
             Instruction::Getstatic(index) => {
                 let this_class_name = class_file.this_class_name();
                 let (class_name, field_name) = self.get_class_and_field_name(class_file, *index);
-                self.initilize_class_static_info(&this_class_name, &class_name);
+                self.initilize_class_static_info(this_class_name, class_name);
 
                 let err_message = format!(
                     "Getstatic failed. {}.{} is not found",
@@ -496,7 +497,7 @@ ${:?}",
             Instruction::Invokestatic(index) => {
                 let this_class_name = class_file.this_class_name();
                 let (class_name, name_and_type) = self.get_related_method_info(class_file, *index);
-                self.initilize_class_static_info(&this_class_name, &class_name);
+                self.initilize_class_static_info(this_class_name, class_name);
                 self.call_method(&class_file, class_name, name_and_type);
             }
             Instruction::Putfield(index) => {
@@ -515,21 +516,16 @@ ${:?}",
                             .expect("should exist object_ref in object_map");
 
                         {
-                            let string_hash_map = &*STRING_POOL.lock().unwrap();
                             assert!(
-                                &class_name
-                                    == string_hash_map
-                                        .get(&obj_ref.class_name)
-                                        .expect("must exist class_name"),
+                                class_name == obj_ref.class_name_id,
                                 "should be equal class_name"
                             );
                         }
 
-                        let string_id = get_id_from_string_pool(field_name);
                         obj_ref
                             .field_map
                             .borrow_mut()
-                            .insert((string_id, obj_id), vals);
+                            .insert((field_name, obj_id), vals);
                         obj_id
                     }
                     item @ _ => unreachable!("should be Objectref. actual: {}", item),
@@ -552,19 +548,15 @@ ${:?}",
                             .expect("should exist objectref in object_map");
 
                         {
-                            let string_hash_map = &*STRING_POOL.lock().unwrap();
                             assert!(
-                                &class_name
-                                    == string_hash_map
-                                        .get(&obj_ref.class_name)
-                                        .expect("must exist class_name"),
+                                class_name == obj_ref.class_name_id,
                                 "should be equal class_name"
                             );
                         }
+
                         let field_map = obj_ref.field_map.borrow();
-                        let string_id = get_id_from_string_pool(field_name);
                         let (first, second) = field_map
-                            .get(&(string_id, obj_id))
+                            .get(&(field_name, obj_id))
                             .expect("should exist item")
                             .clone();
                         (first, second)
@@ -600,7 +592,7 @@ ${:?}",
                 let this_class_name = class_file.this_class_name();
                 let class_ref = class_file.cp_info.get_class_ref(*index);
                 let class_name = class_file.cp_info.get_utf8(class_ref.name_index);
-                self.initilize_class_static_info(&this_class_name, &class_name);
+                self.initilize_class_static_info(this_class_name, class_name);
 
                 let (id, object_ref) = if let Some(JavaClass::Custom(target_class)) =
                     self.class_map.get(&class_name)
@@ -608,19 +600,24 @@ ${:?}",
                     let mut field_map = HashMap::new();
                     for (index, field) in target_class.fields.iter().enumerate() {
                         let field_name = target_class.cp_info.get_utf8(field.name_index);
-                        let string_id = get_id_from_string_pool(field_name);
-                        let descriptor = target_class.cp_info.get_utf8(field.descriptor_index);
+                        // let string_id = get_id_from_string_pool(field_name);
+                        let descriptor = target_class
+                            .cp_info
+                            .get_utf8_as_string(field.descriptor_index);
                         let vals =
                             create_uninitialized_item(&FieldDescriptor::from(descriptor.as_ref()));
-                        field_map.insert((string_id, index), vals);
+                        field_map.insert((field_name, index), vals);
                     }
                     let operand_stack = self.get_operand_stack();
                     let id = *OBJECT_ID.lock().unwrap();
                     *OBJECT_ID.lock().unwrap() = id + 1;
-                    let string_id = get_id_from_string_pool(class_name);
+                    // let string_id = get_id_from_string_pool(class_name);
 
                     operand_stack.push(Item::Objectref(id));
-                    (id, Objectref::new(string_id, RefCell::new(field_map), true))
+                    (
+                        id,
+                        Objectref::new(class_name, RefCell::new(field_map), true),
+                    )
                 } else {
                     unreachable!("not come here")
                 };
@@ -647,11 +644,11 @@ ${:?}",
                 *OBJECT_ID.lock().unwrap() = id + 1;
 
                 let class_name = class_file.cp_info.get_class_ref_name(*index);
-                let string_id = get_id_from_string_pool(class_name);
+                // let string_id = get_id_from_string_pool(class_name);
                 if let Some(Item::Int(length)) = self.get_operand_stack().pop() {
                     let default_array = initialize_objectref_array(
                         &mut self.object_map,
-                        string_id,
+                        class_name,
                         length as usize,
                     );
                     self.array_map
@@ -682,7 +679,8 @@ ${:?}",
                     .collect();
 
                 let dimentions = *dimentions;
-                let class_array_name = class_file.cp_info.get_class_ref_name(*index);
+                let class_array_name_id = class_file.cp_info.get_class_ref_name(*index);
+                let class_array_name = get_string_from_string_pool(&class_array_name_id);
                 let class_name = &class_array_name[dimentions..];
                 match &class_name[0..1] {
                     // for class
@@ -909,7 +907,7 @@ ${:?}",
     fn call_method(
         &mut self,
         class_file: &Custom,
-        class_name: String,
+        class_name: usize,
         name_and_type: &ConstantNameAndType,
     ) {
         let method_name = class_file.cp_info.get_utf8(name_and_type.name_index);
@@ -919,38 +917,41 @@ ${:?}",
             self.call_other_class_method(
                 &mut class,
                 &class_file.cp_info,
-                &method_name,
-                &method_descriptor,
+                method_name,
+                method_descriptor,
             );
             self.class_map.insert(class.this_class_name(), class);
         } else {
-            let new_class_file = self.create_custom_class(&class_name);
+            let new_class_file = self.create_custom_class(class_name);
             let mut new_class_file = JavaClass::Custom(new_class_file);
 
             self.call_other_class_method(
                 &mut new_class_file,
                 &class_file.cp_info,
-                &method_name,
-                &method_descriptor,
+                method_name,
+                method_descriptor,
             );
             self.class_map.insert(class_name, new_class_file);
         }
     }
 
-    fn initilize_class_static_info(&mut self, this_class_name: &str, class_name: &str) {
-        if this_class_name != class_name && self.class_map.get_mut(class_name).is_none() {
-            let new_class_file = self.create_custom_class(&class_name);
+    fn initilize_class_static_info(&mut self, this_class_name_id: usize, class_name_id: usize) {
+        let this_class_name = get_string_from_string_pool(&this_class_name_id);
+        let class_name = get_string_from_string_pool(&class_name_id);
+        if this_class_name != class_name && self.class_map.get_mut(&class_name_id).is_none() {
+            let new_class_file = self.create_custom_class(class_name_id);
             if let Some(code) = new_class_file.get_clinit_code() {
                 self.call_custom_class_method(&new_class_file, code);
             }
 
             self.class_map
-                .insert(class_name.to_string(), JavaClass::Custom(new_class_file));
+                .insert(class_name_id, JavaClass::Custom(new_class_file));
         }
     }
 
-    fn create_custom_class(&mut self, class_name: &str) -> Custom {
-        let class_name = class_name.to_string() + ".class";
+    fn create_custom_class(&mut self, class_name: usize) -> Custom {
+        let class_name = get_string_from_string_pool(&class_name);
+        let class_name = class_name + ".class";
         let class_path = Path::new(self.root_path).join(&class_name);
         let mut buffer = vec![];
         let buffer = read_file(&class_path, &mut buffer).expect(&format!(
@@ -967,16 +968,16 @@ ${:?}",
         &mut self,
         class_file: &mut JavaClass,
         caller_cp_info: &ConstantPool,
-        method_name: &str,
-        method_descriptor: &str,
+        method_name: usize,
+        method_descriptor: usize,
     ) {
         match class_file {
             JavaClass::BuiltIn(ref mut builtin_class) => {
-                let method = builtin_class.methods.get_mut(method_name).expect(&format!(
+                let method = builtin_class.methods.get_mut(&method_name).expect(&format!(
                     "{} is not found in {}",
                     method_name, builtin_class.class_name
                 ));
-                let parameter_length = method.parameter_length(&method_descriptor);
+                let parameter_length = method.parameter_length(method_descriptor);
                 let stack_frame = self.create_new_stack_frame(parameter_length);
                 self.stack_frames.push(stack_frame);
                 method.execute(&caller_cp_info, &mut self.stack_frames);
@@ -1040,7 +1041,7 @@ ${:?}",
     }
 
     // (class_name, field_name)
-    fn get_class_and_field_name(&mut self, class_file: &Custom, index: usize) -> (String, String) {
+    fn get_class_and_field_name(&mut self, class_file: &Custom, index: usize) -> (usize, usize) {
         let field_ref = class_file.cp_info.get_field_ref(index);
         let class_ref = class_file.cp_info.get_class_ref(field_ref.class_index);
         let name_and_type = class_file
@@ -1056,7 +1057,7 @@ ${:?}",
         &mut self,
         class_file: &'b Custom,
         index: usize,
-    ) -> (String, &'b ConstantNameAndType) {
+    ) -> (usize, &'b ConstantNameAndType) {
         let method_ref = class_file.cp_info.get_method_ref(index);
         let class_ref = class_file.cp_info.get_class_ref(method_ref.class_index);
         let name_and_type = class_file
@@ -1106,12 +1107,13 @@ pub fn setup_static_fields(class_map: &ClassMap) -> StaticFields {
         }
     }
 
+    let class_name_id = insert_string_pool(String::from("java/lang/System"));
+    let field_name_id = insert_string_pool(String::from("out"));
+    let class_ref_id = insert_string_pool(String::from("java/io/PrintStream"));
+
     static_fields.insert(
-        (String::from("java/lang/System"), String::from("out")),
-        (
-            Item::Classref(String::from("java/io/PrintStream")),
-            Item::Null,
-        ),
+        (class_name_id, field_name_id),
+        (Item::Classref(class_ref_id), Item::Null),
     );
 
     static_fields

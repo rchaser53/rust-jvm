@@ -3,15 +3,16 @@ use std::collections::HashMap;
 use crate::constant::ConstantPool;
 use crate::operand::Item;
 use crate::stackframe::Stackframe;
+use crate::utils::get_string_from_string_pool;
 
 #[derive(Debug)]
 pub struct BuiltIn {
-    pub class_name: String,
-    pub methods: HashMap<String, BuiltInMethod>,
+    pub class_name: usize,
+    pub methods: HashMap<usize, BuiltInMethod>,
 }
 
 impl BuiltIn {
-    pub fn new(class_name: String) -> BuiltIn {
+    pub fn new(class_name: usize) -> BuiltIn {
         BuiltIn {
             class_name,
             methods: HashMap::new(),
@@ -26,18 +27,19 @@ pub enum BuiltInLocal {
 
 #[derive(Debug)]
 pub struct BuiltInMethod {
-    pub name: String,
+    pub name: usize,
     pub code_type: BuitlInCodeType,
 }
 
 impl BuiltInMethod {
-    pub fn new(name: String, code_type: BuitlInCodeType) -> BuiltInMethod {
+    pub fn new(name: usize, code_type: BuitlInCodeType) -> BuiltInMethod {
         BuiltInMethod { name, code_type }
     }
 
-    pub fn parameter_length(&self, descriptor: &str) -> usize {
+    pub fn parameter_length(&self, descriptor: usize) -> usize {
+        let descriptor = get_string_from_string_pool(&descriptor);
         match self.code_type {
-            BuitlInCodeType::Println => match descriptor {
+            BuitlInCodeType::Println => match descriptor.as_ref() {
                 "(J)V" | "(D)V" => 2,
                 _ => 1,
             },
@@ -54,9 +56,13 @@ impl BuiltInMethod {
                 if let Some(item) = stackframe.local_variables.get(0) {
                     match item {
                         Item::Fieldref(index) => {
-                            println!("{}", constant_pool.get_fieldref_as_utf8(*index));
+                            let value = get_string_from_string_pool(
+                                &constant_pool.get_fieldref_as_utf8(*index),
+                            );
+                            println!("{}", value);
                         }
-                        Item::String(value) => {
+                        Item::String(id) => {
+                            let value = get_string_from_string_pool(id);
                             println!("{}", value);
                         }
                         Item::Int(value) => {
@@ -92,7 +98,9 @@ impl BuiltInMethod {
                 stackframe
                     .operand_stack
                     .stack
-                    .push(Item::String(format!("{}", val)));
+                    // .push(Item::String(format!("{}", val)));
+                    // TBD need to fix
+                    .push(Item::String(1));
             }
         }
     }

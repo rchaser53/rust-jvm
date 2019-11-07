@@ -1,7 +1,7 @@
 use crate::attribute::instruction::Instruction;
 use crate::object::{ObjectMap, Objectref};
 use crate::operand::Item;
-use crate::option::{OBJECT_ID, RJ_OPTION};
+use crate::option::{OBJECT_ID, RJ_OPTION, STRING_POOL};
 use crate::stackframe::Stackframe;
 
 use std::cell::RefCell;
@@ -102,6 +102,33 @@ pub fn initialize_objectref_array(
     }
 
     initialize_vec
+}
+
+pub fn insert_string_pool(input: String) -> usize {
+    // TBD need to delete or add other way
+    {
+        let string_hash_map = &*STRING_POOL.lock().unwrap();
+        for (id, hash_value) in string_hash_map.iter() {
+            if hash_value == &input {
+                return *id;
+            }
+        }
+    }
+
+    let id = *OBJECT_ID.lock().unwrap();
+    *OBJECT_ID.lock().unwrap() = id + 1;
+
+    let string_hash_map = &mut *STRING_POOL.lock().unwrap();
+    string_hash_map.insert(id, input);
+    id
+}
+
+pub fn get_string_from_string_pool(id: &usize) -> String {
+    let string_hash_map = &*STRING_POOL.lock().unwrap();
+    string_hash_map
+        .get(id)
+        .expect("exist string in string_pool")
+        .to_string()
 }
 
 #[macro_export]

@@ -1,5 +1,5 @@
 use crate::operand::Item;
-use crate::option::STRING_POOL;
+use crate::utils::get_string_from_string_pool;
 
 use std::cell::RefCell;
 use std::collections::HashMap;
@@ -8,7 +8,7 @@ use std::fmt;
 pub type ObjectMap = HashMap<usize, Objectref>;
 #[derive(PartialEq, Clone, Debug)]
 pub struct Objectref {
-    pub class_name: usize,
+    pub class_name_id: usize,
     // field_name, object_ref_id
     pub field_map: RefCell<HashMap<(usize, usize), (Item, Item)>>,
     pub is_initialized: bool,
@@ -17,9 +17,9 @@ pub struct Objectref {
 pub type FieldMap = RefCell<HashMap<(usize, usize), (Item, Item)>>;
 
 impl Objectref {
-    pub fn new(class_name: usize, field_map: FieldMap, is_initialized: bool) -> Objectref {
+    pub fn new(class_name_id: usize, field_map: FieldMap, is_initialized: bool) -> Objectref {
         Objectref {
-            class_name,
+            class_name_id,
             field_map,
             is_initialized,
         }
@@ -39,13 +39,12 @@ impl fmt::Display for Objectref {
             };
         }
 
-        let string_hash_map = &*STRING_POOL.lock().unwrap();
         write!(
             f,
             "object_ref:
 class {}:
 {}",
-            string_hash_map.get(&self.class_name).unwrap(),
+            get_string_from_string_pool(&self.class_name_id),
             val_strs.join("\n")
         )
     }

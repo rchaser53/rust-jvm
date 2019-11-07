@@ -9,9 +9,9 @@ pub enum JavaClass {
 }
 
 impl JavaClass {
-    pub fn this_class_name(&self) -> String {
+    pub fn this_class_name(&self) -> usize {
         match self {
-            JavaClass::BuiltIn(builtin) => builtin.class_name.clone(),
+            JavaClass::BuiltIn(builtin) => builtin.class_name,
             JavaClass::Custom(custom) => custom.this_class_name(),
         }
     }

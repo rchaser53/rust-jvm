@@ -1,6 +1,7 @@
 use crate::attribute::code::Code;
 use crate::constant::{ConstPoolItem, ConstantPool};
-use crate::utils::extract_x_byte_as_usize;
+use crate::utils::{extract_x_byte_as_usize, get_string_from_string_pool};
+
 use std::fmt;
 
 #[derive(Debug)]
@@ -40,8 +41,7 @@ impl Attribute {
         if let ConstPoolItem::ConstantUtf8(item) = &constant_pool.0[attribute_name_index] {
             let attribute_name_index = attribute_name_index as u16;
 
-            let val = String::from_utf8_lossy(item.bytes.as_slice());
-            match AttributeTag::from(val.into_owned()) {
+            match AttributeTag::from(get_string_from_string_pool(&item.id)) {
                 AttributeTag::SourceFile => {
                     let (item, index) = SourceFile::new(inputs, index, attribute_name_index);
                     (Attribute::SourceFile(item), index)
