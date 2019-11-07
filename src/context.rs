@@ -390,32 +390,10 @@ impl<'a> Context<'a> {
                 self.store_n(&[*index]);
             }
             Instruction::Iastore => {
-                let operand_stack = self.get_operand_stack();
-                match (
-                    operand_stack.pop(),
-                    operand_stack.pop(),
-                    operand_stack.pop(),
-                ) {
-                    (Some(value), Some(Item::Int(index)), Some(Item::Arrayref(array_ref_id))) => {
-                        if let Some(array_cell) = self.array_map.get_mut(&array_ref_id) {
-                            match array_cell {
-                                Array::Primitive(items) => {
-                                    // TBD need to fix this for long
-                                    items.borrow_mut()[index as usize] = (value, Item::Null);
-                                }
-                                Array::Array(items) => {
-                                    if let Item::Int(val) = value {
-                                        items.borrow_mut()[index as usize] = val as usize;
-                                    } else {
-                                        unreachable!("should int to set Array::Array item")
-                                    }
-                                }
-                                _ => unimplemented!(),
-                            };
-                        }
-                    }
-                    _ => unreachable!("should exist three items in operand_stack"),
-                };
+                self.x_astore();
+            }
+            Instruction::Lastore => {
+                self.x_astore();
             }
             Instruction::Aastore => {
                 let operand_stack = self.get_operand_stack();
@@ -740,6 +718,36 @@ ${:?}",
             _ => {}
         };
         (false, index + instruction.counsume_index())
+    }
+
+    fn x_astore(&mut self) {
+        let operand_stack = self.get_operand_stack();
+        let value = operand_stack.pop().expect("should exist item");
+        let values = match value {
+            item @ Item::Long(_) => (item, operand_stack.pop().expect("should exist item")),
+            item @ _ => (item, Item::Null),
+        };
+
+        match (operand_stack.pop(), operand_stack.pop()) {
+            (Some(Item::Int(index)), Some(Item::Arrayref(array_ref_id))) => {
+                if let Some(array_cell) = self.array_map.get_mut(&array_ref_id) {
+                    match array_cell {
+                        Array::Primitive(items) => {
+                            items.borrow_mut()[index as usize] = values;
+                        }
+                        Array::Array(items) => {
+                            if let Item::Int(val) = values.0 {
+                                items.borrow_mut()[index as usize] = val as usize;
+                            } else {
+                                unreachable!("should int to set Array::Array item")
+                            }
+                        }
+                        _ => unimplemented!(),
+                    };
+                }
+            }
+            _ => unreachable!("should exist three items in operand_stack"),
+        };
     }
 
     fn create_multi_dimentions_custom_array(

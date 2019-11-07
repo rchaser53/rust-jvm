@@ -77,7 +77,7 @@ pub fn iniailize_primitive_array(type_index: usize, length: usize) -> Vec<(Item,
         // TInt
         10 => (Item::Int(0), Item::Null),
         // TLong
-        // 11 => ,
+        11 => (Item::Long(0), Item::Long(0)),
         _ => unreachable!("type_index range should 4 - 11"),
     };
     let mut initialize_vec = vec![];
