@@ -339,26 +339,10 @@ impl<'a> Context<'a> {
                 self.load_n(*index);
             }
             Instruction::Iaload => {
-                let operand_stack = self.get_operand_stack();
-                match (operand_stack.pop(), operand_stack.pop()) {
-                    (Some(Item::Int(index)), Some(Item::Arrayref(array_ref_id))) => {
-                        let array_cell = self
-                            .array_map
-                            .get_mut(&array_ref_id)
-                            .expect("should exist item in array_map");
-                        let item = match array_cell {
-                            Array::Primitive(items) => items.borrow()[index as usize].clone(),
-                            _ => unimplemented!(),
-                        };
-                        let operand_stack = self.get_operand_stack();
-                        operand_stack.push(item.0);
-                        match item.1 {
-                            Item::Null => {}
-                            _ => operand_stack.push(item.1),
-                        };
-                    }
-                    _ => panic!("should exist two items in operand_stack"),
-                };
+                self.n_aload();
+            }
+            Instruction::Laload => {
+                self.n_aload();
             }
             Instruction::Aaload => {
                 let operand_stack = self.get_operand_stack();
@@ -747,6 +731,29 @@ ${:?}",
                 }
             }
             _ => unreachable!("should exist three items in operand_stack"),
+        };
+    }
+
+    fn n_aload(&mut self) {
+        let operand_stack = self.get_operand_stack();
+        match (operand_stack.pop(), operand_stack.pop()) {
+            (Some(Item::Int(index)), Some(Item::Arrayref(array_ref_id))) => {
+                let array_cell = self
+                    .array_map
+                    .get_mut(&array_ref_id)
+                    .expect("should exist item in array_map");
+                let item = match array_cell {
+                    Array::Primitive(items) => items.borrow()[index as usize].clone(),
+                    _ => unimplemented!(),
+                };
+                let operand_stack = self.get_operand_stack();
+                operand_stack.push(item.0);
+                match item.1 {
+                    Item::Null => {}
+                    _ => operand_stack.push(item.1),
+                };
+            }
+            _ => panic!("should exist two items in operand_stack"),
         };
     }
 
