@@ -3,6 +3,7 @@ use crate::attribute::defs::Attribute;
 use crate::constant::ConstantPool;
 use crate::field::{Field, FieldDescriptor};
 use crate::method::{Method, MethodAccessFlag};
+use crate::string_pool::StringPool;
 use crate::utils::*;
 use std::fmt;
 
@@ -30,7 +31,7 @@ pub struct Custom {
 }
 
 impl Custom {
-    pub fn new(input: &mut [u8], index: usize) -> (Custom, usize) {
+    pub fn new(string_pool: &mut StringPool, input: &mut [u8], index: usize) -> (Custom, usize) {
         let (magic, index) = extract_x_byte_as_usize(input, index, 4);
         let magic = magic as u32;
 
@@ -40,7 +41,7 @@ impl Custom {
         let major_version = major_version as u16;
 
         let (constant_pool_count, index) = extract_x_byte_as_usize(input, index, 2);
-        let (cp_info, index) = ConstantPool::new(input, index, constant_pool_count);
+        let (cp_info, index) = ConstantPool::new(string_pool, input, index, constant_pool_count);
 
         let (access_flags_num, index) = extract_x_byte_as_usize(input, index, 2);
         let access_flags = extract_access_flags(access_flags_num);
@@ -67,7 +68,7 @@ impl Custom {
         let (methods_count, mut index) = extract_x_byte_as_usize(input, index, 2);
         let mut methods = Vec::with_capacity(methods_count);
         for _ in 0..methods_count {
-            let (method, updated_index) = Method::new(&cp_info, input, index);
+            let (method, updated_index) = Method::new(string_pool, &cp_info, input, index);
             index = updated_index;
             methods.push(method);
         }
@@ -76,7 +77,7 @@ impl Custom {
         let mut attributes = Vec::with_capacity(attributes_count);
 
         for _ in 0..attributes_count {
-            let (attribute, updated_index) = Attribute::new(&cp_info, input, index);
+            let (attribute, updated_index) = Attribute::new(string_pool, &cp_info, input, index);
             index = updated_index;
             attributes.push(attribute);
         }
@@ -189,8 +190,6 @@ impl Custom {
     }
 
     pub fn get_method_code_by_string(&self, name: usize, descriptor: usize) -> Option<&Code> {
-        // let name = get_string_from_string_pool(&name);
-        // let descriptor = get_string_from_string_pool(&descriptor);
         if let Some(method) = self.get_method_by_string(name, descriptor) {
             if let Some(Attribute::Code(code)) = method.attribute_info.iter().find(|attr| {
                 if let Attribute::Code(_) = attr {
@@ -211,8 +210,12 @@ impl Custom {
         }
     }
 
-    pub fn get_descriptor(&self, descriptor_index: usize) -> FieldDescriptor {
-        let descriptor_str = get_string_from_string_pool(&self.cp_info.get_utf8(descriptor_index));
+    pub fn get_descriptor(
+        &self,
+        string_map: &mut StringPool,
+        descriptor_index: usize,
+    ) -> FieldDescriptor {
+        let descriptor_str = string_map.get_value(&self.cp_info.get_utf8(descriptor_index));
         FieldDescriptor::from(descriptor_str.as_ref())
     }
 }

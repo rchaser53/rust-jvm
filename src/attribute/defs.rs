@@ -1,6 +1,7 @@
 use crate::attribute::code::Code;
 use crate::constant::{ConstPoolItem, ConstantPool};
-use crate::utils::{extract_x_byte_as_usize, get_string_from_string_pool};
+use crate::string_pool::StringPool;
+use crate::utils::extract_x_byte_as_usize;
 
 use std::fmt;
 
@@ -33,6 +34,7 @@ pub enum Attribute {
 
 impl Attribute {
     pub fn new(
+        string_pool: &mut StringPool,
         constant_pool: &ConstantPool,
         inputs: &mut [u8],
         index: usize,
@@ -41,7 +43,7 @@ impl Attribute {
         if let ConstPoolItem::ConstantUtf8(item) = &constant_pool.0[attribute_name_index] {
             let attribute_name_index = attribute_name_index as u16;
 
-            match AttributeTag::from(get_string_from_string_pool(&item.id)) {
+            match AttributeTag::from(string_pool.get_value(&item.id)) {
                 AttributeTag::SourceFile => {
                     let (item, index) = SourceFile::new(inputs, index, attribute_name_index);
                     (Attribute::SourceFile(item), index)
@@ -55,8 +57,13 @@ impl Attribute {
                     (Attribute::StackMapTable(item), index)
                 }
                 AttributeTag::Code => {
-                    let (item, index) =
-                        Code::new(constant_pool, inputs, index, attribute_name_index);
+                    let (item, index) = Code::new(
+                        string_pool,
+                        constant_pool,
+                        inputs,
+                        index,
+                        attribute_name_index,
+                    );
                     (Attribute::Code(item), index)
                 }
                 _ => unimplemented!(),

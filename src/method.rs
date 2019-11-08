@@ -1,6 +1,7 @@
 use crate::attribute::code::Code;
 use crate::attribute::defs::Attribute;
 use crate::constant::ConstantPool;
+use crate::string_pool::StringPool;
 use crate::utils::*;
 use std::fmt;
 
@@ -14,7 +15,12 @@ pub struct Method {
 }
 
 impl Method {
-    pub fn new(constant_pool: &ConstantPool, inputs: &mut [u8], index: usize) -> (Method, usize) {
+    pub fn new(
+        string_pool: &mut StringPool,
+        constant_pool: &ConstantPool,
+        inputs: &mut [u8],
+        index: usize,
+    ) -> (Method, usize) {
         let (access_flag_num, index) = extract_x_byte_as_usize(inputs, index, 2);
         let access_flags = extract_access_flags(access_flag_num);
         let (name_index, index) = extract_x_byte_as_usize(inputs, index, 2);
@@ -23,7 +29,8 @@ impl Method {
         let (attributes_count, mut index) = extract_x_byte_as_usize(inputs, index, 2);
         let mut attribute_info = Vec::with_capacity(attributes_count);
         for _ in 0..attributes_count {
-            let (attribute, updated_index) = Attribute::new(constant_pool, inputs, index);
+            let (attribute, updated_index) =
+                Attribute::new(string_pool, constant_pool, inputs, index);
             index = updated_index;
             attribute_info.push(attribute);
         }

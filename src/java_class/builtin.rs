@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use crate::constant::ConstantPool;
 use crate::operand::Item;
 use crate::stackframe::Stackframe;
-use crate::utils::{get_string_from_string_pool, insert_string_pool};
+use crate::string_pool::StringPool;
 
 #[derive(Debug)]
 pub struct BuiltIn {
@@ -36,8 +36,8 @@ impl BuiltInMethod {
         BuiltInMethod { name, code_type }
     }
 
-    pub fn parameter_length(&self, descriptor: usize) -> usize {
-        let descriptor = get_string_from_string_pool(&descriptor);
+    pub fn parameter_length(&self, string_map: &mut StringPool, descriptor: usize) -> usize {
+        let descriptor = string_map.get_value(&descriptor);
         match self.code_type {
             BuitlInCodeType::Println => match descriptor.as_ref() {
                 "(J)V" | "(D)V" => 2,
@@ -49,20 +49,24 @@ impl BuiltInMethod {
         }
     }
 
-    pub fn execute(&mut self, constant_pool: &ConstantPool, stackframes: &mut Vec<Stackframe>) {
+    pub fn execute(
+        &mut self,
+        string_map: &mut StringPool,
+        constant_pool: &ConstantPool,
+        stackframes: &mut Vec<Stackframe>,
+    ) {
         let mut stackframe = stackframes.pop().expect("should has stack_frame");
         match self.code_type {
             BuitlInCodeType::Println => {
                 if let Some(item) = stackframe.local_variables.get(0) {
                     match item {
                         Item::Fieldref(index) => {
-                            let value = get_string_from_string_pool(
-                                &constant_pool.get_fieldref_as_utf8(*index),
-                            );
+                            let value =
+                                string_map.get_value(&constant_pool.get_fieldref_as_utf8(*index));
                             println!("{}", value);
                         }
                         Item::String(id) => {
-                            let value = get_string_from_string_pool(id);
+                            let value = string_map.get_value(id);
                             println!("{}", value);
                         }
                         Item::Int(value) => {
@@ -95,7 +99,7 @@ impl BuiltInMethod {
                     unreachable!("should have a argument for toString")
                 };
                 let stackframe = stackframes.last_mut().expect("should exist stackframe");
-                let string_id = insert_string_pool(val.to_string());
+                let string_id = string_map.insert(val.to_string());
                 stackframe.operand_stack.stack.push(Item::String(string_id));
             }
         }

@@ -1,11 +1,17 @@
 use crate::operand::Item;
+use crate::string_pool::StringPool;
 use crate::utils::*;
 use std::fmt;
 
 #[derive(Debug, PartialEq)]
 pub struct ConstantPool(pub Vec<ConstPoolItem>);
 impl ConstantPool {
-    pub fn new(inputs: &mut [u8], mut index: usize, length: usize) -> (ConstantPool, usize) {
+    pub fn new(
+        string_map: &mut StringPool,
+        inputs: &mut [u8],
+        mut index: usize,
+        length: usize,
+    ) -> (ConstantPool, usize) {
         let mut items = vec![ConstPoolItem::ConstantNull];
         let mut constant_index = 0;
         let constant_pool_length = length - 1;
@@ -30,7 +36,7 @@ impl ConstantPool {
                 }
                 ConstPoolTag::ConstantUtf8 => {
                     let (item, update_index) =
-                        ConstantUtf8::create_and_update_index(inputs, update_index);
+                        ConstantUtf8::create_and_update_index(string_map, inputs, update_index);
                     (ConstPoolItem::ConstantUtf8(item), update_index)
                 }
                 ConstPoolTag::ConstantString => {
@@ -189,9 +195,9 @@ next tag: {}",
         }
     }
 
-    pub fn get_utf8_as_string(&self, index: usize) -> String {
+    pub fn get_utf8_as_string(&self, string_pool: &mut StringPool, index: usize) -> String {
         let id = self.get_utf8(index);
-        get_string_from_string_pool(&id)
+        string_pool.get_value(&id)
     }
 
     pub fn get_fieldref_as_utf8(&self, index: usize) -> usize {
@@ -477,11 +483,15 @@ pub struct ConstantUtf8 {
 }
 
 impl ConstantUtf8 {
-    pub fn create_and_update_index(inputs: &mut [u8], index: usize) -> (ConstantUtf8, usize) {
+    pub fn create_and_update_index(
+        string_map: &mut StringPool,
+        inputs: &mut [u8],
+        index: usize,
+    ) -> (ConstantUtf8, usize) {
         let (utf8_length, index) = extract_x_byte_as_usize(inputs, index, 2);
         let (bytes, index) = extract_x_byte_as_vec(inputs, index, utf8_length);
         let value = String::from_utf8_lossy(bytes.as_slice());
-        let id = insert_string_pool(value.to_string());
+        let id = string_map.insert(value.to_string());
 
         (
             ConstantUtf8 {
@@ -505,7 +515,8 @@ mod test {
             0x00, 0x0a, // class_index
             0x00, 0x0b, // name_and_type_index
         ];
-        let result = ConstantPool::new(&mut inputs, 0, 2);
+
+        let result = ConstantPool::new(&mut StringPool::new(), &mut inputs, 0, 2);
 
         assert_eq!(
             result,
@@ -529,7 +540,7 @@ mod test {
             0x07, // class
             0x00, 0x0b, // name_index
         ];
-        let result = ConstantPool::new(&mut inputs, 0, 2);
+        let result = ConstantPool::new(&mut StringPool::new(), &mut inputs, 0, 2);
 
         assert_eq!(
             result,
@@ -579,7 +590,7 @@ mod test {
             0x00, 0x0a, // name_index
             0x00, 0x0b, // descriptor_index
         ];
-        let result = ConstantPool::new(&mut inputs, 0, 2);
+        let result = ConstantPool::new(&mut StringPool::new(), &mut inputs, 0, 2);
 
         assert_eq!(
             result,
@@ -604,7 +615,7 @@ mod test {
             0x00, 0x0a, // name_index
             0x00, 0x0b, // descriptor_index
         ];
-        let (constant_pool, _) = ConstantPool::new(&mut inputs, 0, 2);
+        let (constant_pool, _) = ConstantPool::new(&mut StringPool::new(), &mut inputs, 0, 2);
 
         assert_eq!(
             format!("{}", constant_pool),

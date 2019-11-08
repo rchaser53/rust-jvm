@@ -9,9 +9,9 @@ use crate::operand::Item;
 use crate::option::OBJECT_ID;
 
 use crate::stackframe::Stackframe;
+use crate::string_pool::StringPool;
 use crate::utils::{
-    emit_debug_info, get_string_from_string_pool, iniailize_primitive_array,
-    initialize_objectref_array, insert_string_pool, read_file,
+    emit_debug_info, iniailize_primitive_array, initialize_objectref_array, read_file,
 };
 
 use std::cell::RefCell;
@@ -36,9 +36,14 @@ pub type ClassMap = HashMap<usize, JavaClass>;
 pub type StaticFields = HashMap<(usize, usize), (Item, Item)>;
 
 impl<'a> Context<'a> {
-    pub fn new(class_map: ClassMap, class_file: &Custom, root_path: &'a str) -> Context<'a> {
-        let mut static_fields = setup_static_fields(&class_map);
-        set_static_fields(&class_file, &mut static_fields);
+    pub fn new(
+        string_map: &mut StringPool,
+        class_map: ClassMap,
+        class_file: &Custom,
+        root_path: &'a str,
+    ) -> Context<'a> {
+        let mut static_fields = setup_static_fields(string_map, &class_map);
+        set_static_fields(string_map, &class_file, &mut static_fields);
 
         Context {
             class_map,
@@ -51,7 +56,7 @@ impl<'a> Context<'a> {
         }
     }
 
-    pub fn run_entry_file(&mut self, class_file: Custom) {
+    pub fn run_entry_file(&mut self, string_map: &mut StringPool, class_file: Custom) {
         let entry_method = class_file
             .get_entry_method()
             .expect("add handler in the case failed to find entry method");
@@ -65,7 +70,7 @@ impl<'a> Context<'a> {
         if let Some(code) = class_file.get_clinit_code() {
             let stack_frame = Stackframe::new(code.max_locals as usize);
             self.stack_frames.push(stack_frame);
-            self.call_custom_class_method(&class_file, code);
+            self.call_custom_class_method(string_map, &class_file, code);
         }
 
         let code = entry_method
@@ -74,17 +79,18 @@ impl<'a> Context<'a> {
         let mut stack_frame = Stackframe::new(code.max_locals as usize);
         stack_frame.local_variables.push(stack_frame_item_0);
         self.stack_frames.push(stack_frame);
-        self.run_method(&class_file, code);
+        self.run_method(string_map, &class_file, code);
 
         self.class_map
             .insert(class_file.this_class_name(), JavaClass::Custom(class_file));
     }
 
-    fn run_method(&mut self, class_file: &Custom, code: &Code) {
+    fn run_method(&mut self, string_map: &mut StringPool, class_file: &Custom, code: &Code) {
         let mut index = 0;
         while let Some(instruction) = code.code.get(index) {
             emit_debug_info(instruction, self.stack_frames.last());
-            let (should_finish, update_index) = self.execute(class_file, instruction, index);
+            let (should_finish, update_index) =
+                self.execute(string_map, class_file, instruction, index);
             if should_finish {
                 break;
             }
@@ -95,6 +101,7 @@ impl<'a> Context<'a> {
 
     pub fn execute(
         &mut self,
+        string_map: &mut StringPool,
         class_file: &Custom,
         instruction: &Instruction,
         index: usize,
@@ -430,7 +437,7 @@ ${:?}",
             Instruction::Putstatic(index) => {
                 let this_class_name = class_file.this_class_name();
                 let (class_name, field_name) = self.get_class_and_field_name(class_file, *index);
-                self.initilize_class_static_info(this_class_name, class_name);
+                self.initilize_class_static_info(string_map, this_class_name, class_name);
 
                 let operand_stack = self.get_operand_stack();
                 let (first, second) = match operand_stack.pop() {
@@ -446,7 +453,7 @@ ${:?}",
             Instruction::Getstatic(index) => {
                 let this_class_name = class_file.this_class_name();
                 let (class_name, field_name) = self.get_class_and_field_name(class_file, *index);
-                self.initilize_class_static_info(this_class_name, class_name);
+                self.initilize_class_static_info(string_map, this_class_name, class_name);
 
                 let err_message = format!(
                     "Getstatic failed. {}.{} is not found",
@@ -498,13 +505,13 @@ ${:?}",
             }
             Instruction::Invokevirtual(index) | Instruction::Invokespecial(index) => {
                 let (class_name, name_and_type) = self.get_related_method_info(class_file, *index);
-                self.call_method(&class_file, class_name, name_and_type);
+                self.call_method(string_map, &class_file, class_name, name_and_type);
             }
             Instruction::Invokestatic(index) => {
                 let this_class_name = class_file.this_class_name();
                 let (class_name, name_and_type) = self.get_related_method_info(class_file, *index);
-                self.initilize_class_static_info(this_class_name, class_name);
-                self.call_method(&class_file, class_name, name_and_type);
+                self.initilize_class_static_info(string_map, this_class_name, class_name);
+                self.call_method(string_map, &class_file, class_name, name_and_type);
             }
             Instruction::Putfield(index) => {
                 let (class_name, field_name) = class_file.cp_info.get_class_and_field_name(*index);
@@ -598,7 +605,7 @@ ${:?}",
                 let this_class_name = class_file.this_class_name();
                 let class_ref = class_file.cp_info.get_class_ref(*index);
                 let class_name = class_file.cp_info.get_utf8(class_ref.name_index);
-                self.initilize_class_static_info(this_class_name, class_name);
+                self.initilize_class_static_info(string_map, this_class_name, class_name);
 
                 let (id, object_ref) = if let Some(JavaClass::Custom(target_class)) =
                     self.class_map.get(&class_name)
@@ -608,7 +615,7 @@ ${:?}",
                         let field_name = target_class.cp_info.get_utf8(field.name_index);
                         let descriptor = target_class
                             .cp_info
-                            .get_utf8_as_string(field.descriptor_index);
+                            .get_utf8_as_string(string_map, field.descriptor_index);
                         let vals =
                             create_uninitialized_item(&FieldDescriptor::from(descriptor.as_ref()));
                         field_map.insert((field_name, index), vals);
@@ -683,7 +690,7 @@ ${:?}",
 
                 let dimentions = *dimentions;
                 let class_array_name_id = class_file.cp_info.get_class_ref_name(*index);
-                let class_array_name = get_string_from_string_pool(&class_array_name_id);
+                let class_array_name = string_map.get_value(&class_array_name_id);
                 let class_name = &class_array_name[dimentions..];
                 match &class_name[0..1] {
                     // for class
@@ -691,7 +698,7 @@ ${:?}",
                         let class_name_len = class_name.len();
                         let actual_class_name = &class_name[1..class_name_len - 1];
                         let first_count = counts.first().unwrap().clone();
-                        let string_id = insert_string_pool(actual_class_name.to_string());
+                        let string_id = string_map.insert(actual_class_name.to_string());
 
                         let multi_dimentions_id = self.create_multi_dimentions_custom_array(
                             &mut counts,
@@ -909,6 +916,7 @@ ${:?}",
 
     fn call_method(
         &mut self,
+        string_map: &mut StringPool,
         class_file: &Custom,
         class_name: usize,
         name_and_type: &ConstantNameAndType,
@@ -918,6 +926,7 @@ ${:?}",
 
         if let Some(mut class) = self.class_map.remove(&class_name) {
             self.call_other_class_method(
+                string_map,
                 &mut class,
                 &class_file.cp_info,
                 method_name,
@@ -925,10 +934,11 @@ ${:?}",
             );
             self.class_map.insert(class.this_class_name(), class);
         } else {
-            let new_class_file = self.create_custom_class(class_name);
+            let new_class_file = self.create_custom_class(string_map, class_name);
             let mut new_class_file = JavaClass::Custom(new_class_file);
 
             self.call_other_class_method(
+                string_map,
                 &mut new_class_file,
                 &class_file.cp_info,
                 method_name,
@@ -938,13 +948,18 @@ ${:?}",
         }
     }
 
-    fn initilize_class_static_info(&mut self, this_class_name_id: usize, class_name_id: usize) {
-        let this_class_name = get_string_from_string_pool(&this_class_name_id);
-        let class_name = get_string_from_string_pool(&class_name_id);
+    fn initilize_class_static_info(
+        &mut self,
+        string_map: &mut StringPool,
+        this_class_name_id: usize,
+        class_name_id: usize,
+    ) {
+        let this_class_name = string_map.get_value(&this_class_name_id);
+        let class_name = string_map.get_value(&class_name_id);
         if this_class_name != class_name && self.class_map.get_mut(&class_name_id).is_none() {
-            let new_class_file = self.create_custom_class(class_name_id);
+            let new_class_file = self.create_custom_class(string_map, class_name_id);
             if let Some(code) = new_class_file.get_clinit_code() {
-                self.call_custom_class_method(&new_class_file, code);
+                self.call_custom_class_method(string_map, &new_class_file, code);
             }
 
             self.class_map
@@ -952,8 +967,8 @@ ${:?}",
         }
     }
 
-    fn create_custom_class(&mut self, class_name: usize) -> Custom {
-        let class_name = get_string_from_string_pool(&class_name);
+    fn create_custom_class(&mut self, string_map: &mut StringPool, class_name: usize) -> Custom {
+        let class_name = string_map.get_value(&class_name);
         let class_name = class_name + ".class";
         let class_path = Path::new(self.root_path).join(&class_name);
         let mut buffer = vec![];
@@ -961,14 +976,15 @@ ${:?}",
             "need to add handler for the case failed to find the class file: {}",
             class_name
         ));
-        let (new_class_file, _pc_count) = Custom::new(buffer, 0);
+        let (new_class_file, _pc_count) = Custom::new(string_map, buffer, 0);
         // TBD should be set initial value
-        set_static_fields(&new_class_file, &mut self.static_fields);
+        set_static_fields(string_map, &new_class_file, &mut self.static_fields);
         new_class_file
     }
 
     fn call_other_class_method(
         &mut self,
+        string_map: &mut StringPool,
         class_file: &mut JavaClass,
         caller_cp_info: &ConstantPool,
         method_name: usize,
@@ -980,26 +996,31 @@ ${:?}",
                     "{} is not found in {}",
                     method_name, builtin_class.class_name
                 ));
-                let parameter_length = method.parameter_length(method_descriptor);
+                let parameter_length = method.parameter_length(string_map, method_descriptor);
                 let stack_frame = self.create_new_stack_frame(parameter_length);
                 self.stack_frames.push(stack_frame);
-                method.execute(&caller_cp_info, &mut self.stack_frames);
+                method.execute(string_map, &caller_cp_info, &mut self.stack_frames);
             }
             JavaClass::Custom(ref custom_class) => {
                 if let Some(method_code) =
                     custom_class.get_method_code_by_string(method_name, method_descriptor)
                 {
-                    self.call_custom_class_method(custom_class, &method_code);
+                    self.call_custom_class_method(string_map, custom_class, &method_code);
                 }
             }
         }
     }
 
-    fn call_custom_class_method(&mut self, class: &Custom, code: &Code) {
+    fn call_custom_class_method(
+        &mut self,
+        string_map: &mut StringPool,
+        class: &Custom,
+        code: &Code,
+    ) {
         let local_variable_length = code.max_locals as usize;
         let stack_frame = self.create_new_stack_frame(local_variable_length);
         self.stack_frames.push(stack_frame);
-        self.run_method(class, code);
+        self.run_method(string_map, class, code);
     }
 
     fn load_n(&mut self, index: usize) {
@@ -1094,25 +1115,30 @@ ${:?}",
     }
 }
 
-pub fn set_static_fields(class: &Custom, static_fields: &mut StaticFields) {
+pub fn set_static_fields(
+    string_map: &mut StringPool,
+    class: &Custom,
+    static_fields: &mut StaticFields,
+) {
     for field in class.fields.iter() {
         let field_name = class.cp_info.get_utf8(field.name_index);
-        let value = create_uninitialized_item(&class.get_descriptor(field.descriptor_index));
+        let value =
+            create_uninitialized_item(&class.get_descriptor(string_map, field.descriptor_index));
         static_fields.insert((class.this_class_name(), field_name), value);
     }
 }
 
-pub fn setup_static_fields(class_map: &ClassMap) -> StaticFields {
+pub fn setup_static_fields(string_map: &mut StringPool, class_map: &ClassMap) -> StaticFields {
     let mut static_fields = HashMap::new();
     for key in class_map.keys() {
         if let Some(JavaClass::Custom(class)) = class_map.get(key) {
-            set_static_fields(&class, &mut static_fields);
+            set_static_fields(string_map, &class, &mut static_fields);
         }
     }
 
-    let class_name_id = insert_string_pool(String::from("java/lang/System"));
-    let field_name_id = insert_string_pool(String::from("out"));
-    let class_ref_id = insert_string_pool(String::from("java/io/PrintStream"));
+    let class_name_id = string_map.insert(String::from("java/lang/System"));
+    let field_name_id = string_map.insert(String::from("out"));
+    let class_ref_id = string_map.insert(String::from("java/io/PrintStream"));
 
     static_fields.insert(
         (class_name_id, field_name_id),

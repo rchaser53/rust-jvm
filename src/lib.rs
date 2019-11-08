@@ -13,10 +13,12 @@ mod operand;
 mod option;
 mod order;
 mod stackframe;
+mod string_pool;
 mod utils;
 
 use crate::context::Context;
 use crate::java_class::{custom::Custom, default::setup_class_map};
+use crate::string_pool::StringPool;
 use crate::utils::read_file;
 
 use std::path::Path;
@@ -30,15 +32,17 @@ pub fn execute(file_name: String, debug_mode: usize) {
     RJ_OPTION.lock().unwrap().debug_mode = debug_mode;
     let class_name = file_name + ".class";
     if let Ok(buffer) = read_file(&class_name, &mut vec![]) {
-        let (class_file, _pc_count) = Custom::new(buffer, 0);
-        let class_map = setup_class_map();
+        let mut string_pool = StringPool::new();
+        let (class_file, _pc_count) = Custom::new(&mut string_pool, buffer, 0);
+        let class_map = setup_class_map(&mut string_pool);
         let parent_path = if let Some(parent_path) = Path::new(&class_name).parent() {
             parent_path.to_str().unwrap()
         } else {
             "./"
         };
-        let mut context = Context::new(class_map, &class_file, parent_path);
-        context.run_entry_file(class_file);
+
+        let mut context = Context::new(&mut string_pool, class_map, &class_file, parent_path);
+        context.run_entry_file(&mut string_pool, class_file);
     } else {
         unimplemented!("need to add handler for the case failed to find the class file")
     }

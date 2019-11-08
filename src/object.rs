@@ -1,5 +1,4 @@
 use crate::operand::Item;
-use crate::utils::get_string_from_string_pool;
 
 use std::cell::RefCell;
 use std::collections::HashMap;
@@ -44,7 +43,7 @@ impl fmt::Display for Objectref {
             "object_ref:
 class {}:
 {}",
-            get_string_from_string_pool(&self.class_name_id),
+            self.class_name_id,
             val_strs.join("\n")
         )
     }

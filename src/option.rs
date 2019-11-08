@@ -1,4 +1,3 @@
-use std::collections::HashMap;
 use std::sync::Mutex;
 
 /**
@@ -20,8 +19,4 @@ impl RjOption {
 lazy_static! {
     pub static ref RJ_OPTION: Mutex<RjOption> = Mutex::new(RjOption::new());
     pub static ref OBJECT_ID: Mutex<usize> = Mutex::new(0);
-    pub static ref STRING_KEY_VALUE_POOL: Mutex<HashMap<usize, String>> =
-        Mutex::new(HashMap::new());
-    pub static ref STRING_VALUE_KEY_POOL: Mutex<HashMap<String, usize>> =
-        Mutex::new(HashMap::new());
 }
