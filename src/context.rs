@@ -332,6 +332,9 @@ impl<'a> Context<'a> {
             Instruction::IloadN(index) => {
                 self.load_n(*index);
             }
+            Instruction::FloadN(index) => {
+                self.load_n(*index);
+            }
             Instruction::LloadN(index) => {
                 let base_index = *index;
                 self.load_n(base_index);
