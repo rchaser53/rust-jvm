@@ -346,6 +346,9 @@ impl<'a> Context<'a> {
             Instruction::Laload => {
                 self.n_aload();
             }
+            Instruction::Baload => {
+                self.n_aload();
+            }
             Instruction::Aaload => {
                 let operand_stack = self.get_operand_stack();
                 match (operand_stack.pop(), operand_stack.pop()) {

@@ -63,7 +63,7 @@ operand_stack:
 pub fn iniailize_primitive_array(type_index: usize, length: usize) -> Vec<(Item, Item)> {
     let default_val = match type_index {
         // TBoolean
-        // 4 => ,
+        4 => (Item::Boolean(false), Item::Null),
         // // TChar
         // 5 => ,
         // // TFloat

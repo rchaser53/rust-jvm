@@ -18,6 +18,7 @@ pub enum Instruction {
     Iaload,                                    // 0x2e
     Laload,                                    // 0x2f
     Aaload,                                    // 0x32
+    Baload,                                    // 0x33
     Istore(usize),                             // 0x36
     Astore(usize),                             // 0x3a
     IstoreN(usize),                            // 0x3b(0) - 0x3e(3)
@@ -90,6 +91,7 @@ impl fmt::Display for Instruction {
             Instruction::Iaload => write!(f, "iaload"),
             Instruction::Laload => write!(f, "laload"),
             Instruction::Aaload => write!(f, "aaload"),
+            Instruction::Baload => write!(f, "baload"),
             Instruction::Istore(val) => write!(f, "istore            #{}", val),
             Instruction::Astore(val) => write!(f, "astore            #{}", val),
             Instruction::Aastore => write!(f, "aastore"),
@@ -262,6 +264,11 @@ impl Instruction {
             // iaload
             0x32 => {
                 codes.push(Instruction::Aaload);
+                (index, 1)
+            }
+            // baload
+            0x33 => {
+                codes.push(Instruction::Baload);
                 (index, 1)
             }
             // istore
@@ -722,6 +729,7 @@ impl Instruction {
             | Instruction::Iaload
             | Instruction::Laload
             | Instruction::Aaload
+            | Instruction::Baload
             | Instruction::Iastore
             | Instruction::Lastore
             | Instruction::Aastore
