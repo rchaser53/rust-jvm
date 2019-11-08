@@ -4,7 +4,34 @@ use std::cell::RefCell;
 use std::collections::HashMap;
 use std::fmt;
 
-pub type ArrayMap = HashMap<usize, Array>;
+#[derive(Debug)]
+pub struct ArrayMap {
+    pub id: usize,
+    pub map: HashMap<usize, Array>,
+}
+impl ArrayMap {
+    pub fn new() -> ArrayMap {
+        ArrayMap {
+            id: 0,
+            map: HashMap::new(),
+        }
+    }
+
+    pub fn add(&mut self, value: Array) -> usize {
+        let id = self.id;
+        self.id += 1;
+        self.map.insert(id, value);
+        id
+    }
+
+    pub fn get(&self, id: &usize) -> Option<&Array> {
+        self.map.get(id)
+    }
+
+    pub fn get_mut(&mut self, id: &usize) -> Option<&mut Array> {
+        self.map.get_mut(id)
+    }
+}
 
 #[derive(Debug)]
 pub enum PrimitiveArrayType {

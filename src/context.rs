@@ -52,7 +52,7 @@ impl<'a> Context<'a> {
             root_path,
             static_fields,
             object_map: HashMap::new(),
-            array_map: HashMap::new(),
+            array_map: ArrayMap::new(),
         }
     }
 
@@ -635,37 +635,31 @@ ${:?}",
                 self.object_map.insert(id, object_ref);
             }
             Instruction::Newarray(type_index) => {
-                let id = *OBJECT_ID.lock().unwrap();
-                *OBJECT_ID.lock().unwrap() = id + 1;
-
-                if let Some(Item::Int(length)) = self.get_operand_stack().pop() {
+                let id = if let Some(Item::Int(length)) = self.get_operand_stack().pop() {
                     let default_array = iniailize_primitive_array(*type_index, length as usize);
                     self.array_map
-                        .insert(id, Array::Primitive(RefCell::new(default_array)));
+                        .add(Array::Primitive(RefCell::new(default_array)))
                 } else {
                     unreachable!("should exist item in operand_stack")
-                }
+                };
 
                 let operand_stack = self.get_operand_stack();
                 operand_stack.push(Item::Arrayref(id));
             }
             // class, array, or interface type
             Instruction::Anewarray(index) => {
-                let id = *OBJECT_ID.lock().unwrap();
-                *OBJECT_ID.lock().unwrap() = id + 1;
-
                 let class_name = class_file.cp_info.get_class_ref_name(*index);
-                if let Some(Item::Int(length)) = self.get_operand_stack().pop() {
+                let id = if let Some(Item::Int(length)) = self.get_operand_stack().pop() {
                     let default_array = initialize_objectref_array(
                         &mut self.object_map,
                         class_name,
                         length as usize,
                     );
                     self.array_map
-                        .insert(id, Array::Custom(RefCell::new(default_array)));
+                        .add(Array::Custom(RefCell::new(default_array)))
                 } else {
                     unreachable!("should exist item in operand_stack")
-                }
+                };
 
                 let operand_stack = self.get_operand_stack();
                 operand_stack.push(Item::Arrayref(id));
@@ -803,12 +797,7 @@ ${:?}",
                     Objectref::new(class_name_id, RefCell::new(HashMap::new()), false),
                 );
             }
-            let id = *OBJECT_ID.lock().unwrap();
-            *OBJECT_ID.lock().unwrap() = id + 1;
-            self.array_map
-                .insert(id, Array::Custom(RefCell::new(items)));
-
-            return id;
+            return self.array_map.add(Array::Custom(RefCell::new(items)));
         };
 
         let mut ids = Vec::with_capacity(current_size);
@@ -822,11 +811,7 @@ ${:?}",
             ids.push(input_id);
         }
 
-        let id = *OBJECT_ID.lock().unwrap();
-        *OBJECT_ID.lock().unwrap() = id + 1;
-        self.array_map.insert(id, Array::Array(RefCell::new(ids)));
-
-        id
+        self.array_map.add(Array::Array(RefCell::new(ids)))
     }
 
     fn create_multi_dimentions_array(
@@ -856,11 +841,7 @@ ${:?}",
         for _ in 0..current_size {
             items.push(initial_value.clone());
         }
-        let id = *OBJECT_ID.lock().unwrap();
-        *OBJECT_ID.lock().unwrap() = id + 1;
-        self.array_map
-            .insert(id, Array::Primitive(RefCell::new(items)));
-        id
+        self.array_map.add(Array::Primitive(RefCell::new(items)))
     }
 
     fn create_other_dimention(
@@ -881,12 +862,7 @@ ${:?}",
             );
             ids.push(input_id);
         }
-
-        let id = *OBJECT_ID.lock().unwrap();
-        *OBJECT_ID.lock().unwrap() = id + 1;
-        self.array_map.insert(id, Array::Array(RefCell::new(ids)));
-
-        id
+        self.array_map.add(Array::Array(RefCell::new(ids)))
     }
 
     fn get_field_tupple(&mut self) -> (Item, Item) {
