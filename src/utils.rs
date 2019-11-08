@@ -1,7 +1,7 @@
 use crate::attribute::instruction::Instruction;
 use crate::object::{ObjectMap, Objectref};
 use crate::operand::Item;
-use crate::option::{OBJECT_ID, RJ_OPTION};
+use crate::option::RJ_OPTION;
 use crate::stackframe::Stackframe;
 
 use std::cell::RefCell;
@@ -92,44 +92,16 @@ pub fn initialize_objectref_array(
 ) -> Vec<usize> {
     let mut initialize_vec = Vec::with_capacity(length);
     for _ in 0..length {
-        let id = *OBJECT_ID.lock().unwrap();
-        *OBJECT_ID.lock().unwrap() = id + 1;
+        let id = object_map.add(Objectref::new(
+            class_name_id,
+            RefCell::new(HashMap::new()),
+            false,
+        ));
         initialize_vec.push(id);
-        object_map.insert(
-            id,
-            Objectref::new(class_name_id, RefCell::new(HashMap::new()), false),
-        );
     }
 
     initialize_vec
 }
-
-// pub fn insert_string_pool(value: String) -> usize {
-//     {
-//         let string_value_key_map = &*STRING_VALUE_KEY_POOL.lock().unwrap();
-//         if let Some(id) = string_value_key_map.get(&value) {
-//             return *id;
-//         }
-//     }
-
-//     let string_id = *OBJECT_ID.lock().unwrap();
-//     *OBJECT_ID.lock().unwrap() = string_id + 1;
-
-//     let string_value_key_map = &mut *STRING_VALUE_KEY_POOL.lock().unwrap();
-//     string_value_key_map.insert(value.clone(), string_id);
-
-//     let string_key_value_map = &mut *STRING_KEY_VALUE_POOL.lock().unwrap();
-//     string_key_value_map.insert(string_id, value);
-//     string_id
-// }
-
-// pub fn get_string_from_string_pool(id: &usize) -> String {
-//     let string_hash_map = &*STRING_KEY_VALUE_POOL.lock().unwrap();
-//     string_hash_map
-//         .get(id)
-//         .expect("exist string in string_pool")
-//         .to_string()
-// }
 
 #[macro_export]
 macro_rules! add_flags {

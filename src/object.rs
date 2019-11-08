@@ -4,7 +4,35 @@ use std::cell::RefCell;
 use std::collections::HashMap;
 use std::fmt;
 
-pub type ObjectMap = HashMap<usize, Objectref>;
+#[derive(Debug)]
+pub struct ObjectMap {
+    pub id: usize,
+    pub map: HashMap<usize, Objectref>,
+}
+impl ObjectMap {
+    pub fn new() -> ObjectMap {
+        ObjectMap {
+            id: 0,
+            map: HashMap::new(),
+        }
+    }
+
+    pub fn add(&mut self, value: Objectref) -> usize {
+        let id = self.id;
+        self.id += 1;
+        self.map.insert(id, value);
+        id
+    }
+
+    pub fn get(&self, id: &usize) -> Option<&Objectref> {
+        self.map.get(id)
+    }
+
+    pub fn get_mut(&mut self, id: &usize) -> Option<&mut Objectref> {
+        self.map.get_mut(id)
+    }
+}
+
 #[derive(PartialEq, Clone, Debug)]
 pub struct Objectref {
     pub class_name_id: usize,

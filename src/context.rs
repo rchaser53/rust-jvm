@@ -6,7 +6,6 @@ use crate::field::{BaseType, FieldDescriptor};
 use crate::java_class::{custom::Custom, JavaClass};
 use crate::object::{ObjectMap, Objectref};
 use crate::operand::Item;
-use crate::option::OBJECT_ID;
 
 use crate::stackframe::Stackframe;
 use crate::string_pool::StringPool;
@@ -51,7 +50,7 @@ impl<'a> Context<'a> {
             stack_frames: vec![],
             root_path,
             static_fields,
-            object_map: HashMap::new(),
+            object_map: ObjectMap::new(),
             array_map: ArrayMap::new(),
         }
     }
@@ -607,7 +606,7 @@ ${:?}",
                 let class_name = class_file.cp_info.get_utf8(class_ref.name_index);
                 self.initilize_class_static_info(string_map, this_class_name, class_name);
 
-                let (id, object_ref) = if let Some(JavaClass::Custom(target_class)) =
+                let object_ref = if let Some(JavaClass::Custom(target_class)) =
                     self.class_map.get(&class_name)
                 {
                     let mut field_map = HashMap::new();
@@ -620,19 +619,13 @@ ${:?}",
                             create_uninitialized_item(&FieldDescriptor::from(descriptor.as_ref()));
                         field_map.insert((field_name, index), vals);
                     }
-                    let operand_stack = self.get_operand_stack();
-                    let id = *OBJECT_ID.lock().unwrap();
-                    *OBJECT_ID.lock().unwrap() = id + 1;
-
-                    operand_stack.push(Item::Objectref(id));
-                    (
-                        id,
-                        Objectref::new(class_name, RefCell::new(field_map), true),
-                    )
+                    Objectref::new(class_name, RefCell::new(field_map), true)
                 } else {
                     unreachable!("not come here")
                 };
-                self.object_map.insert(id, object_ref);
+                let id = self.object_map.add(object_ref);
+                let operand_stack = self.get_operand_stack();
+                operand_stack.push(Item::Objectref(id));
             }
             Instruction::Newarray(type_index) => {
                 let id = if let Some(Item::Int(length)) = self.get_operand_stack().pop() {
@@ -789,13 +782,12 @@ ${:?}",
         } else {
             let mut items = Vec::with_capacity(current_size);
             for _ in 0..current_size {
-                let id = *OBJECT_ID.lock().unwrap();
-                *OBJECT_ID.lock().unwrap() = id + 1;
+                let id = self.object_map.add(Objectref::new(
+                    class_name_id,
+                    RefCell::new(HashMap::new()),
+                    false,
+                ));
                 items.push(id);
-                self.object_map.insert(
-                    id,
-                    Objectref::new(class_name_id, RefCell::new(HashMap::new()), false),
-                );
             }
             return self.array_map.add(Array::Custom(RefCell::new(items)));
         };

@@ -18,5 +18,4 @@ impl RjOption {
 
 lazy_static! {
     pub static ref RJ_OPTION: Mutex<RjOption> = Mutex::new(RjOption::new());
-    pub static ref OBJECT_ID: Mutex<usize> = Mutex::new(0);
 }
