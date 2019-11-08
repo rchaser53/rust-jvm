@@ -45,6 +45,8 @@ pub enum Instruction {
     Lrem,                                      // 0x71
     Iinc(usize, usize),                        // 0x84
     Lcmp,                                      // 0x94
+    Fcmpg,                                     // 0x95
+    Fcmpl,                                     // 0x96
     Ifeq(usize, usize),                        // 0x99
     Ifne(usize, usize),                        // 0x9a
     Iflt(usize, usize),                        // 0x9b
@@ -121,6 +123,8 @@ impl fmt::Display for Instruction {
             Instruction::Lrem => write!(f, "lrem"),
             Instruction::Iinc(a, b) => write!(f, "iinc        {}, {}", a, b),
             Instruction::Lcmp => write!(f, "lcmp"),
+            Instruction::Fcmpg => write!(f, "fcmpg"),
+            Instruction::Fcmpl => write!(f, "fcmpl"),
             Instruction::Ifeq(a, b) => write!(f, "if_eq       {}, {}", a, b),
             Instruction::Ifne(a, b) => write!(f, "if_ne       {}, {}", a, b),
             Instruction::Iflt(a, b) => write!(f, "if_lt       {}, {}", a, b),
@@ -408,6 +412,16 @@ impl Instruction {
             // lcmp
             0x94 => {
                 codes.push(Instruction::Lcmp);
+                (index, 1)
+            }
+            // fcmpg
+            0x95 => {
+                codes.push(Instruction::Fcmpg);
+                (index, 1)
+            }
+            // fcmpl
+            0x96 => {
+                codes.push(Instruction::Fcmpl);
                 (index, 1)
             }
             // ifeq
@@ -744,6 +758,8 @@ impl Instruction {
             | Instruction::Irem
             | Instruction::Lrem
             | Instruction::Lcmp
+            | Instruction::Fcmpg
+            | Instruction::Fcmpl
             | Instruction::Ireturn
             | Instruction::Areturn
             | Instruction::Iaload

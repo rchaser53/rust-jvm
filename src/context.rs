@@ -221,6 +221,16 @@ impl<'a> Context<'a> {
                 let val = stackframe.operand_stack.lcmp();
                 stackframe.operand_stack.stack.push(val);
             }
+            Instruction::Fcmpl => {
+                let stackframe = self.get_last_stackframe();
+                let val = stackframe.operand_stack.fcmp();
+                stackframe.operand_stack.stack.push(val);
+            }
+            Instruction::Fcmpg => {
+                let stackframe = self.get_last_stackframe();
+                let val = stackframe.operand_stack.fcmp();
+                stackframe.operand_stack.stack.push(val);
+            }
             Instruction::Ifeq(if_val, else_val) => {
                 let operand_stack = self.get_operand_stack();
                 let val = operand_stack.pop().unwrap();

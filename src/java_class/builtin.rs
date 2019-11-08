@@ -84,6 +84,10 @@ impl BuiltInMethod {
                         Item::Objectref(object_ref) => {
                             println!("objectref: {}", object_ref);
                         }
+                        Item::Float(value) => {
+                            // TBD need to fix output format
+                            println!("{}", value);
+                        }
                         _ => unimplemented!(),
                     };
                     let _ = stackframe.operand_stack.stack.pop();

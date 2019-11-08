@@ -88,6 +88,13 @@ impl OperandStack {
         }
     }
 
+    fn extract_float_values(&mut self) -> (f32, f32) {
+        match (self.stack.pop(), self.stack.pop()) {
+            (Some(Item::Float(second)), Some(Item::Float(first))) => (first, second),
+            _ => panic!("shortage item in OperandStack"),
+        }
+    }
+
     pub fn iadd(&mut self) -> Item {
         let (first, second) = self.extract_int_values();
         Item::Int(first + second)
@@ -145,6 +152,18 @@ impl OperandStack {
 
     pub fn lcmp(&mut self) -> Item {
         let (first, second) = self.extract_long_values();
+        self.compare_value(first, second)
+    }
+
+    pub fn fcmp(&mut self) -> Item {
+        let (first, second) = self.extract_float_values();
+        self.compare_value(first, second)
+    }
+
+    fn compare_value<T>(&self, first: T, second: T) -> Item
+    where
+        T: PartialOrd,
+    {
         if first > second {
             Item::Int(1)
         } else if first == second {
