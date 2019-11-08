@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use crate::constant::ConstantPool;
 use crate::operand::Item;
 use crate::stackframe::Stackframe;
-use crate::utils::get_string_from_string_pool;
+use crate::utils::{get_string_from_string_pool, insert_string_pool};
 
 #[derive(Debug)]
 pub struct BuiltIn {
@@ -95,12 +95,8 @@ impl BuiltInMethod {
                     unreachable!("should have a argument for toString")
                 };
                 let stackframe = stackframes.last_mut().expect("should exist stackframe");
-                stackframe
-                    .operand_stack
-                    .stack
-                    // .push(Item::String(format!("{}", val)));
-                    // TBD need to fix
-                    .push(Item::String(1));
+                let string_id = insert_string_pool(val.to_string());
+                stackframe.operand_stack.stack.push(Item::String(string_id));
             }
         }
     }
