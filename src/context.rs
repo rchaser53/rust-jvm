@@ -381,6 +381,9 @@ impl<'a> Context<'a> {
             Instruction::Lastore => {
                 self.x_astore();
             }
+            Instruction::Bastore => {
+                self.x_astore();
+            }
             Instruction::Aastore => {
                 let operand_stack = self.get_operand_stack();
                 match (

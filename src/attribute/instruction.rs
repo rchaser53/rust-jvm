@@ -26,6 +26,7 @@ pub enum Instruction {
     Iastore,                                   // 0x4f
     Lastore,                                   // 0x50
     Aastore,                                   // 0x53
+    Bastore,                                   // 0x54
     Pop,                                       // 0x57
     Dup,                                       // 0x59
     Iadd,                                      // 0x60
@@ -92,6 +93,7 @@ impl fmt::Display for Instruction {
             Instruction::Istore(val) => write!(f, "istore            #{}", val),
             Instruction::Astore(val) => write!(f, "astore            #{}", val),
             Instruction::Aastore => write!(f, "aastore"),
+            Instruction::Bastore => write!(f, "bastore"),
             Instruction::IstoreN(val) => write!(f, "istore_{}", val),
             Instruction::LstoreN(val) => write!(f, "lstore_{}", val),
             Instruction::Iastore => write!(f, "iastore"),
@@ -304,6 +306,11 @@ impl Instruction {
             // aastore
             0x53 => {
                 codes.push(Instruction::Aastore);
+                (index, 1)
+            }
+            // bastore
+            0x54 => {
+                codes.push(Instruction::Bastore);
                 (index, 1)
             }
             // pop
@@ -718,6 +725,7 @@ impl Instruction {
             | Instruction::Iastore
             | Instruction::Lastore
             | Instruction::Aastore
+            | Instruction::Bastore
             | Instruction::Return => 0,
             instruction => unimplemented!("{}", instruction),
         }
