@@ -347,6 +347,10 @@ impl<'a> Context<'a> {
                 let base_index = *index;
                 self.store_n(&[base_index + 1, base_index]);
             }
+            Instruction::FstoreN(index) => {
+                let base_index = *index;
+                self.store_n(&[base_index + 1, base_index]);
+            }
             Instruction::AloadN(index) => {
                 self.load_n(*index);
             }

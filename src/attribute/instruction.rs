@@ -24,6 +24,7 @@ pub enum Instruction {
     Astore(usize),                             // 0x3a
     IstoreN(usize),                            // 0x3b(0) - 0x3e(3)
     LstoreN(usize),                            // 0x3f(0) - 0x42(3)
+    FstoreN(usize),                            // 0x43(0) - 0x46(3)
     AstoreN(usize),                            // 0x4b(0) - 0x4e(3)
     Iastore,                                   // 0x4f
     Lastore,                                   // 0x50
@@ -100,6 +101,7 @@ impl fmt::Display for Instruction {
             Instruction::Bastore => write!(f, "bastore"),
             Instruction::IstoreN(val) => write!(f, "istore_{}", val),
             Instruction::LstoreN(val) => write!(f, "lstore_{}", val),
+            Instruction::FstoreN(val) => write!(f, "fstore_{}", val),
             Instruction::Iastore => write!(f, "iastore"),
             Instruction::Lastore => write!(f, "lastore"),
             Instruction::AstoreN(val) => write!(f, "astore_{}", val),
@@ -305,6 +307,11 @@ impl Instruction {
             // astore_n
             val @ 0x4b..=0x4e => {
                 codes.push(Instruction::AstoreN(val - 0x4b));
+                (index, 1)
+            }
+            // lstore_n
+            val @ 0x43..=0x46 => {
+                codes.push(Instruction::FstoreN(val - 0x43));
                 (index, 1)
             }
             // iastore
@@ -716,6 +723,7 @@ impl Instruction {
             | Instruction::IstoreN(_)
             | Instruction::IloadN(_)
             | Instruction::LstoreN(_)
+            | Instruction::FstoreN(_)
             | Instruction::LloadN(_)
             | Instruction::AstoreN(_)
             | Instruction::AloadN(_)
