@@ -7,6 +7,7 @@ pub enum Item {
     Null,
     Int(i32),
     Long(i32),
+    Float(f32),
     String(usize),
     Boolean(bool),
     Classref(usize),
@@ -21,6 +22,7 @@ impl fmt::Display for Item {
             Item::Null => write!(f, "null"),
             Item::Int(val) => write!(f, "int: {}", val),
             Item::Long(val) => write!(f, "long: {}", val),
+            Item::Float(val) => write!(f, "float: {}", val),
             Item::Boolean(val) => write!(f, "boolean: {}", val),
             Item::String(val) => write!(f, "string: {}", val),
             Item::Classref(val) => write!(f, "class_ref: {}", val),
@@ -36,6 +38,8 @@ impl PartialOrd for Item {
         match (self, other) {
             (Item::Null, Item::Null) => Some(Ordering::Equal),
             (Item::Int(left), Item::Int(right)) => Some(left.cmp(right)),
+            // TBD need to fix to compare
+            (Item::Float(_left), Item::Float(_right)) => Some(Ordering::Less),
             (Item::Boolean(left), Item::Boolean(right)) => Some(left.cmp(right)),
             (Item::Long(left), Item::Long(right)) => Some(left.cmp(right)),
             (Item::Classref(left), Item::Classref(right)) => Some(left.cmp(right)),

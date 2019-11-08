@@ -6,6 +6,7 @@ pub enum Instruction {
     Aconstnull,                                // 0x01
     IconstN(usize),                            // 0x02(-1) - 0x08(5)
     LconstN(usize),                            // 0x09(0) - 0x0a(1)
+    FconstN(f32),                              // 0x0b(0) - 0x0d(1)
     Bipush(usize),                             // 0x10
     Sipush(usize),                             // 0x11
     Ldc(usize),                                // 0x12
@@ -79,6 +80,7 @@ impl fmt::Display for Instruction {
             Instruction::Aconstnull => write!(f, "aconst_null"),
             Instruction::IconstN(val) => write!(f, "iconst_{}", val),
             Instruction::LconstN(val) => write!(f, "lconst_{}", val),
+            Instruction::FconstN(val) => write!(f, "fconst_{}", val),
             Instruction::Bipush(val) => write!(f, "bipush         {}", val),
             Instruction::Sipush(val) => write!(f, "sipush         {}", val),
             Instruction::Ldc(val) => write!(f, "ldc             #{}", val),
@@ -190,6 +192,11 @@ impl Instruction {
             // lconst_n
             val @ 0x09..=0x0a => {
                 codes.push(Instruction::LconstN(val - 0x09));
+                (index, 1)
+            }
+            // lconst_n
+            val @ 0x0b..=0x0d => {
+                codes.push(Instruction::LconstN(val - 0x0b));
                 (index, 1)
             }
             // bipush
@@ -705,6 +712,7 @@ impl Instruction {
             Instruction::Aconstnull
             | Instruction::IconstN(_)
             | Instruction::LconstN(_)
+            | Instruction::FconstN(_)
             | Instruction::IstoreN(_)
             | Instruction::IloadN(_)
             | Instruction::LstoreN(_)
