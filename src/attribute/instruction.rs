@@ -137,13 +137,9 @@ impl fmt::Display for Instruction {
             Instruction::Ireturn => write!(f, "ireturn"),
             Instruction::Lookupswitch(vals) => {
                 let vals_length = vals.len();
-                // let branch_length = vals[1];
-
                 let mut output_strings = Vec::with_capacity(vals_length);
-                // let mut index = 1;
                 for (key, val) in &vals[1..vals_length] {
                     output_strings.push(format!("       {}: {}", key.unwrap(), val));
-                    // index += 1;
                 }
                 output_strings.push(format!("       default: {}", vals.last().unwrap().1));
                 write!(
@@ -198,9 +194,9 @@ impl Instruction {
                 codes.push(Instruction::LconstN(val - 0x09));
                 (index, 1)
             }
-            // lconst_n
+            // fconst_n
             val @ 0x0b..=0x0d => {
-                codes.push(Instruction::LconstN(val - 0x0b));
+                codes.push(Instruction::FconstN((val - 0x0b) as f32));
                 (index, 1)
             }
             // bipush

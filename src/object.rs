@@ -36,7 +36,6 @@ impl ObjectMap {
 #[derive(PartialEq, Clone, Debug)]
 pub struct Objectref {
     pub class_name_id: usize,
-    // field_name, object_ref_id
     pub field_map: RefCell<HashMap<(usize, usize), (Item, Item)>>,
     pub is_initialized: bool,
 }
