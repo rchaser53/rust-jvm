@@ -6,7 +6,7 @@ use crate::field::{BaseType, FieldDescriptor};
 use crate::java_class::{custom::Custom, JavaClass};
 use crate::object::{ObjectMap, Objectref};
 use crate::operand::Item;
-use crate::option::{OBJECT_ID, STRING_POOL};
+use crate::option::OBJECT_ID;
 
 use crate::stackframe::Stackframe;
 use crate::utils::{
@@ -600,7 +600,6 @@ ${:?}",
                     let mut field_map = HashMap::new();
                     for (index, field) in target_class.fields.iter().enumerate() {
                         let field_name = target_class.cp_info.get_utf8(field.name_index);
-                        // let string_id = get_id_from_string_pool(field_name);
                         let descriptor = target_class
                             .cp_info
                             .get_utf8_as_string(field.descriptor_index);
@@ -611,7 +610,6 @@ ${:?}",
                     let operand_stack = self.get_operand_stack();
                     let id = *OBJECT_ID.lock().unwrap();
                     *OBJECT_ID.lock().unwrap() = id + 1;
-                    // let string_id = get_id_from_string_pool(class_name);
 
                     operand_stack.push(Item::Objectref(id));
                     (
@@ -644,7 +642,6 @@ ${:?}",
                 *OBJECT_ID.lock().unwrap() = id + 1;
 
                 let class_name = class_file.cp_info.get_class_ref_name(*index);
-                // let string_id = get_id_from_string_pool(class_name);
                 if let Some(Item::Int(length)) = self.get_operand_stack().pop() {
                     let default_array = initialize_objectref_array(
                         &mut self.object_map,
@@ -688,7 +685,7 @@ ${:?}",
                         let class_name_len = class_name.len();
                         let actual_class_name = &class_name[1..class_name_len - 1];
                         let first_count = counts.first().unwrap().clone();
-                        let string_id = get_id_from_string_pool(actual_class_name.to_string());
+                        let string_id = insert_string_pool(actual_class_name.to_string());
 
                         let multi_dimentions_id = self.create_multi_dimentions_custom_array(
                             &mut counts,
@@ -1127,22 +1124,4 @@ pub fn create_uninitialized_item(descriptor: &FieldDescriptor) -> (Item, Item) {
         FieldDescriptor::BaseType(BaseType::Z) => (Item::Boolean(true), Item::Null),
         _ => unimplemented!("should implement"),
     }
-}
-
-fn get_id_from_string_pool(value: String) -> usize {
-    {
-        let string_hash_map = &*STRING_POOL.lock().unwrap();
-        for (id, hash_value) in string_hash_map.iter() {
-            if hash_value == &value {
-                return *id;
-            }
-        }
-    }
-
-    let string_id = *OBJECT_ID.lock().unwrap();
-    *OBJECT_ID.lock().unwrap() = string_id + 1;
-
-    let string_hash_map = &mut *STRING_POOL.lock().unwrap();
-    string_hash_map.insert(string_id, value.clone());
-    string_id
 }
