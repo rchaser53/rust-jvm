@@ -22,4 +22,5 @@ fn main() {
     test_helper(String::from("tests/class/LongArray"));
     test_helper(String::from("tests/class/MinusInt30"));
     test_helper(String::from("tests/class/LongCulculate"));
+    test_helper(String::from("tests/class/FloatCulculate"));
 }
