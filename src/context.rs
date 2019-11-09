@@ -1,7 +1,7 @@
 use crate::array::{Array, ArrayMap};
 use crate::attribute::code::Code;
 use crate::attribute::instruction::Instruction;
-use crate::constant::{ConstantNameAndType, ConstantPool};
+use crate::constant::{ConstPoolTag, ConstantNameAndType, ConstantPool};
 use crate::field::{BaseType, FieldDescriptor};
 use crate::java_class::{custom::Custom, JavaClass};
 use crate::object::{ObjectMap, Objectref};
@@ -608,10 +608,19 @@ ${:?}",
                 }
             }
             Instruction::Ldc(index) => {
-                let string_val = class_file.cp_info.get_string(*index);
+                let index_value = *index;
                 let operand_stack = self.get_operand_stack();
-
-                operand_stack.push(Item::String(string_val));
+                match class_file.cp_info.get_item_tag(index_value) {
+                    ConstPoolTag::ConstantString => {
+                        let val = class_file.cp_info.get_string(index_value);
+                        operand_stack.push(Item::String(val));
+                    }
+                    ConstPoolTag::ConstantFloat => {
+                        let val = class_file.cp_info.get_float(index_value);
+                        operand_stack.push(Item::Float(val));
+                    }
+                    _ => unimplemented!(),
+                };
             }
             Instruction::Ldc2W(first, second) => {
                 let mut operand_stack = self.get_operand_stack();
