@@ -143,6 +143,11 @@ impl<'a> Context<'a> {
                 stackframe.operand_stack.stack.push(first);
                 stackframe.operand_stack.stack.push(second);
             }
+            Instruction::Fmul => {
+                let stackframe = self.get_last_stackframe();
+                let item = stackframe.operand_stack.fmul();
+                stackframe.operand_stack.stack.push(item);
+            }
             Instruction::Idiv => {
                 let stackframe = self.get_last_stackframe();
                 let item = stackframe.operand_stack.idiv();

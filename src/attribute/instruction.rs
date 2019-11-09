@@ -39,6 +39,7 @@ pub enum Instruction {
     Lsub,                                      // 0x65
     Imul,                                      // 0x68
     Lmul,                                      // 0x69
+    Fmul,                                      // 0x6a
     Idiv,                                      // 0x6c
     Ldiv,                                      // 0x6d
     Fdiv,                                      // 0x6e
@@ -118,6 +119,7 @@ impl fmt::Display for Instruction {
             Instruction::Lsub => write!(f, "lsub"),
             Instruction::Imul => write!(f, "imul"),
             Instruction::Lmul => write!(f, "lmul"),
+            Instruction::Fmul => write!(f, "fmul"),
             Instruction::Idiv => write!(f, "idiv"),
             Instruction::Ldiv => write!(f, "ldiv"),
             Instruction::Fdiv => write!(f, "fdiv"),
@@ -386,6 +388,11 @@ impl Instruction {
             // lmul
             0x69 => {
                 codes.push(Instruction::Lmul);
+                (index, 1)
+            }
+            // fmul
+            0x6a => {
+                codes.push(Instruction::Fmul);
                 (index, 1)
             }
             // idiv
@@ -765,6 +772,7 @@ impl Instruction {
             | Instruction::Lsub
             | Instruction::Imul
             | Instruction::Lmul
+            | Instruction::Fmul
             | Instruction::Idiv
             | Instruction::Ldiv
             | Instruction::Fdiv
