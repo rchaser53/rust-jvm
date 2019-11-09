@@ -105,20 +105,45 @@ impl<'a> Context<'a> {
         instruction: &Instruction,
         index: usize,
     ) -> (bool, usize) {
+        macro_rules! single_culc {
+            ($method_name:ident) => {
+                let stackframe = self.get_last_stackframe();
+                let item = stackframe.operand_stack.$method_name();
+                stackframe.operand_stack.stack.push(item);
+            };
+        }
+
         match instruction {
             Instruction::Aconstnull => {
                 let operand_stack = self.get_operand_stack();
                 operand_stack.push(Item::Null);
             }
             Instruction::Iadd => {
-                let stackframe = self.get_last_stackframe();
-                let item = stackframe.operand_stack.iadd();
-                stackframe.operand_stack.stack.push(item);
+                single_culc!(iadd);
             }
             Instruction::Fadd => {
-                let stackframe = self.get_last_stackframe();
-                let item = stackframe.operand_stack.fadd();
-                stackframe.operand_stack.stack.push(item);
+                single_culc!(fadd);
+            }
+            Instruction::Isub => {
+                single_culc!(isub);
+            }
+            Instruction::Fsub => {
+                single_culc!(fsub);
+            }
+            Instruction::Imul => {
+                single_culc!(imul);
+            }
+            Instruction::Fmul => {
+                single_culc!(fmul);
+            }
+            Instruction::Idiv => {
+                single_culc!(idiv);
+            }
+            Instruction::Fdiv => {
+                single_culc!(fdiv);
+            }
+            Instruction::Irem => {
+                single_culc!(irem);
             }
             Instruction::Ladd => {
                 let stackframe = self.get_last_stackframe();
@@ -126,26 +151,11 @@ impl<'a> Context<'a> {
                 stackframe.operand_stack.stack.push(first);
                 stackframe.operand_stack.stack.push(second);
             }
-            Instruction::Isub => {
-                let stackframe = self.get_last_stackframe();
-                let item = stackframe.operand_stack.isub();
-                stackframe.operand_stack.stack.push(item);
-            }
             Instruction::Lsub => {
                 let stackframe = self.get_last_stackframe();
                 let (first, second) = stackframe.operand_stack.lsub();
                 stackframe.operand_stack.stack.push(first);
                 stackframe.operand_stack.stack.push(second);
-            }
-            Instruction::Fsub => {
-                let stackframe = self.get_last_stackframe();
-                let item = stackframe.operand_stack.fsub();
-                stackframe.operand_stack.stack.push(item);
-            }
-            Instruction::Imul => {
-                let stackframe = self.get_last_stackframe();
-                let item = stackframe.operand_stack.imul();
-                stackframe.operand_stack.stack.push(item);
             }
             Instruction::Lmul => {
                 let stackframe = self.get_last_stackframe();
@@ -153,31 +163,11 @@ impl<'a> Context<'a> {
                 stackframe.operand_stack.stack.push(first);
                 stackframe.operand_stack.stack.push(second);
             }
-            Instruction::Fmul => {
-                let stackframe = self.get_last_stackframe();
-                let item = stackframe.operand_stack.fmul();
-                stackframe.operand_stack.stack.push(item);
-            }
-            Instruction::Idiv => {
-                let stackframe = self.get_last_stackframe();
-                let item = stackframe.operand_stack.idiv();
-                stackframe.operand_stack.stack.push(item);
-            }
             Instruction::Ldiv => {
                 let stackframe = self.get_last_stackframe();
                 let (first, second) = stackframe.operand_stack.ldiv();
                 stackframe.operand_stack.stack.push(first);
                 stackframe.operand_stack.stack.push(second);
-            }
-            Instruction::Fdiv => {
-                let stackframe = self.get_last_stackframe();
-                let item = stackframe.operand_stack.fdiv();
-                stackframe.operand_stack.stack.push(item);
-            }
-            Instruction::Irem => {
-                let stackframe = self.get_last_stackframe();
-                let item = stackframe.operand_stack.irem();
-                stackframe.operand_stack.stack.push(item);
             }
             Instruction::Lrem => {
                 let stackframe = self.get_last_stackframe();
@@ -242,14 +232,11 @@ impl<'a> Context<'a> {
                 stackframe.operand_stack.stack.push(val);
             }
             Instruction::Fcmpl => {
-                let stackframe = self.get_last_stackframe();
-                let val = stackframe.operand_stack.fcmp();
-                stackframe.operand_stack.stack.push(val);
+                // TBD need to fix
+                single_culc!(fcmp);
             }
             Instruction::Fcmpg => {
-                let stackframe = self.get_last_stackframe();
-                let val = stackframe.operand_stack.fcmp();
-                stackframe.operand_stack.stack.push(val);
+                single_culc!(fcmp);
             }
             Instruction::Ifeq(if_val, else_val) => {
                 let operand_stack = self.get_operand_stack();
