@@ -137,6 +137,11 @@ impl<'a> Context<'a> {
                 stackframe.operand_stack.stack.push(first);
                 stackframe.operand_stack.stack.push(second);
             }
+            Instruction::Fsub => {
+                let stackframe = self.get_last_stackframe();
+                let item = stackframe.operand_stack.fsub();
+                stackframe.operand_stack.stack.push(item);
+            }
             Instruction::Imul => {
                 let stackframe = self.get_last_stackframe();
                 let item = stackframe.operand_stack.imul();
