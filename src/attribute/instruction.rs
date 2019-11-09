@@ -190,26 +190,29 @@ impl Instruction {
         index: usize,
         tag: usize,
     ) -> (usize, usize) {
+        macro_rules! simple_instruct {
+            ($expr:expr) => {
+                codes.push($expr);
+                return (index, 1);
+            };
+        }
+
         match tag {
             // aconst_null
             0x01 => {
-                codes.push(Instruction::Aconstnull);
-                (index, 1)
+                simple_instruct!(Instruction::Aconstnull);
             }
             // iconst_n
             val @ 0x02..=0x08 => {
-                codes.push(Instruction::IconstN(val as i32 - 0x03));
-                (index, 1)
+                simple_instruct!(Instruction::IconstN(val as i32 - 0x03));
             }
             // lconst_n
             val @ 0x09..=0x0a => {
-                codes.push(Instruction::LconstN(val - 0x09));
-                (index, 1)
+                simple_instruct!(Instruction::LconstN(val - 0x09));
             }
             // fconst_n
             val @ 0x0b..=0x0d => {
-                codes.push(Instruction::FconstN((val - 0x0b) as f32));
-                (index, 1)
+                simple_instruct!(Instruction::FconstN((val - 0x0b) as f32));
             }
             // bipush
             0x10 => {
@@ -262,43 +265,35 @@ impl Instruction {
             }
             // iload_n
             val @ 0x1a..=0x1d => {
-                codes.push(Instruction::IloadN(val - 0x1a));
-                (index, 1)
+                simple_instruct!(Instruction::IloadN(val - 0x1a));
             }
             // lload_n
             val @ 0x1e..=0x21 => {
-                codes.push(Instruction::LloadN(val - 0x1e));
-                (index, 1)
+                simple_instruct!(Instruction::LloadN(val - 0x1e));
             }
             // fload_n
             val @ 0x22..=0x25 => {
-                codes.push(Instruction::FloadN(val - 0x22));
-                (index, 1)
+                simple_instruct!(Instruction::FloadN(val - 0x22));
             }
             // aload_n
             val @ 0x2a..=0x2d => {
-                codes.push(Instruction::AloadN(val - 0x2a));
-                (index, 1)
+                simple_instruct!(Instruction::AloadN(val - 0x2a));
             }
             // iaload
             0x2e => {
-                codes.push(Instruction::Iaload);
-                (index, 1)
+                simple_instruct!(Instruction::Iaload);
             }
             // laload
             0x2f => {
-                codes.push(Instruction::Laload);
-                (index, 1)
+                simple_instruct!(Instruction::Laload);
             }
             // iaload
             0x32 => {
-                codes.push(Instruction::Aaload);
-                (index, 1)
+                simple_instruct!(Instruction::Aaload);
             }
             // baload
             0x33 => {
-                codes.push(Instruction::Baload);
-                (index, 1)
+                simple_instruct!(Instruction::Baload);
             }
             // istore
             0x36 => {
@@ -316,123 +311,99 @@ impl Instruction {
             }
             // istore_n
             val @ 0x3b..=0x3e => {
-                codes.push(Instruction::IstoreN(val as i32 - 0x3b));
-                (index, 1)
+                simple_instruct!(Instruction::IstoreN(val as i32 - 0x3b));
             }
             // lstore_n
             val @ 0x3f..=0x42 => {
-                codes.push(Instruction::LstoreN(val - 0x3f));
-                (index, 1)
+                simple_instruct!(Instruction::LstoreN(val - 0x3f));
             }
             // astore_n
             val @ 0x4b..=0x4e => {
-                codes.push(Instruction::AstoreN(val - 0x4b));
-                (index, 1)
+                simple_instruct!(Instruction::AstoreN(val - 0x4b));
             }
             // lstore_n
             val @ 0x43..=0x46 => {
-                codes.push(Instruction::FstoreN(val - 0x43));
-                (index, 1)
+                simple_instruct!(Instruction::FstoreN(val - 0x43));
             }
             // iastore
             0x4f => {
-                codes.push(Instruction::Iastore);
-                (index, 1)
+                simple_instruct!(Instruction::Iastore);
             }
             // lastore
             0x50 => {
-                codes.push(Instruction::Lastore);
-                (index, 1)
+                simple_instruct!(Instruction::Lastore);
             }
             // aastore
             0x53 => {
-                codes.push(Instruction::Aastore);
-                (index, 1)
+                simple_instruct!(Instruction::Aastore);
             }
             // bastore
             0x54 => {
-                codes.push(Instruction::Bastore);
-                (index, 1)
+                simple_instruct!(Instruction::Bastore);
             }
             // pop
             0x57 => {
-                codes.push(Instruction::Pop);
-                (index, 1)
+                simple_instruct!(Instruction::Pop);
             }
             // dup
             0x59 => {
-                codes.push(Instruction::Dup);
-                (index, 1)
+                simple_instruct!(Instruction::Dup);
             }
             // iadd
             0x60 => {
-                codes.push(Instruction::Iadd);
-                (index, 1)
+                simple_instruct!(Instruction::Iadd);
             }
             // ladd
             0x61 => {
-                codes.push(Instruction::Ladd);
-                (index, 1)
+                simple_instruct!(Instruction::Ladd);
             }
             // fadd
             0x62 => {
-                codes.push(Instruction::Fadd);
-                (index, 1)
+                simple_instruct!(Instruction::Fadd);
             }
             // isub
             0x64 => {
-                codes.push(Instruction::Isub);
-                (index, 1)
+                simple_instruct!(Instruction::Isub);
             }
             // lsub
             0x65 => {
-                codes.push(Instruction::Lsub);
-                (index, 1)
+                simple_instruct!(Instruction::Lsub);
             }
             // fsub
             0x66 => {
-                codes.push(Instruction::Fsub);
-                (index, 1)
+                simple_instruct!(Instruction::Fsub);
             }
             // imul
             0x68 => {
-                codes.push(Instruction::Imul);
-                (index, 1)
+                simple_instruct!(Instruction::Imul);
             }
             // lmul
             0x69 => {
-                codes.push(Instruction::Lmul);
-                (index, 1)
+                simple_instruct!(Instruction::Lmul);
             }
             // fmul
             0x6a => {
-                codes.push(Instruction::Fmul);
-                (index, 1)
+                simple_instruct!(Instruction::Fmul);
             }
             // idiv
             0x6c => {
-                codes.push(Instruction::Idiv);
-                (index, 1)
+                simple_instruct!(Instruction::Idiv);
             }
             // ldiv
             0x6d => {
-                codes.push(Instruction::Ldiv);
-                (index, 1)
+                simple_instruct!(Instruction::Ldiv);
             }
             // fdiv
             0x6e => {
-                codes.push(Instruction::Fdiv);
-                (index, 1)
+                simple_instruct!(Instruction::Fdiv);
             }
             // irem
             0x70 => {
-                codes.push(Instruction::Irem);
-                (index, 1)
+                simple_instruct!(Instruction::Irem);
             }
             // lrem
             0x71 => {
-                codes.push(Instruction::Lrem);
-                (index, 1)
+                simple_instruct!(Instruction::Lrem);
             }
             // iinc
             0x84 => {
@@ -444,18 +415,15 @@ impl Instruction {
             }
             // lcmp
             0x94 => {
-                codes.push(Instruction::Lcmp);
-                (index, 1)
+                simple_instruct!(Instruction::Lcmp);
             }
             // fcmpg
             0x95 => {
-                codes.push(Instruction::Fcmpg);
-                (index, 1)
+                simple_instruct!(Instruction::Fcmpg);
             }
             // fcmpl
             0x96 => {
-                codes.push(Instruction::Fcmpl);
-                (index, 1)
+                simple_instruct!(Instruction::Fcmpl);
             }
             // ifeq
             0x99 => {
@@ -636,18 +604,15 @@ impl Instruction {
             }
             // ireturn
             0xac => {
-                codes.push(Instruction::Ireturn);
-                (index, 1)
+                simple_instruct!(Instruction::Ireturn);
             }
             // areturn
             0xb0 => {
-                codes.push(Instruction::Areturn);
-                (index, 1)
+                simple_instruct!(Instruction::Areturn);
             }
             // return
             0xb1 => {
-                codes.push(Instruction::Return);
-                (index, 1)
+                simple_instruct!(Instruction::Return);
             }
             // getstatic
             0xb2 => {
