@@ -311,7 +311,7 @@ pub enum ConstPoolItem {
     ConstantInterfaceMethodref,
     ConstantString(ConstantString),
     ConstantInteger,
-    ConstantFloat,
+    ConstantFloat(ConstantFloat),
     ConstantLong(ConstantLong),
     ConstantDouble(ConstantDouble),
     ConstantNameAndType(ConstantNameAndType),
@@ -378,6 +378,25 @@ impl ConstantString {
             ConstantString {
                 tag: ConstPoolTag::ConstantString,
                 string_index,
+            },
+            index,
+        )
+    }
+}
+
+#[derive(Debug, PartialEq)]
+pub struct ConstantFloat {
+    pub tag: ConstPoolTag,
+    pub bytes: usize, // u4
+}
+
+impl ConstantFloat {
+    pub fn create_and_update_index(inputs: &mut [u8], index: usize) -> (ConstantFloat, usize) {
+        let (bytes, index) = extract_x_byte_as_usize(inputs, index, 4);
+        (
+            ConstantFloat {
+                tag: ConstPoolTag::ConstantFloat,
+                bytes,
             },
             index,
         )
