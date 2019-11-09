@@ -48,8 +48,15 @@ impl PartialOrd for Item {
         match (self, other) {
             (Item::Null, Item::Null) => Some(Ordering::Equal),
             (Item::Int(left), Item::Int(right)) => Some(left.cmp(right)),
-            // TBD need to fix to compare
-            (Item::Float(_left), Item::Float(_right)) => Some(Ordering::Less),
+            (Item::Float(left), Item::Float(right)) => Some({
+                if left > right {
+                    Ordering::Greater
+                } else if left == right {
+                    Ordering::Equal
+                } else {
+                    Ordering::Less
+                }
+            }),
             (Item::Boolean(left), Item::Boolean(right)) => Some(left.cmp(right)),
             (Item::Long(left), Item::Long(right)) => Some(left.cmp(right)),
             (Item::Classref(left), Item::Classref(right)) => Some(left.cmp(right)),
