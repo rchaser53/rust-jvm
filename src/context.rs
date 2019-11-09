@@ -154,6 +154,11 @@ impl<'a> Context<'a> {
                 stackframe.operand_stack.stack.push(first);
                 stackframe.operand_stack.stack.push(second);
             }
+            Instruction::Fdiv => {
+                let stackframe = self.get_last_stackframe();
+                let item = stackframe.operand_stack.fdiv();
+                stackframe.operand_stack.stack.push(item);
+            }
             Instruction::Irem => {
                 let stackframe = self.get_last_stackframe();
                 let item = stackframe.operand_stack.irem();

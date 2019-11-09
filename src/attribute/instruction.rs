@@ -41,6 +41,7 @@ pub enum Instruction {
     Lmul,                                      // 0x69
     Idiv,                                      // 0x6c
     Ldiv,                                      // 0x6d
+    Fdiv,                                      // 0x6e
     Irem,                                      // 0x70
     Lrem,                                      // 0x71
     Iinc(usize, usize),                        // 0x84
@@ -119,6 +120,7 @@ impl fmt::Display for Instruction {
             Instruction::Lmul => write!(f, "lmul"),
             Instruction::Idiv => write!(f, "idiv"),
             Instruction::Ldiv => write!(f, "ldiv"),
+            Instruction::Fdiv => write!(f, "fdiv"),
             Instruction::Irem => write!(f, "irem"),
             Instruction::Lrem => write!(f, "lrem"),
             Instruction::Iinc(a, b) => write!(f, "iinc        {}, {}", a, b),
@@ -394,6 +396,11 @@ impl Instruction {
             // ldiv
             0x6d => {
                 codes.push(Instruction::Ldiv);
+                (index, 1)
+            }
+            // fdiv
+            0x6e => {
+                codes.push(Instruction::Fdiv);
                 (index, 1)
             }
             // irem
@@ -760,6 +767,7 @@ impl Instruction {
             | Instruction::Lmul
             | Instruction::Idiv
             | Instruction::Ldiv
+            | Instruction::Fdiv
             | Instruction::Irem
             | Instruction::Lrem
             | Instruction::Lcmp
