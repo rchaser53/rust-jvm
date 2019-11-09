@@ -172,7 +172,7 @@ impl<'a> Context<'a> {
             Instruction::LconstN(val) => {
                 let operand_stack = self.get_operand_stack();
                 operand_stack.push(Item::Long(0));
-                operand_stack.push(Item::Long(*val as i32));
+                operand_stack.push(Item::Long(*val));
             }
             Instruction::FconstN(val) => {
                 let operand_stack = self.get_operand_stack();

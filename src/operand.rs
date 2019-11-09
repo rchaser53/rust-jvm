@@ -1,12 +1,22 @@
-use crate::utils::devide_i64_to_two_i32;
+// use crate::utils::devide_u64_to_two_u32;
 use std::cmp::{Ordering, PartialOrd};
 use std::fmt;
+
+pub fn devide_i64_two_usize(input: i64) -> (usize, usize) {
+    let high_value = ((input >> 32) << 32) as usize;
+    let low_value = (input & 0xFFFFFFFF) as usize;
+    if input > 0 {
+        (low_value, high_value)
+    } else {
+        (0xFFFFFFFF - low_value, 0xFFFFFFFF - high_value)
+    }
+}
 
 #[derive(PartialEq, Clone, Debug)]
 pub enum Item {
     Null,
     Int(i32),
-    Long(i32),
+    Long(usize),
     Float(f32),
     String(usize),
     Boolean(bool),
@@ -60,7 +70,7 @@ impl OperandStack {
         OperandStack { stack: vec![] }
     }
 
-    fn extract_long_values(&mut self) -> (i64, i64) {
+    fn extract_long_values_as_i64(&mut self) -> (i64, i64) {
         match (
             self.stack.pop(),
             self.stack.pop(),
@@ -73,8 +83,18 @@ impl OperandStack {
                 Some(Item::Long(first_2)),
                 Some(Item::Long(first_1)),
             ) => {
-                let second: i64 = (((second_1 as i64) << 32) as i64) | second_2 as i64;
-                let first: i64 = (((first_1 as i64) << 32) as i64) | first_2 as i64;
+                let second: u64 = (((second_1 as u64) << 32) as u64) | second_2 as u64;
+                let second = if second > 0x7fffffffffffffff {
+                    -1 * ((second ^ 0xffffffffffffffff) + 1) as i64
+                } else {
+                    second as i64
+                };
+                let first: u64 = (((first_1 as u64) << 32) as u64) | first_2 as u64;
+                let first = if first > 0x7fffffffffffffff {
+                    -1 * ((first ^ 0xffffffffffffffff) + 1) as i64
+                } else {
+                    first as i64
+                };
                 (first, second)
             }
             _ => panic!("shortage item in OperandStack"),
@@ -101,8 +121,8 @@ impl OperandStack {
     }
 
     pub fn ladd(&mut self) -> (Item, Item) {
-        let (first, second) = self.extract_long_values();
-        let (first, second) = devide_i64_to_two_i32(first + second);
+        let (first, second) = self.extract_long_values_as_i64();
+        let (first, second) = devide_i64_two_usize(first + second);
         (Item::Long(first), Item::Long(second))
     }
 
@@ -112,8 +132,8 @@ impl OperandStack {
     }
 
     pub fn lsub(&mut self) -> (Item, Item) {
-        let (first, second) = self.extract_long_values();
-        let (first, second) = devide_i64_to_two_i32(first + second);
+        let (first, second) = self.extract_long_values_as_i64();
+        let (first, second) = devide_i64_two_usize(first + second);
         (Item::Long(first), Item::Long(second))
     }
 
@@ -123,8 +143,8 @@ impl OperandStack {
     }
 
     pub fn lmul(&mut self) -> (Item, Item) {
-        let (first, second) = self.extract_long_values();
-        let (first, second) = devide_i64_to_two_i32(first * second);
+        let (first, second) = self.extract_long_values_as_i64();
+        let (first, second) = devide_i64_two_usize(first * second);
         (Item::Long(first), Item::Long(second))
     }
 
@@ -134,8 +154,8 @@ impl OperandStack {
     }
 
     pub fn ldiv(&mut self) -> (Item, Item) {
-        let (first, second) = self.extract_long_values();
-        let (first, second) = devide_i64_to_two_i32(first / second);
+        let (first, second) = self.extract_long_values_as_i64();
+        let (first, second) = devide_i64_two_usize(first / second);
         (Item::Long(first), Item::Long(second))
     }
 
@@ -145,13 +165,13 @@ impl OperandStack {
     }
 
     pub fn lrem(&mut self) -> (Item, Item) {
-        let (first, second) = self.extract_long_values();
-        let (first, second) = devide_i64_to_two_i32(first % second);
+        let (first, second) = self.extract_long_values_as_i64();
+        let (first, second) = devide_i64_two_usize(first % second);
         (Item::Long(first), Item::Long(second))
     }
 
     pub fn lcmp(&mut self) -> Item {
-        let (first, second) = self.extract_long_values();
+        let (first, second) = self.extract_long_values_as_i64();
         self.compare_value(first, second)
     }
 

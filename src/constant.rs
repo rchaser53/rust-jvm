@@ -124,8 +124,8 @@ next tag: {}",
                 ConstPoolItem::ConstantFieldref(_) => stack.push(Item::Fieldref(index)),
                 ConstPoolItem::ConstantUtf8(item) => stack.push(Item::String(item.id)),
                 ConstPoolItem::ConstantLong(ref item) => {
-                    stack.push(Item::Long(item.high_bytes as i32));
-                    stack.push(Item::Long(item.low_bytes as i32));
+                    stack.push(Item::Long(item.high_bytes));
+                    stack.push(Item::Long(item.low_bytes));
                 }
                 ConstPoolItem::ConstantNull => {
                     unreachable!("index: {}. should not come ConstantNull", index)
@@ -212,8 +212,8 @@ next tag: {}",
 
     pub fn get_item_tag(&self, index: usize) -> ConstPoolTag {
         match self.0.get(index) {
-            Some(ConstPoolItem::ConstantString(ref item)) => ConstPoolTag::ConstantString,
-            Some(ConstPoolItem::ConstantFloat(ref item)) => ConstPoolTag::ConstantFloat,
+            Some(ConstPoolItem::ConstantString(_)) => ConstPoolTag::ConstantString,
+            Some(ConstPoolItem::ConstantFloat(_)) => ConstPoolTag::ConstantFloat,
             _ => unimplemented!(),
         }
     }
@@ -354,19 +354,20 @@ pub enum ConstPoolItem {
 #[derive(Debug, PartialEq)]
 pub struct ConstantLong {
     pub tag: ConstPoolTag,
-    pub high_bytes: i32, // u4
-    pub low_bytes: i32,  // u4
+    pub high_bytes: usize, // u4
+    pub low_bytes: usize,  // u4
 }
 
 impl ConstantLong {
     pub fn create_and_update_index(inputs: &mut [u8], index: usize) -> (ConstantLong, usize) {
         let (high_bytes, index) = extract_x_byte_as_usize(inputs, index, 4);
         let (low_bytes, index) = extract_x_byte_as_usize(inputs, index, 4);
+        // println!("{:x}, {:x}", high_bytes, low_bytes);
         (
             ConstantLong {
                 tag: ConstPoolTag::ConstantString,
-                high_bytes: high_bytes as i32,
-                low_bytes: low_bytes as i32,
+                high_bytes,
+                low_bytes,
             },
             index,
         )

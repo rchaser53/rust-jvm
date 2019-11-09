@@ -74,7 +74,13 @@ impl BuiltInMethod {
                         }
                         Item::Long(second) => {
                             if let Some(Item::Long(first)) = stackframe.local_variables.get(1) {
-                                println!("{}", ((*first as i64) << 32) as i64 | *second as i64);
+                                let value: u64 = (((*first as u64) << 32) as u64) | *second as u64;
+                                let value = if value > 0x7fffffffffffffff {
+                                    -1 * ((value ^ 0xffffffffffffffff) + 1) as i64
+                                } else {
+                                    value as i64
+                                };
+                                println!("{}", value);
                             } else {
                                 unreachable!("should exist long second item")
                             }
