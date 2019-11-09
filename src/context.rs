@@ -351,10 +351,10 @@ impl<'a> Context<'a> {
                 self.load_n(base_index + 1);
             }
             Instruction::Istore(index) => {
-                self.store_n(&[*index]);
+                self.store_n(&[*index as usize]);
             }
             Instruction::IstoreN(index) => {
-                self.store_n(&[*index]);
+                self.store_n(&[*index as usize]);
             }
             Instruction::LstoreN(index) => {
                 let base_index = *index;

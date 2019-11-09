@@ -4,10 +4,10 @@ use std::fmt;
 #[derive(Debug)]
 pub enum Instruction {
     Aconstnull,                                // 0x01
-    IconstN(usize),                            // 0x02(-1) - 0x08(5)
+    IconstN(i32),                              // 0x02(-1) - 0x08(5)
     LconstN(usize),                            // 0x09(0) - 0x0a(1)
     FconstN(f32),                              // 0x0b(0) - 0x0d(1)
-    Bipush(usize),                             // 0x10
+    Bipush(i32),                               // 0x10
     Sipush(usize),                             // 0x11
     Ldc(usize),                                // 0x12
     Ldc2W(usize, usize),                       // 0x14
@@ -21,9 +21,9 @@ pub enum Instruction {
     Laload,                                    // 0x2f
     Aaload,                                    // 0x32
     Baload,                                    // 0x33
-    Istore(usize),                             // 0x36
+    Istore(i32),                               // 0x36
     Astore(usize),                             // 0x3a
-    IstoreN(usize),                            // 0x3b(0) - 0x3e(3)
+    IstoreN(i32),                              // 0x3b(0) - 0x3e(3)
     LstoreN(usize),                            // 0x3f(0) - 0x42(3)
     FstoreN(usize),                            // 0x43(0) - 0x46(3)
     AstoreN(usize),                            // 0x4b(0) - 0x4e(3)
@@ -190,7 +190,7 @@ impl Instruction {
             }
             // iconst_n
             val @ 0x02..=0x08 => {
-                codes.push(Instruction::IconstN(val - 0x03));
+                codes.push(Instruction::IconstN(val as i32 - 0x03));
                 (index, 1)
             }
             // lconst_n
@@ -206,6 +206,11 @@ impl Instruction {
             // bipush
             0x10 => {
                 let (val, index) = extract_x_byte_as_usize(inputs, index, 1);
+                let val = if val > 0x79 {
+                    -1 * ((val ^ 0xff) + 1) as i32
+                } else {
+                    val as i32
+                };
                 codes.push(Instruction::Bipush(val));
                 codes.push(Instruction::Noope);
                 (index, 2)
@@ -290,7 +295,7 @@ impl Instruction {
             // istore
             0x36 => {
                 let (val, index) = extract_x_byte_as_usize(inputs, index, 1);
-                codes.push(Instruction::Istore(val));
+                codes.push(Instruction::Istore(val as i32));
                 codes.push(Instruction::Noope);
                 (index, 2)
             }
@@ -303,7 +308,7 @@ impl Instruction {
             }
             // istore_n
             val @ 0x3b..=0x3e => {
-                codes.push(Instruction::IstoreN(val - 0x3b));
+                codes.push(Instruction::IstoreN(val as i32 - 0x3b));
                 (index, 1)
             }
             // lstore_n
