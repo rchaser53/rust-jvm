@@ -49,6 +49,11 @@ impl ConstantPool {
                         ConstantFieldref::create_and_update_index(inputs, update_index);
                     (ConstPoolItem::ConstantFieldref(item), update_index)
                 }
+                ConstPoolTag::ConstantFloat => {
+                    let (item, update_index) =
+                        ConstantFloat::create_and_update_index(inputs, update_index);
+                    (ConstPoolItem::ConstantFloat(item), update_index)
+                }
                 ConstPoolTag::ConstantLong => {
                     let (item, update_index) =
                         ConstantLong::create_and_update_index(inputs, update_index);
@@ -185,6 +190,31 @@ next tag: {}",
         match self.0.get(index) {
             Some(ConstPoolItem::ConstantString(ref item)) => self.get_utf8(item.string_index),
             _ => unreachable!("should be ConstantString. actual {:?}", self.0.get(index)),
+        }
+    }
+
+    pub fn get_float(&self, index: usize) -> f32 {
+        match self.0.get(index) {
+            Some(ConstPoolItem::ConstantFloat(ConstantFloat { bytes, .. })) => {
+                let s: f32 = if bytes >> 31 == 0 as usize { 1.0 } else { -1.0 };
+                let e = ((bytes >> 23 as usize) & 0xff) as f32;
+                let m = if e == 0.0 {
+                    ((bytes & 0x7fffff) << 1) as f32
+                } else {
+                    ((bytes & 0x7fffff) | 0x800000) as f32
+                };
+                // s * m * 2e-150
+                s * m * f32::powf(2.0f32, e - 150 as f32)
+            }
+            _ => unreachable!("should be ConstantFloat. actual {:?}", self.0.get(index)),
+        }
+    }
+
+    pub fn get_item_tag(&self, index: usize) -> ConstPoolTag {
+        match self.0.get(index) {
+            Some(ConstPoolItem::ConstantString(ref item)) => ConstPoolTag::ConstantString,
+            Some(ConstPoolItem::ConstantFloat(ref item)) => ConstPoolTag::ConstantFloat,
+            _ => unimplemented!(),
         }
     }
 
