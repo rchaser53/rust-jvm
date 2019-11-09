@@ -115,6 +115,11 @@ impl<'a> Context<'a> {
                 let item = stackframe.operand_stack.iadd();
                 stackframe.operand_stack.stack.push(item);
             }
+            Instruction::Fadd => {
+                let stackframe = self.get_last_stackframe();
+                let item = stackframe.operand_stack.fadd();
+                stackframe.operand_stack.stack.push(item);
+            }
             Instruction::Ladd => {
                 let stackframe = self.get_last_stackframe();
                 let (first, second) = stackframe.operand_stack.ladd();

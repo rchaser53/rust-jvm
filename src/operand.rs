@@ -120,6 +120,11 @@ impl OperandStack {
         Item::Int(first + second)
     }
 
+    pub fn fadd(&mut self) -> Item {
+        let (first, second) = self.extract_float_values();
+        Item::Float(first + second)
+    }
+
     pub fn ladd(&mut self) -> (Item, Item) {
         let (first, second) = self.extract_long_values_as_i64();
         let (first, second) = devide_i64_two_usize(first + second);

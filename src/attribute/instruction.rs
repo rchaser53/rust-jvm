@@ -35,6 +35,7 @@ pub enum Instruction {
     Dup,                                       // 0x59
     Iadd,                                      // 0x60
     Ladd,                                      // 0x61
+    Fadd,                                      // 0x62
     Isub,                                      // 0x64
     Lsub,                                      // 0x65
     Imul,                                      // 0x68
@@ -115,6 +116,7 @@ impl fmt::Display for Instruction {
             Instruction::Dup => write!(f, "dup"),
             Instruction::Iadd => write!(f, "iadd"),
             Instruction::Ladd => write!(f, "ladd"),
+            Instruction::Fadd => write!(f, "fadd"),
             Instruction::Isub => write!(f, "isub"),
             Instruction::Lsub => write!(f, "lsub"),
             Instruction::Imul => write!(f, "imul"),
@@ -367,6 +369,11 @@ impl Instruction {
             }
             // ladd
             0x61 => {
+                codes.push(Instruction::Ladd);
+                (index, 1)
+            }
+            // fadd
+            0x62 => {
                 codes.push(Instruction::Ladd);
                 (index, 1)
             }
@@ -768,6 +775,7 @@ impl Instruction {
             | Instruction::Dup
             | Instruction::Iadd
             | Instruction::Ladd
+            | Instruction::Fadd
             | Instruction::Isub
             | Instruction::Lsub
             | Instruction::Imul
