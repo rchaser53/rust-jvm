@@ -97,21 +97,36 @@ impl OperandStack {
                 };
                 (first, second)
             }
-            _ => panic!("shortage item in OperandStack"),
+            (second_2, second_1, first_2, first_1) => panic!(
+                "failed to extract long values
+first: {:?}, {:?}
+second: {:?}, {:?}",
+                first_1, first_2, second_1, second_2
+            ),
         }
     }
 
     fn extract_int_values(&mut self) -> (i32, i32) {
         match (self.stack.pop(), self.stack.pop()) {
             (Some(Item::Int(second)), Some(Item::Int(first))) => (first, second),
-            _ => panic!("shortage item in OperandStack"),
+            (second, first) => panic!(
+                "failed to extract int values
+first: {:?}
+second: {:?}",
+                second, first
+            ),
         }
     }
 
     fn extract_float_values(&mut self) -> (f32, f32) {
         match (self.stack.pop(), self.stack.pop()) {
             (Some(Item::Float(second)), Some(Item::Float(first))) => (first, second),
-            _ => panic!("shortage item in OperandStack"),
+            (second, first) => panic!(
+                "failed to extract float values
+first: {:?}
+second: {:?}",
+                second, first
+            ),
         }
     }
 
