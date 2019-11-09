@@ -72,6 +72,15 @@ pub struct OperandStack {
     pub stack: Vec<Item>,
 }
 
+macro_rules! culculate {
+    ($name:ident, $extract_method:ident, $type:ident, $op:tt) => {
+      pub fn $name(&mut self) -> Item {
+          let (first, second) = self.$extract_method();
+          Item::$type(first $op second)
+      }
+    }
+}
+
 impl OperandStack {
     pub fn new() -> Self {
         OperandStack { stack: vec![] }
@@ -137,30 +146,22 @@ second: {:?}",
         }
     }
 
-    pub fn iadd(&mut self) -> Item {
-        let (first, second) = self.extract_int_values();
-        Item::Int(first + second)
-    }
+    culculate!(iadd, extract_int_values, Int, +);
+    culculate!(isub, extract_int_values, Int, -);
+    culculate!(imul, extract_int_values, Int, *);
+    culculate!(idiv, extract_int_values, Int, /);
+    culculate!(irem, extract_int_values, Int, %);
 
-    pub fn fadd(&mut self) -> Item {
-        let (first, second) = self.extract_float_values();
-        Item::Float(first + second)
-    }
+    culculate!(fadd, extract_float_values, Float, +);
+    culculate!(fsub, extract_float_values, Float, -);
+    culculate!(fmul, extract_float_values, Float, *);
+    culculate!(fdiv, extract_float_values, Float, /);
+    culculate!(frem, extract_float_values, Float, %);
 
     pub fn ladd(&mut self) -> (Item, Item) {
         let (first, second) = self.extract_long_values_as_i64();
         let (first, second) = devide_i64_two_usize(first + second);
         (Item::Long(first), Item::Long(second))
-    }
-
-    pub fn isub(&mut self) -> Item {
-        let (first, second) = self.extract_int_values();
-        Item::Int(first - second)
-    }
-
-    pub fn fsub(&mut self) -> Item {
-        let (first, second) = self.extract_float_values();
-        Item::Float(first - second)
     }
 
     pub fn lsub(&mut self) -> (Item, Item) {
@@ -169,41 +170,16 @@ second: {:?}",
         (Item::Long(first), Item::Long(second))
     }
 
-    pub fn imul(&mut self) -> Item {
-        let (first, second) = self.extract_int_values();
-        Item::Int(first * second)
-    }
-
-    pub fn fmul(&mut self) -> Item {
-        let (first, second) = self.extract_float_values();
-        Item::Float(first * second)
-    }
-
     pub fn lmul(&mut self) -> (Item, Item) {
         let (first, second) = self.extract_long_values_as_i64();
         let (first, second) = devide_i64_two_usize(first * second);
         (Item::Long(first), Item::Long(second))
     }
 
-    pub fn idiv(&mut self) -> Item {
-        let (first, second) = self.extract_int_values();
-        Item::Int(first / second)
-    }
-
-    pub fn fdiv(&mut self) -> Item {
-        let (first, second) = self.extract_float_values();
-        Item::Float(first / second)
-    }
-
     pub fn ldiv(&mut self) -> (Item, Item) {
         let (first, second) = self.extract_long_values_as_i64();
         let (first, second) = devide_i64_two_usize(first / second);
         (Item::Long(first), Item::Long(second))
-    }
-
-    pub fn irem(&mut self) -> Item {
-        let (first, second) = self.extract_int_values();
-        Item::Int(first % second)
     }
 
     pub fn lrem(&mut self) -> (Item, Item) {
