@@ -17,6 +17,7 @@ pub enum Instruction {
     IloadN(usize),                             // 0x1a(0) - 0x1d(3)
     LloadN(usize),                             // 0x1e(0) - 0x21(3)
     FloadN(usize),                             // 0x22(0) - 0x25(3)
+    DloadN(usize),                             // 0x26(0) - 0x29(3)
     AloadN(usize),                             // 0x2a(0) - 0x2d(3)
     Iaload,                                    // 0x2e
     Laload,                                    // 0x2f
@@ -101,6 +102,7 @@ impl fmt::Display for Instruction {
             Instruction::IloadN(val) => write!(f, "iload_{}", val),
             Instruction::LloadN(val) => write!(f, "lload_{}", val),
             Instruction::FloadN(val) => write!(f, "fload_{}", val),
+            Instruction::DloadN(val) => write!(f, "dload_{}", val),
             Instruction::AloadN(val) => write!(f, "aload_{}", val),
             Instruction::Iaload => write!(f, "iaload"),
             Instruction::Laload => write!(f, "laload"),
@@ -282,6 +284,10 @@ impl Instruction {
             // fload_n
             val @ 0x22..=0x25 => {
                 simple_instruct!(Instruction::FloadN(val - 0x22));
+            }
+            // dload_n
+            val @ 0x26..=0x29 => {
+                simple_instruct!(Instruction::DloadN(val - 0x26));
             }
             // aload_n
             val @ 0x2a..=0x2d => {
@@ -755,6 +761,7 @@ impl Instruction {
             | Instruction::DstoreN(_)
             | Instruction::LloadN(_)
             | Instruction::FloadN(_)
+            | Instruction::DloadN(_)
             | Instruction::AstoreN(_)
             | Instruction::AloadN(_)
             | Instruction::Pop

@@ -362,6 +362,11 @@ impl<'a> Context<'a> {
                 self.load_n(base_index);
                 self.load_n(base_index + 1);
             }
+            Instruction::DloadN(index) => {
+                let base_index = *index;
+                self.load_n(base_index);
+                self.load_n(base_index + 1);
+            }
             Instruction::Istore(index) => {
                 self.store_n(&[*index as usize]);
             }
@@ -372,10 +377,11 @@ impl<'a> Context<'a> {
                 let base_index = *index;
                 self.store_n(&[base_index + 1, base_index]);
             }
-            Instruction::FstoreN(index) => {
-                self.store_n(&[*index]);
-            }
             Instruction::DstoreN(index) => {
+                let base_index = *index;
+                self.store_n(&[base_index + 1, base_index]);
+            }
+            Instruction::FstoreN(index) => {
                 self.store_n(&[*index]);
             }
             Instruction::AloadN(index) => {
