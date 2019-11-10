@@ -93,6 +93,25 @@ impl BuiltInMethod {
                         Item::Float(value) => {
                             println!("{}", value);
                         }
+                        Item::Double(second) => {
+                            if let Some(Item::Double(first)) = stackframe.local_variables.get(1) {
+                                let value: u64 = (((*first as u64) << 32) as u64) | *second as u64;
+                                let s: i64 = if value >> 63 == 0 as u64 { 1 } else { -1 };
+                                let e = (value >> 52 as i32) & 0x7ff;
+                                let m = if e == 0 {
+                                    ((value & 0xfffffffffffff) << 1) as i64
+                                } else {
+                                    ((value & 0xfffffffffffff) | 0x10000000000000) as i64
+                                };
+                                println!(
+                                    "{}",
+                                    (s * m) as f64 * f64::powf(2.0f64, e as f64 - 1075 as f64)
+                                );
+                            } else {
+                                unreachable!("should exist long second item")
+                            }
+                            let _ = stackframe.operand_stack.stack.pop();
+                        }
                         _ => unimplemented!(),
                     };
                     let _ = stackframe.operand_stack.stack.pop();

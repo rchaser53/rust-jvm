@@ -362,7 +362,6 @@ impl ConstantLong {
     pub fn create_and_update_index(inputs: &mut [u8], index: usize) -> (ConstantLong, usize) {
         let (high_bytes, index) = extract_x_byte_as_usize(inputs, index, 4);
         let (low_bytes, index) = extract_x_byte_as_usize(inputs, index, 4);
-        // println!("{:x}, {:x}", high_bytes, low_bytes);
         (
             ConstantLong {
                 tag: ConstPoolTag::ConstantString,
