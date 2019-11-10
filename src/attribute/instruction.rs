@@ -27,6 +27,7 @@ pub enum Instruction {
     IstoreN(i32),                              // 0x3b(0) - 0x3e(3)
     LstoreN(usize),                            // 0x3f(0) - 0x42(3)
     FstoreN(usize),                            // 0x43(0) - 0x46(3)
+    DstoreN(usize),                            // 0x47(0) - 0x4a(3)
     AstoreN(usize),                            // 0x4b(0) - 0x4e(3)
     Iastore,                                   // 0x4f
     Lastore,                                   // 0x50
@@ -112,6 +113,7 @@ impl fmt::Display for Instruction {
             Instruction::IstoreN(val) => write!(f, "istore_{}", val),
             Instruction::LstoreN(val) => write!(f, "lstore_{}", val),
             Instruction::FstoreN(val) => write!(f, "fstore_{}", val),
+            Instruction::DstoreN(val) => write!(f, "dstore_{}", val),
             Instruction::Iastore => write!(f, "iastore"),
             Instruction::Lastore => write!(f, "lastore"),
             Instruction::AstoreN(val) => write!(f, "astore_{}", val),
@@ -323,13 +325,17 @@ impl Instruction {
             val @ 0x3f..=0x42 => {
                 simple_instruct!(Instruction::LstoreN(val - 0x3f));
             }
+            // fstore_n
+            val @ 0x43..=0x46 => {
+                simple_instruct!(Instruction::FstoreN(val - 0x43));
+            }
+            // dstore_n
+            val @ 0x47..=0x4a => {
+                simple_instruct!(Instruction::DstoreN(val - 0x47));
+            }
             // astore_n
             val @ 0x4b..=0x4e => {
                 simple_instruct!(Instruction::AstoreN(val - 0x4b));
-            }
-            // lstore_n
-            val @ 0x43..=0x46 => {
-                simple_instruct!(Instruction::FstoreN(val - 0x43));
             }
             // iastore
             0x4f => {
@@ -746,6 +752,7 @@ impl Instruction {
             | Instruction::IloadN(_)
             | Instruction::LstoreN(_)
             | Instruction::FstoreN(_)
+            | Instruction::DstoreN(_)
             | Instruction::LloadN(_)
             | Instruction::FloadN(_)
             | Instruction::AstoreN(_)

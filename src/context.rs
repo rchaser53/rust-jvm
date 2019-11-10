@@ -375,6 +375,9 @@ impl<'a> Context<'a> {
             Instruction::FstoreN(index) => {
                 self.store_n(&[*index]);
             }
+            Instruction::DstoreN(index) => {
+                self.store_n(&[*index]);
+            }
             Instruction::AloadN(index) => {
                 self.load_n(*index);
             }
