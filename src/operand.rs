@@ -18,6 +18,7 @@ pub enum Item {
     Int(i32),
     Long(usize),
     Float(f32),
+    Double(usize),
     String(usize),
     Boolean(bool),
     Classref(usize),
@@ -33,6 +34,7 @@ impl fmt::Display for Item {
             Item::Int(val) => write!(f, "int: {}", val),
             Item::Long(val) => write!(f, "long: {}", val),
             Item::Float(val) => write!(f, "float: {}", val),
+            Item::Double(val) => write!(f, "double: {}", val),
             Item::Boolean(val) => write!(f, "boolean: {}", val),
             Item::String(val) => write!(f, "string: {}", val),
             Item::Classref(val) => write!(f, "class_ref: {}", val),
@@ -57,6 +59,7 @@ impl PartialOrd for Item {
                     Ordering::Less
                 }
             }),
+            (Item::Double(left), Item::Double(right)) => Some(left.cmp(right)),
             (Item::Boolean(left), Item::Boolean(right)) => Some(left.cmp(right)),
             (Item::Long(left), Item::Long(right)) => Some(left.cmp(right)),
             (Item::Classref(left), Item::Classref(right)) => Some(left.cmp(right)),

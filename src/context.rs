@@ -188,6 +188,11 @@ impl<'a> Context<'a> {
                 let operand_stack = self.get_operand_stack();
                 operand_stack.push(Item::Float(*val));
             }
+            Instruction::DconstN(val) => {
+                let operand_stack = self.get_operand_stack();
+                operand_stack.push(Item::Double(0));
+                operand_stack.push(Item::Double(*val));
+            }
             // maybe need to fix for float or something like that
             Instruction::Bipush(val) => {
                 let operand_stack = self.get_operand_stack();

@@ -7,6 +7,7 @@ pub enum Instruction {
     IconstN(i32),                              // 0x02(-1) - 0x08(5)
     LconstN(usize),                            // 0x09(0) - 0x0a(1)
     FconstN(f32),                              // 0x0b(0) - 0x0d(1)
+    DconstN(usize),                            // 0x0e(0) - 0x0f(1)
     Bipush(i32),                               // 0x10
     Sipush(usize),                             // 0x11
     Ldc(usize),                                // 0x12
@@ -89,6 +90,7 @@ impl fmt::Display for Instruction {
             Instruction::IconstN(val) => write!(f, "iconst_{}", val),
             Instruction::LconstN(val) => write!(f, "lconst_{}", val),
             Instruction::FconstN(val) => write!(f, "fconst_{}", val),
+            Instruction::DconstN(val) => write!(f, "dconst_{}", val),
             Instruction::Bipush(val) => write!(f, "bipush         {}", val),
             Instruction::Sipush(val) => write!(f, "sipush         {}", val),
             Instruction::Ldc(val) => write!(f, "ldc             #{}", val),
@@ -213,6 +215,10 @@ impl Instruction {
             // fconst_n
             val @ 0x0b..=0x0d => {
                 simple_instruct!(Instruction::FconstN((val - 0x0b) as f32));
+            }
+            // dconst_n
+            val @ 0x0e..=0x0f => {
+                simple_instruct!(Instruction::DconstN(val - 0x0e));
             }
             // bipush
             0x10 => {
@@ -735,6 +741,7 @@ impl Instruction {
             | Instruction::IconstN(_)
             | Instruction::LconstN(_)
             | Instruction::FconstN(_)
+            | Instruction::DconstN(_)
             | Instruction::IstoreN(_)
             | Instruction::IloadN(_)
             | Instruction::LstoreN(_)
