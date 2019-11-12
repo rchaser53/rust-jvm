@@ -190,8 +190,13 @@ impl<'a> Context<'a> {
             }
             Instruction::DconstN(val) => {
                 let operand_stack = self.get_operand_stack();
+                let second = match val {
+                    0 => 0,
+                    1 => 0x3FF00000,
+                    _ => unreachable!(),
+                };
                 operand_stack.push(Item::Double(0));
-                operand_stack.push(Item::Double(*val));
+                operand_stack.push(Item::Double(second));
             }
             // maybe need to fix for float or something like that
             Instruction::Bipush(val) => {
