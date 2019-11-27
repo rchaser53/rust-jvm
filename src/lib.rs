@@ -15,11 +15,13 @@ mod order;
 mod stackframe;
 mod string_pool;
 mod utils;
+mod wasm;
 
 use crate::context::Context;
 use crate::java_class::{custom::Custom, default::setup_class_map};
 use crate::string_pool::StringPool;
 use crate::utils::read_file;
+use crate::wasm::*;
 
 use std::path::Path;
 

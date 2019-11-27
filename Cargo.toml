@@ -5,8 +5,25 @@ authors = ["rchaser53 <tayoshizawa29@gmail.com>"]
 edition = "2018"
 
 [dependencies]
-lazy_static = "1.4.0"
 clap = "2.33.0"
+lazy_static = "1.4.0"
+wasm-bindgen = "0.2.55"
+
+[dependencies.web-sys]
+version = "0.3.32"
+features = [
+  'CssStyleDeclaration',
+  'Document',
+  'Element',
+  'HtmlElement',
+  'EventTarget',
+  'Node',
+  'Window',
+  'console'
+]
+
+[dependencies.js-sys]
+version = "0.3.32"
 
 [[bin]]
 name = "rj"
@@ -15,3 +32,6 @@ path = "src/bin/main.rs"
 [[test]]
 name = "test"
 harness = false
+
+[lib]
+crate-type = ["cdylib", "lib"]
