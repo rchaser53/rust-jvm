@@ -192,7 +192,7 @@ impl fmt::Display for Instruction {
 impl Instruction {
     pub fn create_and_push(
         codes: &mut Vec<Instruction>,
-        inputs: &mut [u8],
+        inputs: &[u8],
         index: usize,
         tag: usize,
     ) -> (usize, usize) {

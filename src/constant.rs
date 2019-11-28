@@ -8,7 +8,7 @@ pub struct ConstantPool(pub Vec<ConstPoolItem>);
 impl ConstantPool {
     pub fn new(
         string_map: &mut StringPool,
-        inputs: &mut [u8],
+        inputs: &[u8],
         mut index: usize,
         length: usize,
     ) -> (ConstantPool, usize) {
@@ -359,7 +359,7 @@ pub struct ConstantLong {
 }
 
 impl ConstantLong {
-    pub fn create_and_update_index(inputs: &mut [u8], index: usize) -> (ConstantLong, usize) {
+    pub fn create_and_update_index(inputs: &[u8], index: usize) -> (ConstantLong, usize) {
         let (high_bytes, index) = extract_x_byte_as_usize(inputs, index, 4);
         let (low_bytes, index) = extract_x_byte_as_usize(inputs, index, 4);
         (
@@ -381,7 +381,7 @@ pub struct ConstantDouble {
 }
 
 impl ConstantDouble {
-    pub fn create_and_update_index(inputs: &mut [u8], index: usize) -> (ConstantDouble, usize) {
+    pub fn create_and_update_index(inputs: &[u8], index: usize) -> (ConstantDouble, usize) {
         let (high_bytes, index) = extract_x_byte_as_usize(inputs, index, 4);
         let (low_bytes, index) = extract_x_byte_as_usize(inputs, index, 4);
         (
@@ -402,7 +402,7 @@ pub struct ConstantString {
 }
 
 impl ConstantString {
-    pub fn create_and_update_index(inputs: &mut [u8], index: usize) -> (ConstantString, usize) {
+    pub fn create_and_update_index(inputs: &[u8], index: usize) -> (ConstantString, usize) {
         let (string_index, index) = extract_x_byte_as_usize(inputs, index, 2);
         (
             ConstantString {
@@ -421,7 +421,7 @@ pub struct ConstantFloat {
 }
 
 impl ConstantFloat {
-    pub fn create_and_update_index(inputs: &mut [u8], index: usize) -> (ConstantFloat, usize) {
+    pub fn create_and_update_index(inputs: &[u8], index: usize) -> (ConstantFloat, usize) {
         let (bytes, index) = extract_x_byte_as_usize(inputs, index, 4);
         (
             ConstantFloat {
@@ -441,7 +441,7 @@ pub struct ConstantFieldref {
 }
 
 impl ConstantFieldref {
-    pub fn create_and_update_index(inputs: &mut [u8], index: usize) -> (ConstantFieldref, usize) {
+    pub fn create_and_update_index(inputs: &[u8], index: usize) -> (ConstantFieldref, usize) {
         let (class_index, index) = extract_x_byte_as_usize(inputs, index, 2);
         let (name_and_type_index, index) = extract_x_byte_as_usize(inputs, index, 2);
         (
@@ -463,10 +463,7 @@ pub struct ConstantNameAndType {
 }
 
 impl ConstantNameAndType {
-    pub fn create_and_update_index(
-        inputs: &mut [u8],
-        index: usize,
-    ) -> (ConstantNameAndType, usize) {
+    pub fn create_and_update_index(inputs: &[u8], index: usize) -> (ConstantNameAndType, usize) {
         let (name_index, index) = extract_x_byte_as_usize(inputs, index, 2);
         let (descriptor_index, index) = extract_x_byte_as_usize(inputs, index, 2);
 
@@ -488,7 +485,7 @@ pub struct ConstantClass {
 }
 
 impl ConstantClass {
-    pub fn create_and_update_index(inputs: &mut [u8], index: usize) -> (ConstantClass, usize) {
+    pub fn create_and_update_index(inputs: &[u8], index: usize) -> (ConstantClass, usize) {
         let (name_index, index) = extract_x_byte_as_usize(inputs, index, 2);
         (
             ConstantClass {
@@ -508,7 +505,7 @@ pub struct ConstantMethodref {
 }
 
 impl ConstantMethodref {
-    pub fn create_and_update_index(inputs: &mut [u8], index: usize) -> (ConstantMethodref, usize) {
+    pub fn create_and_update_index(inputs: &[u8], index: usize) -> (ConstantMethodref, usize) {
         let (class_index, index) = extract_x_byte_as_usize(inputs, index, 2);
         let (name_and_type_index, index) = extract_x_byte_as_usize(inputs, index, 2);
 
@@ -534,7 +531,7 @@ pub struct ConstantUtf8 {
 impl ConstantUtf8 {
     pub fn create_and_update_index(
         string_map: &mut StringPool,
-        inputs: &mut [u8],
+        inputs: &[u8],
         index: usize,
     ) -> (ConstantUtf8, usize) {
         let (utf8_length, index) = extract_x_byte_as_usize(inputs, index, 2);

@@ -21,7 +21,7 @@ pub fn read_file<'a, P: AsRef<Path>>(
     Ok(buffer.as_mut_slice())
 }
 
-pub fn extract_x_byte_as_vec(input: &mut [u8], index: usize, x: usize) -> (Vec<u8>, usize) {
+pub fn extract_x_byte_as_vec(input: &[u8], index: usize, x: usize) -> (Vec<u8>, usize) {
     let mut result = Vec::with_capacity(x);
     for i in 0..x {
         result.push(input[index + i]);
@@ -29,7 +29,7 @@ pub fn extract_x_byte_as_vec(input: &mut [u8], index: usize, x: usize) -> (Vec<u
     (result, index + x)
 }
 
-pub fn extract_x_byte_as_usize(input: &mut [u8], index: usize, x: usize) -> (usize, usize) {
+pub fn extract_x_byte_as_usize(input: &[u8], index: usize, x: usize) -> (usize, usize) {
     let mut result: usize = 0;
     for i in 0..x {
         result += (input[index + i] as usize) << (x - i - 1) * 8;

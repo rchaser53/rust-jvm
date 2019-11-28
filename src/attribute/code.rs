@@ -23,7 +23,7 @@ impl Code {
     pub fn new(
         string_pool: &mut StringPool,
         constant_pool: &ConstantPool,
-        inputs: &mut [u8],
+        inputs: &[u8],
         index: usize,
         attribute_name_index: u16,
     ) -> (Code, usize) {

@@ -31,7 +31,7 @@ pub struct Custom {
 }
 
 impl Custom {
-    pub fn new(string_pool: &mut StringPool, input: &mut [u8], index: usize) -> (Custom, usize) {
+    pub fn new(string_pool: &mut StringPool, input: &[u8], index: usize) -> (Custom, usize) {
         let (magic, index) = extract_x_byte_as_usize(input, index, 4);
         let magic = magic as u32;
 

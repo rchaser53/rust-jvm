@@ -36,7 +36,7 @@ impl Attribute {
     pub fn new(
         string_pool: &mut StringPool,
         constant_pool: &ConstantPool,
-        inputs: &mut [u8],
+        inputs: &[u8],
         index: usize,
     ) -> (Attribute, usize) {
         let (attribute_name_index, index) = extract_x_byte_as_usize(inputs, index, 2);
@@ -160,7 +160,7 @@ pub struct SourceFile {
 }
 
 impl SourceFile {
-    pub fn new(inputs: &mut [u8], index: usize, attribute_name_index: u16) -> (SourceFile, usize) {
+    pub fn new(inputs: &[u8], index: usize, attribute_name_index: u16) -> (SourceFile, usize) {
         let (attribute_length, index) = extract_x_byte_as_usize(inputs, index, 4);
         let attribute_length = attribute_length as u32;
 
@@ -191,11 +191,7 @@ pub struct LineNumberTable {
 }
 
 impl LineNumberTable {
-    pub fn new(
-        inputs: &mut [u8],
-        index: usize,
-        attribute_name_index: u16,
-    ) -> (LineNumberTable, usize) {
+    pub fn new(inputs: &[u8], index: usize, attribute_name_index: u16) -> (LineNumberTable, usize) {
         let (attribute_length, index) = extract_x_byte_as_usize(inputs, index, 4);
         let attribute_length = attribute_length as u32;
 
@@ -264,11 +260,7 @@ pub struct StackMapTable {
 }
 
 impl StackMapTable {
-    pub fn new(
-        inputs: &mut [u8],
-        index: usize,
-        attribute_name_index: u16,
-    ) -> (StackMapTable, usize) {
+    pub fn new(inputs: &[u8], index: usize, attribute_name_index: u16) -> (StackMapTable, usize) {
         let (attribute_length, index) = extract_x_byte_as_usize(inputs, index, 4);
         let attribute_length = attribute_length as u32;
 
@@ -349,7 +341,7 @@ pub struct FullFrame {
 }
 
 impl StackMapFrame {
-    pub fn new(inputs: &mut [u8], index: usize) -> (StackMapFrame, usize) {
+    pub fn new(inputs: &[u8], index: usize) -> (StackMapFrame, usize) {
         let (frame_type, index) = extract_x_byte_as_usize(inputs, index, 1);
         match frame_type {
             0..=63 => (StackMapFrame::SameFrame(SameFrame { frame_type }), index),
@@ -509,7 +501,7 @@ impl fmt::Display for VerificationTypeInfo {
 }
 
 pub fn extract_verification_type_info(
-    inputs: &mut [u8],
+    inputs: &[u8],
     original_index: usize,
     length: usize,
 ) -> (Vec<VerificationTypeInfo>, usize) {

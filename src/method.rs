@@ -18,7 +18,7 @@ impl Method {
     pub fn new(
         string_pool: &mut StringPool,
         constant_pool: &ConstantPool,
-        inputs: &mut [u8],
+        inputs: &[u8],
         index: usize,
     ) -> (Method, usize) {
         let (access_flag_num, index) = extract_x_byte_as_usize(inputs, index, 2);
