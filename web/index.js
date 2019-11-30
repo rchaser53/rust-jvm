@@ -9,15 +9,14 @@ window.onload = async () => {
       const reader = new FileReader();
       reader.onload = (function(theFile) {
         return function(e) {
-          const value = e.target.result;
-          result = atob(value.slice(value.indexOf(',') + 1));
+          result = new Uint8Array(e.target.result);
         };
       })(file);
-      reader.readAsDataURL(file);
+      reader.readAsArrayBuffer(file);
     }
   });
-  
+
   button.addEventListener("click", () => {
-    rust.greet(result);
+    rust.greet("Test.class", result);
   })
 }
