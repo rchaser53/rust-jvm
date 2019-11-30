@@ -5,7 +5,19 @@ use web_sys::{Document, HtmlElement};
 #[cfg(target_arch = "wasm32")]
 #[wasm_bindgen]
 extern "C" {
-    fn alert(s: &str);
+    pub fn alert(s: &str);
+
+    #[wasm_bindgen(js_namespace = console)]
+    pub fn log(s: &str);
+
+    #[wasm_bindgen(js_namespace = console, js_name = log)]
+    pub fn log_u8_array(a: &[u8]);
+
+    #[wasm_bindgen(js_namespace = console, js_name = log)]
+    pub fn log_u32(a: u32);
+
+    #[wasm_bindgen(js_namespace = console, js_name = log)]
+    pub fn log_u16(a: u16);
 }
 
 #[wasm_bindgen(start)]
