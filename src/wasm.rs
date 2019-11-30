@@ -2,6 +2,12 @@ use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsCast;
 use web_sys::{Document, HtmlElement};
 
+use crate::context::Context;
+use crate::java_class::default::setup_class_map;
+use crate::java_class::custom::*;
+use crate::string_pool::StringPool;
+use std::path::Path;
+
 #[cfg(target_arch = "wasm32")]
 #[wasm_bindgen]
 extern "C" {
@@ -48,13 +54,30 @@ pub fn setup_clicker(document: &Document) {
     a.forget();
 }
 
+#[cfg(target_arch = "wasm32")]
+#[wasm_bindgen]
+pub fn run_wasm(class_name: &str, inputs: &[u8]) {
+    let mut string_pool = StringPool::new();
+
+    let (class_file, _pc_count) = Custom::new(&mut string_pool, inputs, 0);
+    let class_map = setup_class_map(&mut string_pool);
+    let parent_path = if let Some(parent_path) = Path::new(&class_name).parent() {
+        parent_path.to_str().unwrap()
+    } else {
+        "./"
+    };
+
+    let mut context = Context::new(&mut string_pool, class_map, &class_file, parent_path);
+    context.run_entry_file(&mut string_pool, class_file);
+}
+
 #[cfg(unix)]
-pub fn greet(name: &str) {
-    println!("Hello, {}! in standard environment", name);
+pub fn print_log(value: &str) {
+    println!("{}", value);
 }
 
 #[cfg(target_arch = "wasm32")]
 #[wasm_bindgen]
-pub fn greet(name: &str) {
-    alert(&format!("Hello, {}! in wasm", name));
+pub fn print_log(value: &str) {
+    alert(value);
 }

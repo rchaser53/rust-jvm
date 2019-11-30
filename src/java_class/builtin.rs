@@ -4,6 +4,7 @@ use crate::constant::ConstantPool;
 use crate::operand::Item;
 use crate::stackframe::Stackframe;
 use crate::string_pool::StringPool;
+use crate::wasm::print_log;
 
 #[derive(Debug)]
 pub struct BuiltIn {
@@ -63,14 +64,14 @@ impl BuiltInMethod {
                         Item::Fieldref(index) => {
                             let value =
                                 string_map.get_value(&constant_pool.get_fieldref_as_utf8(*index));
-                            println!("{}", value);
+                            print_log(&format!("{}", value));
                         }
                         Item::String(id) => {
                             let value = string_map.get_value(id);
-                            println!("{}", value);
+                            print_log(&value);
                         }
                         Item::Int(value) => {
-                            println!("{}", value);
+                            print_log(&format!("{}", value));
                         }
                         Item::Long(second) => {
                             if let Some(Item::Long(first)) = stackframe.local_variables.get(1) {
@@ -80,7 +81,7 @@ impl BuiltInMethod {
                                 } else {
                                     value as i64
                                 };
-                                println!("{}", value);
+                                print_log(&format!("{}", value));
                             } else {
                                 unreachable!("should exist long second item")
                             }
@@ -88,10 +89,10 @@ impl BuiltInMethod {
                         }
                         // TBD should fix to output value correctly
                         Item::Objectref(object_ref) => {
-                            println!("objectref: {}", object_ref);
+                            print_log(&format!("objectref: {}", object_ref));
                         }
                         Item::Float(value) => {
-                            println!("{}", value);
+                            print_log(&format!("{}", value));
                         }
                         Item::Double(second) => {
                             if let Some(Item::Double(first)) = stackframe.local_variables.get(1) {
@@ -103,10 +104,10 @@ impl BuiltInMethod {
                                 } else {
                                     ((value & 0xfffffffffffff) | 0x10000000000000) as i64
                                 };
-                                println!(
+                                print_log(&format!(
                                     "{}",
                                     (s * m) as f64 * f64::powf(2.0f64, e as f64 - 1075 as f64)
-                                );
+                                ));
                             } else {
                                 unreachable!("should exist long second item")
                             }

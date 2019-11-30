@@ -21,6 +21,8 @@ use crate::context::Context;
 use crate::java_class::{custom::Custom, default::setup_class_map};
 use crate::string_pool::StringPool;
 use crate::utils::read_file;
+
+#[cfg(target_arch = "wasm32")]
 use crate::wasm::*;
 
 use std::path::Path;
