@@ -54,16 +54,14 @@ pub fn execute(file_name: String, debug_mode: usize) {
 
 #[cfg(target_arch = "wasm32")]
 #[wasm_bindgen]
-pub fn run_wasm(class_name: &str, inputs: &[u8]) {
+pub fn run_wasm(class_name: &str) {
     let mut string_pool = StringPool::new();
+    let inputs = get_file_content(class_name);
+    let inputs = inputs.as_slice();
 
     let (class_file, _pc_count) = Custom::new(&mut string_pool, inputs, 0);
     let class_map = setup_class_map(&mut string_pool);
-    let parent_path = if let Some(parent_path) = Path::new(&class_name).parent() {
-        parent_path.to_str().unwrap()
-    } else {
-        "./"
-    };
+    let parent_path = "./";
 
     let mut context = Context::new(&mut string_pool, class_map, &class_file, parent_path);
     context.run_entry_file(&mut string_pool, class_file);

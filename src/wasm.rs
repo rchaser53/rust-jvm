@@ -21,7 +21,7 @@ extern "C" {
 #[cfg(target_arch = "wasm32")]
 #[wasm_bindgen(module = "/web/map.js")]
 extern "C" {
-    pub fn foo() -> u16;
+    pub fn get_file_content(key: &str) -> Vec<u8>;
 }
 
 #[cfg(unix)]

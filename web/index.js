@@ -1,4 +1,4 @@
-const map = {};
+window.map = {};
 window.onload = async () => {
   const rust = await import('./pkg');
   const button = document.querySelector("#emitButton");
@@ -12,7 +12,7 @@ window.onload = async () => {
       reader.onload = (function(theFile) {
         return function(e) {
           fileName = file.name;
-          result = new Uint8Array(e.target.result);
+          window.map[file.name] = new Uint8Array(e.target.result);
         };
       })(file);
       reader.readAsArrayBuffer(file);
@@ -20,6 +20,6 @@ window.onload = async () => {
   });
 
   button.addEventListener("click", () => {
-    rust.run_wasm(fileName, result);
+    rust.run_wasm(fileName);
   })
 }
