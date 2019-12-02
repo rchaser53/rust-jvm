@@ -1,3 +1,4 @@
+const map = {};
 window.onload = async () => {
   const rust = await import('./pkg');
   const button = document.querySelector("#emitButton");
