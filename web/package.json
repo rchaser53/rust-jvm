@@ -1,12 +1,10 @@
 {
   "name": "rj",
   "version": "1.0.0",
-  "description": "![build_status](https://travis-ci.org/rchaser53/rj.svg?branch=master)",
+  "description": "![build_status](https://travis-ci.org/rchaser53/rust-jvm.svg?branch=master)",
   "main": "index.js",
-  "directories": {
-    "test": "tests"
-  },
   "scripts": {
+    "format": "prettier --write \"**/*.{md,js,ts,vue,json}\"",
     "serve": "webpack-dev-server"
   },
   "repository": {
@@ -25,6 +23,7 @@
     "css-loader": "^3.2.1",
     "html-webpack-plugin": "^3.2.0",
     "node-sass": "^4.13.0",
+    "prettier": "^1.19.1",
     "sass-loader": "^8.0.0",
     "style-loader": "^1.0.1",
     "text-encoding": "^0.7.0",

@@ -5,10 +5,15 @@
       <label></label>
     </div>
     <div>
-      <button @click="runJVM" >run Rust JVM</button>
+      <button @click="runJVM">run Rust JVM</button>
       <label class="uploadLabel" for="upload">
         Select File
-        <input type="file" id="upload" placeholder=" " multiple="multiple" accept=".class" />
+        <input
+          type="file"
+          id="upload"
+          multiple="multiple"
+          accept=".class"
+        />
       </label>
     </div>
   </div>
@@ -31,17 +36,17 @@ export default {
       this.wasmEvent(this.entryFileName);
     }
   }
-}
+};
 </script>
 
 <style scoped>
-  .uploadLabel {
-      cursor: pointer;
-      padding: 15px;
-      margin: 0 10px 0 0;
-      display: inline-block;
-  }
-  .uploadLabel input {
-      display: none;
-  }
+.uploadLabel {
+  cursor: pointer;
+  padding: 15px;
+  margin: 0 10px 0 0;
+  display: inline-block;
+}
+.uploadLabel input {
+  display: none;
+}
 </style>
