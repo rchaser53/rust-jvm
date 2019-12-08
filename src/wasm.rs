@@ -1,3 +1,4 @@
+#[allow(unused_imports)]
 use wasm_bindgen::prelude::*;
 
 #[cfg(target_arch = "wasm32")]

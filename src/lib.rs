@@ -25,6 +25,8 @@ use option::RJ_OPTION;
 
 #[cfg(target_arch = "wasm32")]
 use crate::wasm::*;
+
+#[allow(unused_imports)]
 use wasm_bindgen::prelude::*;
 
 use std::path::Path;
@@ -66,30 +68,3 @@ pub fn run_wasm(class_name: &str) {
     let mut context = Context::new(&mut string_pool, class_map, &class_file, parent_path);
     context.run_entry_file(&mut string_pool, class_file);
 }
-
-// let mut string_pool = StringPool::new();
-// let mut class_map = setup_class_map(&mut string_pool);
-// let (class, _) = Custom::new(&mut string_pool, result, 0);
-// let mut context = Context::new(&mut string_pool, class_map, &class, "./");
-
-// context.run_entry_file(&mut string_pool, class);
-
-// for inputs in class_inputs {
-//     let (class, _) = Custom::new(&mut string_pool, inputs, 0);
-//     context.class_map.insert(class.this_class_name(), class);
-// }
-
-//
-
-// let mut string_pool = StringPool::new();
-
-// let (class_file, _pc_count) = Custom::new(&mut string_pool, inputs, 0);
-// let class_map = setup_class_map(&mut string_pool);
-// let parent_path = if let Some(parent_path) = Path::new(&class_name).parent() {
-//     parent_path.to_str().unwrap()
-// } else {
-//     "./"
-// };
-
-// let mut context = Context::new(&mut string_pool, class_map, &class_file, parent_path);
-// context.run_entry_file(&mut string_pool, class_file);
