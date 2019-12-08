@@ -10,8 +10,9 @@ use crate::operand::Item;
 use crate::stackframe::Stackframe;
 use crate::string_pool::StringPool;
 use crate::utils::{
-    emit_debug_info, iniailize_primitive_array, initialize_objectref_array, read_file,
+    emit_debug_info, iniailize_primitive_array, initialize_objectref_array,
 };
+use crate::wasm::get_file_content;
 
 use std::cell::RefCell;
 use std::cmp::Ordering;
@@ -994,12 +995,8 @@ ${:?}",
         let class_name = string_map.get_value(&class_name);
         let class_name = class_name + ".class";
         let class_path = Path::new(self.root_path).join(&class_name);
-        let mut buffer = vec![];
-        let buffer = read_file(&class_path, &mut buffer).expect(&format!(
-            "need to add handler for the case failed to find the class file: {}",
-            class_name
-        ));
-        let (new_class_file, _pc_count) = Custom::new(string_map, buffer, 0);
+        let buffer = get_file_content(&class_path.to_str().unwrap());
+        let (new_class_file, _pc_count) = Custom::new(string_map, &buffer, 0);
         // TBD should be set initial value
         set_static_fields(string_map, &new_class_file, &mut self.static_fields);
         new_class_file

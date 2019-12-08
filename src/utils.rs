@@ -12,13 +12,13 @@ use std::io::Result;
 use std::iter;
 use std::path::Path;
 
-pub fn read_file<'a, P: AsRef<Path>>(
-    input: &'a P,
-    buffer: &'a mut Vec<u8>,
-) -> Result<&'a mut [u8]> {
+pub fn read_file<P: AsRef<Path>>(
+    input: &P,
+) -> Result<Vec<u8>> {
+    let mut result = vec![];
     let mut f = File::open(input)?;
-    f.read_to_end(buffer)?;
-    Ok(buffer.as_mut_slice())
+    f.read_to_end(&mut result)?;
+    Ok(result)
 }
 
 pub fn extract_x_byte_as_vec(input: &[u8], index: usize, x: usize) -> (Vec<u8>, usize) {
