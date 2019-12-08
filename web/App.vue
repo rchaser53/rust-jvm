@@ -1,11 +1,11 @@
 <template>
   <div>
     <div>
-      <label>Entry File Name</label>
-      <label></label>
+      <label>Entry File Name:</label>
+      <label>{{ entryFileName }}</label>
     </div>
     <div>
-      <button @click="runJVM">run Rust JVM</button>
+      <button :disabled="!canRunJVM" @click="runJVM">run Rust JVM</button>
       <label class="uploadLabel" for="upload">
         Select File
         <input
@@ -34,6 +34,11 @@ export default {
     wasmEvent: {
       type: Function,
       required: true
+    }
+  },
+  computed: {
+    canRunJVM() {
+      return this.entryFileName !== "";
     }
   },
   methods: {

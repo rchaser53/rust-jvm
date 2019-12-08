@@ -12,7 +12,8 @@ window.onload = async () => {
     },
     data() {
       return {
-        entryFileName: ""
+        entryFileName: "",
+        files: []
       };
     },
     template: `<app
@@ -25,14 +26,17 @@ window.onload = async () => {
         rust.run_wasm(entryFileName);
       },
       uploadFiles(e) {
-        const self = this;
         const files = e.target.files;
         for (let file of files) {
           const fileName = file.name;
+          this.entryFileName = fileName;
+          if (!this.files.includes(fileName)) {
+            this.files.push(fileName);
+          }
+
           const reader = new FileReader();
           reader.onload = (function(_) {
             return function(e) {
-              self.entryFileName = fileName;
               window.map[fileName] = new Uint8Array(e.target.result);
             };
           })(file);
