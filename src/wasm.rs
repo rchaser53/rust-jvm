@@ -1,3 +1,4 @@
+#[cfg(unix)]
 use crate::utils::read_file;
 
 #[allow(unused_imports)]

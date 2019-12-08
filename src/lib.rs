@@ -56,7 +56,7 @@ pub fn run_wasm(class_name: &str) {
     let inputs = get_file_content(class_name);
     let (class_file, _pc_count) = Custom::new(&mut string_pool, &inputs, 0);
     let class_map = setup_class_map(&mut string_pool);
-    let parent_path = "./";
+    let parent_path = "";
 
     let mut context = Context::new(&mut string_pool, class_map, &class_file, parent_path);
     context.run_entry_file(&mut string_pool, class_file);
