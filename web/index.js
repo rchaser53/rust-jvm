@@ -18,6 +18,7 @@ window.onload = async () => {
     },
     template: `<app
   :entry-file-name="entryFileName"
+  :selected-files="files"
   :upload-files="uploadFiles"
   :wasm-event="runWasm"
 />`,

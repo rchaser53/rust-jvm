@@ -3,24 +3,37 @@
     <div class="appHeader">
       <label :class="runJVMButtonClass" for="runJVM">
         Run Rust JVM
-        <input type="button" id="runJVM" :disabled="!canRunJVM" @click="runJVM">
+        <input
+          type="button"
+          id="runJVM"
+          :disabled="!canRunJVM"
+          @click="runJVM"
+        />
       </label>
-      <div style="margin: 2px;">
-        <label>Entry File Name:</label>
-        <label>{{ entryFileName }}</label>
+      <div>
+        <label class="labelButton" for="upload">
+          Upload File
+          <input
+            type="file"
+            id="upload"
+            @change="uploads"
+            multiple="multiple"
+            accept=".class"
+          />
+        </label>
       </div>
     </div>
     <div>
-      <label class="labelButton" for="upload">
-        Select File
-        <input
-          type="file"
-          id="upload"
-          @change="uploads"
-          multiple="multiple"
-          accept=".class"
-        />
-      </label>
+      <div>
+        <label>Entry File Name:</label>
+        <label>{{ entryFileName }}</label>
+      </div>
+      <div>
+        <label>Uploaded Class Files:</label>
+        <ul class="fileList">
+          <li :key="file" v-for="file in selectedFiles">{{ file }}</li>
+        </ul>
+      </div>
     </div>
   </div>
 </template>
@@ -39,6 +52,10 @@ export default {
     wasmEvent: {
       type: Function,
       required: true
+    },
+    selectedFiles: {
+      type: Array,
+      required: true
     }
   },
   computed: {
@@ -46,9 +63,7 @@ export default {
       return this.entryFileName !== "";
     },
     runJVMButtonClass() {
-      return this.canRunJVM
-        ? "labelButton"
-        : "labelButton disable";
+      return this.canRunJVM ? "labelButton" : "labelButton disable";
     }
   },
   methods: {
@@ -69,7 +84,7 @@ export default {
 
 .labelButton {
   cursor: pointer;
-  border: solid 0.5px #9E9E9E;
+  border: solid 0.5px #9e9e9e;
   padding: 2px 4px;
   margin: 2px;
   line-height: 2em;
@@ -81,7 +96,11 @@ export default {
 }
 
 .disable {
-  background-color: #AAA;
-  color: #DDD;
+  background-color: #aaa;
+  color: #ddd;
+}
+
+.fileList {
+  margin: 0px;
 }
 </style>
