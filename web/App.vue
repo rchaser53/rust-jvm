@@ -1,12 +1,17 @@
 <template>
   <div>
-    <div>
-      <label>Entry File Name:</label>
-      <label>{{ entryFileName }}</label>
+    <div class="appHeader">
+      <label :class="runJVMButtonClass" for="runJVM">
+        Run Rust JVM
+        <input type="button" id="runJVM" :disabled="!canRunJVM" @click="runJVM">
+      </label>
+      <div style="margin: 2px;">
+        <label>Entry File Name:</label>
+        <label>{{ entryFileName }}</label>
+      </div>
     </div>
     <div>
-      <button :disabled="!canRunJVM" @click="runJVM">run Rust JVM</button>
-      <label class="uploadLabel" for="upload">
+      <label class="labelButton" for="upload">
         Select File
         <input
           type="file"
@@ -39,6 +44,11 @@ export default {
   computed: {
     canRunJVM() {
       return this.entryFileName !== "";
+    },
+    runJVMButtonClass() {
+      return this.canRunJVM
+        ? "labelButton"
+        : "labelButton disable";
     }
   },
   methods: {
@@ -53,13 +63,25 @@ export default {
 </script>
 
 <style scoped>
-.uploadLabel {
-  cursor: pointer;
-  padding: 15px;
-  margin: 0 10px 0 0;
-  display: inline-block;
+.appHeader {
+  display: flex;
 }
-.uploadLabel input {
+
+.labelButton {
+  cursor: pointer;
+  border: solid 0.5px #9E9E9E;
+  padding: 2px 4px;
+  margin: 2px;
+  line-height: 2em;
+  border-radius: 4px;
+  font: 400 11px system-ui;
+}
+.labelButton input {
   display: none;
+}
+
+.disable {
+  background-color: #AAA;
+  color: #DDD;
 }
 </style>
