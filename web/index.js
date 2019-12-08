@@ -15,11 +15,17 @@ window.onload = async () => {
         entryFileName: ""
       };
     },
-    template: `<app :entry-file-name="entryFileName" :wasm-event="runWasm" />`,
-    mounted() {
-      const upload = document.querySelector("#upload");
-      const self = this;
-      upload.addEventListener("change", e => {
+    template: `<app
+  :entry-file-name="entryFileName"
+  :upload-files="uploadFiles"
+  :wasm-event="runWasm"
+/>`,
+    methods: {
+      runWasm(entryFileName) {
+        rust.run_wasm(entryFileName);
+      },
+      uploadFiles(e) {
+        const self = this;
         const files = e.target.files;
         for (let file of files) {
           const fileName = file.name;
@@ -32,11 +38,6 @@ window.onload = async () => {
           })(file);
           reader.readAsArrayBuffer(file);
         }
-      });
-    },
-    methods: {
-      runWasm(entryFileName) {
-        rust.run_wasm(entryFileName);
       }
     }
   });

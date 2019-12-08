@@ -11,6 +11,7 @@
         <input
           type="file"
           id="upload"
+          @change="uploads"
           multiple="multiple"
           accept=".class"
         />
@@ -26,12 +27,19 @@ export default {
       type: String,
       required: true
     },
+    uploadFiles: {
+      type: Function,
+      required: true
+    },
     wasmEvent: {
       type: Function,
       required: true
     }
   },
   methods: {
+    uploads(e) {
+      this.uploadFiles(e);
+    },
     runJVM() {
       this.wasmEvent(this.entryFileName);
     }
