@@ -1,4 +1,4 @@
-![build_status](https://travis-ci.org/rchaser53/rj.svg?branch=master)
+![build_status](https://travis-ci.org/rchaser53/rust-jvm.svg?branch=master)
 
 # How to play
 
