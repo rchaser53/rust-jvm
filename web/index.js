@@ -13,26 +13,30 @@ window.onload = async () => {
     data() {
       return {
         entryFileName: "",
-        files: []
+        fileNames: []
       };
     },
     template: `<app
   :entry-file-name="entryFileName"
-  :selected-files="files"
+  :selected-file-names="fileNames"
   :upload-files="uploadFiles"
+  :upadate-entry-file-name="upadateEntryFileName"
   :wasm-event="runWasm"
 />`,
     methods: {
       runWasm(entryFileName) {
         rust.run_wasm(entryFileName);
       },
+      upadateEntryFileName(fileName) {
+        this.entryFileName = fileName;
+      },
       uploadFiles(e) {
         const files = e.target.files;
         for (let file of files) {
           const fileName = file.name;
           this.entryFileName = fileName;
-          if (!this.files.includes(fileName)) {
-            this.files.push(fileName);
+          if (!this.fileNames.includes(fileName)) {
+            this.fileNames.push(fileName);
           }
 
           const reader = new FileReader();

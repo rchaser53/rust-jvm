@@ -30,8 +30,8 @@
       </div>
       <div>
         <label>Uploaded Class Files:</label>
-        <ul class="fileList">
-          <li :key="file" v-for="file in selectedFiles">{{ file }}</li>
+        <ul class="fileNameList">
+          <li v-for="fileName in selectedFileNames" :key="fileName" @click="selectEntryFileName(fileName)">{{ fileName }}</li>
         </ul>
       </div>
     </div>
@@ -45,6 +45,14 @@ export default {
       type: String,
       required: true
     },
+    selectedFileNames: {
+      type: Array,
+      required: true
+    },
+    upadateEntryFileName: {
+      type: Function,
+      required: true
+    },
     uploadFiles: {
       type: Function,
       required: true
@@ -53,10 +61,6 @@ export default {
       type: Function,
       required: true
     },
-    selectedFiles: {
-      type: Array,
-      required: true
-    }
   },
   computed: {
     canRunJVM() {
@@ -67,11 +71,14 @@ export default {
     }
   },
   methods: {
-    uploads(e) {
-      this.uploadFiles(e);
-    },
     runJVM() {
       this.wasmEvent(this.entryFileName);
+    },
+    selectEntryFileName(value) {
+      this.upadateEntryFileName(value);
+    },
+    uploads(e) {
+      this.uploadFiles(e);
     }
   }
 };
@@ -100,7 +107,8 @@ export default {
   color: #ddd;
 }
 
-.fileList {
+.fileNameList {
   margin: 0px;
+  cursor: pointer;
 }
 </style>
