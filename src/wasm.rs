@@ -50,5 +50,5 @@ pub fn print_log(value: &str) {
 #[cfg(target_arch = "wasm32")]
 #[wasm_bindgen]
 pub fn print_log(value: &str) {
-    alert(value);
+    log(value);
 }
