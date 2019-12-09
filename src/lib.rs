@@ -52,6 +52,10 @@ pub fn execute(file_name: String, debug_mode: usize) {
 #[cfg(target_arch = "wasm32")]
 #[wasm_bindgen]
 pub fn run_wasm(class_name: &str) {
+    use console_error_panic_hook::hook;
+    use std::panic;
+    panic::set_hook(Box::new(hook));
+
     let mut string_pool = StringPool::new();
     let inputs = get_file_content(class_name);
     let (class_file, _pc_count) = Custom::new(&mut string_pool, &inputs, 0);
