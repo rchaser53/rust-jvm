@@ -25,11 +25,11 @@
     </div>
     <div>
       <div>
-        <label>Entry File Name:</label>
+        <label class="weight">Entry File Name:</label>
         <label>{{ entryFileName }}</label>
       </div>
       <div>
-        <label>Uploaded Class Files:</label>
+        <label class="weight">Uploaded Class Files:</label>
         <ul class="fileNameList">
           <li v-for="fileName in selectedFileNames" :key="fileName" @click="selectEntryFileName(fileName)">{{ fileName }}</li>
         </ul>
@@ -107,8 +107,17 @@ export default {
   color: #ddd;
 }
 
+.weight {
+  font-weight: bold;
+}
+
 .fileNameList {
   margin: 0px;
   cursor: pointer;
+}
+
+.fileNameList > li:hover {
+  opacity: 0.5;
+  color: blue;
 }
 </style>
