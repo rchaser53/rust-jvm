@@ -1,6 +1,7 @@
 <template>
   <div class="frame">
     <setting
+      :clear-output="clearOutput"
       :entry-file-name="entryFileName"
       :selected-file-names="fileNames"
       :upload-files="uploadFiles"
@@ -36,6 +37,9 @@ export default {
     };
   },
   methods: {
+    clearOutput() {
+      this.output = [];
+    },
     runWasm(entryFileName) {
       this.rust.run_wasm(entryFileName);
       this.output = this.window.output.slice(0);

@@ -22,6 +22,12 @@
           />
         </label>
       </div>
+      <div>
+        <label class="labelButton" for="clearOutput">
+          clear
+          <input type="button" id="clearOutput" @click="clearOutput" />
+        </label>
+      </div>
     </div>
     <div>
       <div>
@@ -47,6 +53,10 @@
 <script>
 export default {
   props: {
+    clearOutput: {
+      type: Function,
+      required: true
+    },
     entryFileName: {
       type: String,
       required: true
