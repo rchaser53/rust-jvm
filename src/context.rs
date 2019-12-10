@@ -9,9 +9,7 @@ use crate::operand::Item;
 
 use crate::stackframe::Stackframe;
 use crate::string_pool::StringPool;
-use crate::utils::{
-    emit_debug_info, iniailize_primitive_array, initialize_objectref_array,
-};
+use crate::utils::{emit_debug_info, iniailize_primitive_array, initialize_objectref_array};
 use crate::wasm::get_file_content;
 
 use std::cell::RefCell;

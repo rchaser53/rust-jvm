@@ -2,6 +2,7 @@ import Vue from "vue";
 import App from "./App.vue";
 
 window.map = {};
+window.output = [];
 window.onload = async () => {
   const rust = await import("./pkg");
 

@@ -26,6 +26,7 @@ extern "C" {
 #[wasm_bindgen(module = "/web/map.js")]
 extern "C" {
     pub fn get_file_content_from_js(key: &str) -> Vec<u8>;
+    pub fn output_log(key: &str);
 }
 
 #[cfg(target_arch = "wasm32")]
@@ -40,10 +41,10 @@ pub fn get_file_content(key: &str) -> Vec<u8> {
 
 #[cfg(unix)]
 pub fn get_file_content(key: &str) -> Vec<u8> {
-  read_file(&key).expect(&format!(
-      "need to add handler for the case failed to find the class file: {}",
-      &key
-  ))
+    read_file(&key).expect(&format!(
+        "need to add handler for the case failed to find the class file: {}",
+        &key
+    ))
 }
 
 #[cfg(unix)]
@@ -54,5 +55,5 @@ pub fn print_log(value: &str) {
 #[cfg(target_arch = "wasm32")]
 #[wasm_bindgen]
 pub fn print_log(value: &str) {
-    log(value);
+    output_log(value);
 }

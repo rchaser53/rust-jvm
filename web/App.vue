@@ -7,7 +7,7 @@
       :upadate-entry-file-name="upadateEntryFileName"
       :wasm-event="runWasm"
     />
-    <result />
+    <result :output="output" />
   </div>
 </template>
 
@@ -31,12 +31,14 @@ export default {
   data() {
     return {
       entryFileName: "",
-      fileNames: []
+      fileNames: [],
+      output: []
     };
   },
   methods: {
     runWasm(entryFileName) {
       this.rust.run_wasm(entryFileName);
+      this.output = this.window.output.slice(0);
     },
     upadateEntryFileName(fileName) {
       this.entryFileName = fileName;

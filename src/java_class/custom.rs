@@ -116,8 +116,11 @@ impl Custom {
                     && method.name_index == main_index
             });
         }
-        panic!("failed to find main method in this class. the detail is below
-{}", self);
+        panic!(
+            "failed to find main method in this class. the detail is below
+{}",
+            self
+        );
     }
 
     pub fn get_clinit_code(&self) -> Option<&Code> {

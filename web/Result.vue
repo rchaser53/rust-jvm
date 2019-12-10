@@ -1,12 +1,19 @@
 <template>
-  <div>
+  <div class="frame">
     <label class="weight">Output:</label>
+    <div class="output">
+      <div v-for="(value, index) in output" :key="index">{{ value }}</div>
+    </div>
   </div>
 </template>
 
 <script>
 export default {
-  props: {}
+  props: {
+    output: {
+      type: Array
+    }
+  }
 };
 </script>
 
@@ -15,30 +22,12 @@ export default {
   display: flex;
 }
 
-.settingHeader {
-  display: flex;
-}
-
-.labelButton {
-  cursor: pointer;
-  border: solid 0.5px #9e9e9e;
-  padding: 2px 4px;
-  margin: 2px;
-  line-height: 2em;
-  border-radius: 4px;
-  font: 400 11px system-ui;
-}
-.labelButton input {
-  display: none;
-}
-
-.disable {
-  background-color: #aaa;
-  color: #ddd;
-}
-
 .weight {
   font-weight: bold;
+}
+
+.output {
+  margin-left: 30px;
 }
 
 .fileNameList {
