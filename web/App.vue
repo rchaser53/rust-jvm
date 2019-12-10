@@ -1,91 +1,75 @@
 <template>
-  <div>
-    <div class="appHeader">
-      <label :class="runJVMButtonClass" for="runJVM">
-        Run Rust JVM
-        <input
-          type="button"
-          id="runJVM"
-          :disabled="!canRunJVM"
-          @click="runJVM"
-        />
-      </label>
-      <div>
-        <label class="labelButton" for="upload">
-          Upload File
-          <input
-            type="file"
-            id="upload"
-            @change="uploads"
-            multiple="multiple"
-            accept=".class"
-          />
-        </label>
-      </div>
-    </div>
-    <div>
-      <div>
-        <label class="weight">Entry File Name:</label>
-        <label>{{ entryFileName }}</label>
-      </div>
-      <div>
-        <label class="weight">Uploaded Class Files:</label>
-        <ul class="fileNameList">
-          <li v-for="fileName in selectedFileNames" :key="fileName" @click="selectEntryFileName(fileName)">{{ fileName }}</li>
-        </ul>
-      </div>
-    </div>
+  <div class="frame">
+    <setting
+      :entry-file-name="entryFileName"
+      :selected-file-names="fileNames"
+      :upload-files="uploadFiles"
+      :upadate-entry-file-name="upadateEntryFileName"
+      :wasm-event="runWasm"
+    />
+    <result />
   </div>
 </template>
 
 <script>
+import Result from "./Result.vue";
+import Setting from "./Setting.vue";
+
 export default {
-  props: {
-    entryFileName: {
-      type: String,
-      required: true
-    },
-    selectedFileNames: {
-      type: Array,
-      required: true
-    },
-    upadateEntryFileName: {
-      type: Function,
-      required: true
-    },
-    uploadFiles: {
-      type: Function,
-      required: true
-    },
-    wasmEvent: {
-      type: Function,
-      required: true
-    },
+  components: {
+    Setting,
+    Result
   },
-  computed: {
-    canRunJVM() {
-      return this.entryFileName !== "";
+  props: {
+    rust: {
+      required: true
     },
-    runJVMButtonClass() {
-      return this.canRunJVM ? "labelButton" : "labelButton disable";
+    window: {
+      required: true
     }
   },
+  data() {
+    return {
+      entryFileName: "",
+      fileNames: []
+    };
+  },
   methods: {
-    runJVM() {
-      this.wasmEvent(this.entryFileName);
+    runWasm(entryFileName) {
+      this.rust.run_wasm(entryFileName);
     },
-    selectEntryFileName(value) {
-      this.upadateEntryFileName(value);
+    upadateEntryFileName(fileName) {
+      this.entryFileName = fileName;
     },
-    uploads(e) {
-      this.uploadFiles(e);
+    uploadFiles(e) {
+      const files = e.target.files;
+      const self = this;
+      for (let file of files) {
+        const fileName = file.name;
+        this.entryFileName = fileName;
+        if (!this.fileNames.includes(fileName)) {
+          this.fileNames.push(fileName);
+        }
+
+        const reader = new FileReader();
+        reader.onload = (function(_) {
+          return function(e) {
+            self.window.map[fileName] = new Uint8Array(e.target.result);
+          };
+        })(file);
+        reader.readAsArrayBuffer(file);
+      }
     }
   }
 };
 </script>
 
 <style scoped>
-.appHeader {
+.frame {
+  display: flex;
+}
+
+.settingHeader {
   display: flex;
 }
 
