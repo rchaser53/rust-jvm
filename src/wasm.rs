@@ -31,7 +31,11 @@ extern "C" {
 #[cfg(target_arch = "wasm32")]
 #[wasm_bindgen]
 pub fn get_file_content(key: &str) -> Vec<u8> {
-    get_file_content_from_js(key)
+    let val = get_file_content_from_js(key);
+    if val.len() == 0 {
+        panic!("undefined value come. cannot continue")
+    }
+    val
 }
 
 #[cfg(unix)]
