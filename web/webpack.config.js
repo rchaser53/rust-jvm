@@ -51,5 +51,8 @@ module.exports = {
       }
     ]
   },
-  mode: "development"
+  mode: "development",
+  devServer: {
+    open: true,
+  }
 };
