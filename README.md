@@ -6,9 +6,9 @@
 $ cargo run --bin rj -- ClassName
 ```
 
-# Play on Browsa
+# Play on Browser
 
-rust-jvm can be used on browsa using wasm.
+rust-jvm can be used on browser using wasm.
 
 ```sh
 $ cd ./web
